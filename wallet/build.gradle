@@ -15,8 +15,8 @@ android {
         minSdk 21
         targetSdkVersion 35
         ndkVersion "21.3.6528147" //shouldn't matter but gradle complains
-        versionCode 23030
-        versionName "v3.2"
+        versionCode 30300
+        versionName "v3.3"
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
         }
