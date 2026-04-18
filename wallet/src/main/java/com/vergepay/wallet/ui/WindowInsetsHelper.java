@@ -80,6 +80,29 @@ final class WindowInsetsHelper {
         ViewCompat.requestApplyInsets(view);
     }
 
+    static void applySystemTopInsetAsPadding(final View view, final int extraTopPaddingPx) {
+        if (view == null) return;
+
+        final int basePaddingLeft = view.getPaddingLeft();
+        final int basePaddingTop = view.getPaddingTop();
+        final int basePaddingRight = view.getPaddingRight();
+        final int basePaddingBottom = view.getPaddingBottom();
+
+        ViewCompat.setOnApplyWindowInsetsListener(view, new android.support.v4.view.OnApplyWindowInsetsListener() {
+            @Override
+            public WindowInsetsCompat onApplyWindowInsets(View v, WindowInsetsCompat insets) {
+                v.setPadding(
+                        basePaddingLeft,
+                        basePaddingTop + insets.getSystemWindowInsetTop() + extraTopPaddingPx,
+                        basePaddingRight,
+                        basePaddingBottom
+                );
+                return insets;
+            }
+        });
+        ViewCompat.requestApplyInsets(view);
+    }
+
     static void applyTopInsetAsMargin(final View view, final int extraTopMarginPx) {
         if (view == null) return;
         if (!(view.getLayoutParams() instanceof ViewGroup.MarginLayoutParams)) return;

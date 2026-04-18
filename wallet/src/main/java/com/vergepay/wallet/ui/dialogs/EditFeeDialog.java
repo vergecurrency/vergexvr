@@ -2,11 +2,13 @@ package com.vergepay.wallet.ui.dialogs;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AlertDialog;
 import android.view.View;
+import android.view.Window;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.vergepay.core.coins.CoinID;
@@ -17,7 +19,6 @@ import com.vergepay.wallet.Configuration;
 import com.vergepay.wallet.Constants;
 import com.vergepay.wallet.R;
 import com.vergepay.wallet.WalletApplication;
-import com.vergepay.wallet.ui.DialogBuilder;
 import com.vergepay.wallet.ui.widget.AmountEditView;
 
 import butterknife.BindView;
@@ -29,10 +30,18 @@ import static com.vergepay.core.Preconditions.checkState;
  * @author John L. Jegutanis
  */
 public class EditFeeDialog extends DialogFragment {
+    @BindView(R.id.fee_title)
+    TextView title;
     @BindView(R.id.fee_description)
     TextView description;
     @BindView(R.id.fee_amount)
     AmountEditView feeAmount;
+    @BindView(R.id.fee_cancel)
+    Button cancelButton;
+    @BindView(R.id.fee_default)
+    Button defaultButton;
+    @BindView(R.id.fee_ok)
+    Button okButton;
     Configuration configuration;
     Resources resources;
 
@@ -53,7 +62,7 @@ public class EditFeeDialog extends DialogFragment {
 
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         checkState(getArguments().containsKey(Constants.ARG_COIN_ID), "Must provide coin id");
-        View view = View.inflate(getActivity(), R.layout.edit_fee_dialog, null);
+        View view = View.inflate(getActivity(), R.layout.dialog_edit_fee_themed, null);
         ButterKnife.bind(this, view);
 
         // TODO move to xml
@@ -73,36 +82,42 @@ public class EditFeeDialog extends DialogFragment {
             default:
                 throw new RuntimeException("Unknown fee policy " + type.getFeePolicy());
         }
+        title.setText(resources.getString(R.string.tx_fees_title, type.getName()));
         description.setText(resources.getString(R.string.tx_fees_description, feePolicy));
 
         final Value fee = configuration.getFeeValue(type);
         feeAmount.setAmount(fee, false);
 
-        final DialogBuilder builder = new DialogBuilder(getActivity());
-        builder.setTitle(resources.getString(R.string.tx_fees_title, type.getName()));
-        builder.setView(view);
-        DialogInterface.OnClickListener onClickListener = new DialogInterface.OnClickListener() {
+        final AlertDialog dialog = new AlertDialog.Builder(getActivity()).setView(view).create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which) {
-                    case DialogInterface.BUTTON_POSITIVE:
-                        Value newFee = feeAmount.getAmount();
-                        if (newFee != null && !newFee.equals(fee)) {
-                            configuration.setFeeValue(newFee);
-                        }
-                        break;
-                    case DialogInterface.BUTTON_NEUTRAL:
-                        configuration.resetFeeValue(type);
-                        break;
-                }
-
-
+            public void onClick(View v) {
+                dismiss();
             }
-        };
-        builder.setNegativeButton(R.string.button_cancel, onClickListener);
-        builder.setNeutralButton(R.string.button_default, onClickListener);
-        builder.setPositiveButton(R.string.button_ok, onClickListener);
+        });
+        defaultButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                configuration.resetFeeValue(type);
+                dismiss();
+            }
+        });
+        okButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Value newFee = feeAmount.getAmount();
+                if (newFee != null && !newFee.equals(fee)) {
+                    configuration.setFeeValue(newFee);
+                }
+                dismiss();
+            }
+        });
 
-        return builder.create();
+        return dialog;
     }
 }

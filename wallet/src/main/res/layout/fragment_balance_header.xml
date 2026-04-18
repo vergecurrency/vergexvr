@@ -83,12 +83,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
+            android:fontFeatureSettings="'tnum'"
+            android:fontFamily="@font/orbitron_medium"
             android:gravity="center"
-            android:textColor="@color/text_primary"
-            android:textSize="67sp"
-            android:fontFamily="monospace"
             android:includeFontPadding="false"
             android:layout_marginBottom="8dp"
+            android:letterSpacing="-0.04"
+            android:textColor="@color/text_primary"
+            android:textSize="67sp"
             tools:text="1234.5678 XVG" />
 
         <TextView

@@ -42,9 +42,15 @@
 
             <Button
                 android:id="@+id/button_execute_password_test"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/button_execute" />
+                android:layout_width="140dp"
+                android:layout_height="48dp"
+                android:background="@drawable/send_button_bg"
+                android:fontFamily="sans-serif-condensed"
+                android:letterSpacing="0.08"
+                android:text="@string/button_execute"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:textSize="16sp" />
         </LinearLayout>
 
     </LinearLayout>

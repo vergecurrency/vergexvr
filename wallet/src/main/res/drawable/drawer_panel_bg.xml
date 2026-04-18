@@ -5,16 +5,16 @@
             <gradient
                 android:angle="270"
                 android:endColor="@color/primary_800"
-                android:startColor="@color/primary_700" />
+                android:startColor="#120B1D" />
         </shape>
     </item>
     <item android:right="-140dp" android:top="-30dp">
         <shape android:shape="oval">
             <gradient
                 android:angle="0"
-                android:centerColor="#44FF4FD8"
-                android:endColor="#00FF4FD8"
-                android:startColor="#10FF4FD8" />
+                android:centerColor="#3D20DFC8"
+                android:endColor="#0020DFC8"
+                android:startColor="#0D20DFC8" />
         </shape>
     </item>
 </layer-list>

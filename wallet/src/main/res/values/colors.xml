@@ -1,40 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary_100">#2B194D</color>
-    <color name="primary_500">#6E49C8</color>
-    <color name="primary_700">#17112B</color>
-    <color name="primary_800">#0D0A1B</color>
-    <color name="primary_900">#070511</color>
-    <color name="accent">#FF4FD8</color>
-    <color name="accent_alt">#30E3FF</color>
-    <color name="surface_raised">#181330</color>
-    <color name="surface_card">#21173D</color>
-    <color name="surface_card_alt">#261B49</color>
-    <color name="stroke_glow">#66FF4FD8</color>
-    <color name="stroke_soft">#4030E3FF</color>
-    <color name="text_primary">#F7F1FF</color>
-    <color name="text_secondary">#C9B8F3</color>
-    <color name="text_muted">#9A8BBB</color>
+    <color name="primary_100">#26153B</color>
+    <color name="primary_500">#5B2FA0</color>
+    <color name="primary_700">#120B1D</color>
+    <color name="primary_800">#08050F</color>
+    <color name="primary_900">#030207</color>
+    <color name="accent">#7A3DF0</color>
+    <color name="accent_alt">#20DFC8</color>
+    <color name="surface_raised">#120B1E</color>
+    <color name="surface_card">#181126</color>
+    <color name="surface_card_alt">#211735</color>
+    <color name="stroke_glow">#6620DFC8</color>
+    <color name="stroke_soft">#404A3680</color>
+    <color name="text_primary">#F6F3FF</color>
+    <color name="text_secondary">#B9ADD8</color>
+    <color name="text_muted">#897DA7</color>
 
-    <color name="send_light">#4A1C3D</color>
-    <color name="send_normal">#FF7A45</color>
-    <color name="receive_light">#113951</color>
-    <color name="receive_normal">#30E3FF</color>
+    <color name="send_light">#251440</color>
+    <color name="send_normal">#7A3DF0</color>
+    <color name="receive_light">#0C2A2A</color>
+    <color name="receive_normal">#20DFC8</color>
 
     <color name="white">#FFFFFF</color>
     <color name="white_almost">#F3F3F3</color>
 
     <color name="gray_87_text">#E6FFFFFF</color>
-    <color name="gray_54_sec_text_icons">#B8D5CBF4</color>
-    <color name="gray_26_hint_text">#809A8BBB</color>
-    <color name="gray_12_dividers">#334C3F73</color>
+    <color name="gray_54_sec_text_icons">#B8C2B9DB</color>
+    <color name="gray_26_hint_text">#80897DA7</color>
+    <color name="gray_12_dividers">#33453765</color>
 
     <color name="send_color_fg">@color/send_normal</color>
     <color name="receive_color_fg">@color/receive_normal</color>
     <color name="send_color_bg">@color/send_light</color>
     <color name="receive_color_bg">@color/receive_light</color>
 
-    <color name="address_bg_unused">#FFC3E297</color>
+    <color name="address_bg_unused">#FF67C1AE</color>
     <color name="address_bg_used">@color/receive_color_bg</color>
 
     <color name="actionbar_fg">@color/text_primary</color>
@@ -53,20 +53,20 @@
     <color name="fg_ok">#57F287</color>
 
     <!-- background -->
-    <color name="bg_list">#6621173D</color>
-    <color name="bg_list_selected">#88412672</color>
+    <color name="bg_list">#66181126</color>
+    <color name="bg_list_selected">#8833254F</color>
 
     <!-- scanner -->
-    <color name="scan_mask">#AA05030D</color>
-    <color name="scan_laser">#FF4FD8</color>
-    <color name="scan_dot">#30E3FF</color>
-    <color name="scan_result_view">#CC090612</color>
-    <color name="scan_result_dots">#CCFFB84D</color>
+    <color name="scan_mask">#CC030207</color>
+    <color name="scan_laser">#20DFC8</color>
+    <color name="scan_dot">#7A3DF0</color>
+    <color name="scan_result_view">#CC06040C</color>
+    <color name="scan_result_dots">#CC20DFC8</color>
 
-    <color name="progress_bar_color_1">#2D154F</color>
-    <color name="progress_bar_color_2">#30E3FF</color>
-    <color name="progress_bar_color_3">#FF4FD8</color>
-    <color name="progress_bar_color_4">#FF9B54</color>
+    <color name="progress_bar_color_1">#241038</color>
+    <color name="progress_bar_color_2">#20DFC8</color>
+    <color name="progress_bar_color_3">#7A3DF0</color>
+    <color name="progress_bar_color_4">#3E6BFF</color>
 
     <!-- QR code -->
     <color name="qr_code_normal_bg">#00000000</color>
