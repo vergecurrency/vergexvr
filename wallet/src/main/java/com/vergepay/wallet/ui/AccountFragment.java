@@ -1,15 +1,17 @@
 package com.vergepay.wallet.ui;
 
 import android.content.Context;
-import android.os.Bundle;
 import android.os.Message;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.view.ActionMode;
+import android.view.DisplayCutout;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Gravity;
 import android.view.ContextThemeWrapper;
+import android.view.WindowInsets;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -161,25 +164,55 @@ public class AccountFragment extends Fragment {
                 new AppSectionsPagerAdapter(getActivity(), getChildFragmentManager(), account));
 
         WindowInsetsHelper.applyPaddingInsets(view, false, false);
-        WindowInsetsHelper.applyTopInsetAsPadding(
-                accountNavContainer,
-                getNavbarCutoutExtraTop());
+        if (isPixelLikeDevice()) {
+            accountRoot.post(new Runnable() {
+                @Override
+                public void run() {
+                    applyPixelSafeTopMargin();
+                }
+            });
+        } else {
+            WindowInsetsHelper.applyTopInsetAsPadding(accountNavContainer, 0);
+        }
 
         return view;
     }
 
-    private int getNavbarCutoutExtraTop() {
+    private boolean isPixelLikeDevice() {
         String manufacturer = Build.MANUFACTURER != null ? Build.MANUFACTURER.toLowerCase() : "";
         String model = Build.MODEL != null ? Build.MODEL.toLowerCase() : "";
         String fingerprint = Build.FINGERPRINT != null ? Build.FINGERPRINT.toLowerCase() : "";
 
-        boolean isGoogleDevice = manufacturer.contains("google");
-        boolean isPixelLikeEmulator = model.contains("sdk_gphone") || fingerprint.contains("generic");
+        return manufacturer.contains("google")
+                || model.contains("sdk_gphone")
+                || fingerprint.contains("generic");
+    }
 
-        if (isGoogleDevice || isPixelLikeEmulator) {
-            return getResources().getDimensionPixelSize(R.dimen.navbar_cutout_extra_top_pixel);
+    private void applyPixelSafeTopMargin() {
+        if (accountRoot == null || accountNavContainer == null) return;
+        if (!(accountNavContainer.getLayoutParams() instanceof ViewGroup.MarginLayoutParams)) return;
+
+        int resolvedTopInset = 0;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            WindowInsets rootInsets = accountRoot.getRootWindowInsets();
+            if (rootInsets != null) {
+                resolvedTopInset = rootInsets.getSystemWindowInsetTop();
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    DisplayCutout displayCutout = rootInsets.getDisplayCutout();
+                    if (displayCutout != null) {
+                        resolvedTopInset = Math.max(resolvedTopInset, displayCutout.getSafeInsetTop());
+                    }
+                }
+            }
         }
-        return 0;
+
+        ViewGroup.MarginLayoutParams layoutParams =
+                (ViewGroup.MarginLayoutParams) accountNavContainer.getLayoutParams();
+        layoutParams.topMargin = getResources().getDimensionPixelSize(R.dimen.account_nav_default_top_margin)
+                + resolvedTopInset;
+        accountNavContainer.setLayoutParams(layoutParams);
+        accountNavContainer.requestLayout();
     }
 
     @Override

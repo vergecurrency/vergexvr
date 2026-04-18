@@ -66,27 +66,30 @@
                 android:ems="10"
                 android:inputType="textPassword" />
 
-            <RelativeLayout
+            <Button
+                android:id="@+id/button_confirm"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/send_button_bg"
+                android:fontFamily="sans-serif-condensed"
+                android:letterSpacing="0.1"
+                android:text="@string/button_confirm"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:textSize="19sp" />
+
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="bottom">
-
-                <Button
-                    android:id="@+id/button_confirm"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_alignParentRight="true"
-                    android:text="@string/button_confirm" />
+                android:layout_marginTop="12dp">
 
                 <include
                     layout="@layout/powered_by_shapeshift"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignBottom="@id/button_confirm"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true" />
-            </RelativeLayout>
+                    android:layout_gravity="center_horizontal" />
+            </FrameLayout>
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

@@ -194,8 +194,8 @@
         <item quantity="other">%d seconds</item>
     </plurals>
     <!-- About Activity -->
-    <string name="title_activity_about">About TORdroid</string>
-    <string name="app_name_long">Verge Tordroid</string>
+    <string name="title_activity_about">About Verge Android</string>
+    <string name="app_name_long">Verge Android</string>
     <string name="about_licence">based on Coinomi and Mycellium with added security and privacy measures.</string>
     <string name="about_credits_translations">Translations provided by:</string>
     <string name="about_credits_translations_credits" translatable="false">Tamara Castellano (Italian)\nJorge Nicolas Karmis (Spanish)\nGeorge Kimionis (Greek)\n@visvirial (Japanese)\nДенис Рейн (Russian, Ukrainian)</string>
@@ -207,7 +207,7 @@
     <string name="about_credits_crypto_icons">Crypto-icons by Chris Shepherd\nhttps://github.com/shphrd/crypto-icons</string>
     <string name="about_credits_font_icons">Font-icons by Daniel Bruce\nhttp://www.entypo.com</string>
     <string name="about_credits_exchange_rates">Exchange rates provided by\nhttp://www.cryptocoincharts.info/\nhttps://bitcoinaverage.com/</string>
-    <string name="about_verge_copyright" translatable="false">\u00A9 2022 Verge</string>
+    <string name="about_verge_copyright" translatable="false">\u00A9 2026 Verge</string>
     <!-- Add Coins -->
     <string name="title_activity_add_coins">Add coins</string>
     <!-- %1$s is the coin name e.g. ... create a Bitcoin account ... -->

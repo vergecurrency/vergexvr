@@ -6,11 +6,6 @@
         android:orderInCategory="103"
         app:showAsAction="never" />
 	
-    <item android:id="@+id/action_get_verge"
-        android:orderInCategory="105"
-        android:title="@string/action_get_verge"
-        app:showAsAction="never" />
-
     <item android:id="@+id/action_about"
         android:title="@string/action_about"
         android:orderInCategory="200"

@@ -2,7 +2,6 @@ package com.vergepay.wallet.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 
@@ -12,12 +11,13 @@ import com.vergepay.wallet.R;
 
 import javax.annotation.Nullable;
 
-public class SignTransactionActivity extends AbstractWalletFragmentActivity
+public class SignTransactionActivity extends BaseWalletActivity
         implements MakeTransactionFragment.Listener, TradeStatusFragment.Listener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fragment_wrapper);
+        setTitle(R.string.send_coins_activity_title);
 
         if (savedInstanceState == null) {
             Fragment fragment = MakeTransactionFragment.newInstance(getIntent().getExtras());
@@ -25,6 +25,8 @@ public class SignTransactionActivity extends AbstractWalletFragmentActivity
                     .add(R.id.container, fragment)
                     .commit();
         }
+
+        setupWrapperHeader();
     }
 
     @Override

@@ -672,10 +672,6 @@ final public class WalletActivity extends BaseWalletActivity implements
         } else if (id == R.id.action_about) {
             startActivity(new Intent(WalletActivity.this, AboutActivity.class));
             return true;
-        } else if (id == R.id.action_get_verge) {
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://vergecurrency.com/get-verge/"));
-            startActivity(browserIntent);
-            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -842,10 +838,6 @@ final public class WalletActivity extends BaseWalletActivity implements
             return true;
         } else if (itemId == R.id.action_about) {
             startActivity(new Intent(WalletActivity.this, AboutActivity.class));
-            return true;
-        } else if (itemId == R.id.action_get_verge) {
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://vergecurrency.com/get-verge/"));
-            startActivity(browserIntent);
             return true;
         }
         return false;
