@@ -2,46 +2,32 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
-            <gradient
-                android:angle="270"
-                android:endColor="#010103"
-                android:startColor="#06040B" />
+            <solid android:color="#020204" />
         </shape>
     </item>
-    <item android:top="-280dp" android:left="-120dp" android:right="150dp">
+    <item
+        android:left="-130dp"
+        android:top="-240dp"
+        android:right="150dp">
         <shape android:shape="oval">
             <gradient
                 android:angle="45"
-                android:centerColor="#3020DFC8"
-                android:endColor="#0020DFC8"
-                android:startColor="#0620DFC8" />
+                android:centerColor="#16158F84"
+                android:endColor="#00158F84"
+                android:startColor="#02158F84" />
         </shape>
     </item>
-    <item android:top="-180dp" android:right="-120dp" android:left="130dp">
-        <shape android:shape="oval">
-            <gradient
-                android:angle="45"
-                android:centerColor="#387A3DF0"
-                android:endColor="#007A3DF0"
-                android:startColor="#087A3DF0" />
-        </shape>
-    </item>
-    <item android:top="260dp" android:left="-140dp" android:right="180dp">
+    <item
+        android:left="145dp"
+        android:top="240dp"
+        android:right="-120dp"
+        android:bottom="-170dp">
         <shape android:shape="oval">
             <gradient
                 android:angle="0"
-                android:centerColor="#1E34225F"
-                android:endColor="#0034225F"
-                android:startColor="#0434225F" />
-        </shape>
-    </item>
-    <item android:bottom="-220dp" android:right="-120dp" android:left="150dp">
-        <shape android:shape="oval">
-            <gradient
-                android:angle="0"
-                android:centerColor="#2220DFC8"
-                android:endColor="#0020DFC8"
-                android:startColor="#0420DFC8" />
+                android:centerColor="#26180E34"
+                android:endColor="#00180E34"
+                android:startColor="#04180E34" />
         </shape>
     </item>
 </layer-list>

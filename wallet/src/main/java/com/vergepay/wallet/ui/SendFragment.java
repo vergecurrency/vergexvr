@@ -62,6 +62,7 @@ import com.vergepay.wallet.ui.widget.AddressView;
 import com.vergepay.wallet.ui.widget.AmountEditView;
 import com.vergepay.wallet.util.ThrottlingWalletChangeListener;
 import com.vergepay.wallet.util.UiUtils;
+import com.vergepay.wallet.util.UnstoppableDomainsResolver;
 import com.vergepay.wallet.util.WeakHandler;
 import com.google.common.base.Charsets;
 
@@ -146,6 +147,9 @@ public class SendFragment extends WalletFragment {
     private Configuration config;
     private Map<String, ExchangeRate> localRates = new HashMap<>();
     private ShapeShiftMarketInfo marketInfo;
+    @Nullable private ResolveUdDomainTask resolveUdDomainTask;
+    @Nullable private String resolvingDomain;
+    private boolean sendAfterDomainResolve;
 
     @BindView(R.id.send_to_address)         AutoCompleteTextView sendToAddressView;
     @BindView(R.id.send_to_address_static)  AddressView sendToStaticAddressView;
@@ -543,6 +547,10 @@ public class SendFragment extends WalletFragment {
 
     @OnClick(R.id.send_confirm)
     public void onSendClick() {
+        if (address == null) {
+            String input = sendToAddressView.getText().toString().trim();
+            if (maybeResolveDomain(input, true)) return;
+        }
         validateAddress();
         validateAmount();
         if (everythingValid())
@@ -663,6 +671,7 @@ public class SendFragment extends WalletFragment {
                 updateView();
                 return true;
             } catch (AddressMalformedException e) {
+                if (maybeResolveDomain(input, false)) return true;
                 return false;
             }
         }
@@ -952,6 +961,12 @@ public class SendFragment extends WalletFragment {
                 }
                 addressError.setVisibility(View.GONE);
             } catch (final AddressMalformedException x) {
+                if (maybeResolveDomain(input, false)) {
+                    if (isTyping) {
+                        addressError.setVisibility(View.GONE);
+                    }
+                    return;
+                }
                 // could not decode address at all
                 if (!isTyping) {
                     clearAddress(false);
@@ -961,6 +976,85 @@ public class SendFragment extends WalletFragment {
             }
             updateView();
         }
+    }
+
+    private boolean maybeResolveDomain(String input, boolean submitAfterResolve) {
+        String trimmed = input != null ? input.trim() : "";
+        if (!UnstoppableDomainsResolver.looksLikeDomain(trimmed)) return false;
+
+        resolveDomain(trimmed, submitAfterResolve);
+        return true;
+    }
+
+    private void resolveDomain(String domain, boolean submitAfterResolve) {
+        if (resolveUdDomainTask != null && domain.equalsIgnoreCase(resolvingDomain)) {
+            sendAfterDomainResolve = sendAfterDomainResolve || submitAfterResolve;
+            return;
+        }
+
+        if (resolveUdDomainTask != null) {
+            resolveUdDomainTask.cancel(true);
+        }
+
+        resolvingDomain = domain;
+        sendAfterDomainResolve = submitAfterResolve;
+        clearAddress(false);
+        addressError.setText(R.string.address_resolving_domain);
+        addressError.setVisibility(View.VISIBLE);
+        updateView();
+
+        resolveUdDomainTask = new ResolveUdDomainTask();
+        resolveUdDomainTask.execute(domain);
+    }
+
+    private void onDomainResolved(String resolvedAddress) {
+        if (!isAdded()) return;
+
+        resolveUdDomainTask = null;
+        resolvingDomain = null;
+
+        try {
+            AbstractAddress resolved = account.getCoinType().newAddress(resolvedAddress);
+            setAddress(resolved, false);
+            sendAmountType = resolved.getType();
+            addressError.setVisibility(View.GONE);
+            updateView();
+            validateAmount();
+            if (sendAfterDomainResolve && everythingValid()) {
+                handleSendConfirm();
+            }
+        } catch (AddressMalformedException e) {
+            addressError.setText(R.string.address_error_domain_resolution);
+            addressError.setVisibility(View.VISIBLE);
+            updateView();
+        } finally {
+            sendAfterDomainResolve = false;
+        }
+    }
+
+    private void onDomainResolutionFailed(Exception error) {
+        if (!isAdded()) return;
+
+        resolveUdDomainTask = null;
+        resolvingDomain = null;
+        sendAfterDomainResolve = false;
+        clearAddress(false);
+
+        if (error instanceof UnstoppableDomainsResolver.ResolutionException) {
+            String message = error.getMessage();
+            if ("missing_api_token".equals(message)) {
+                addressError.setText(R.string.address_error_domain_token_missing);
+            } else if ("record_not_found".equals(message) || "no_records".equals(message)) {
+                addressError.setText(R.string.address_error_domain_not_found);
+            } else {
+                addressError.setText(R.string.address_error_domain_resolution);
+            }
+        } else {
+            addressError.setText(R.string.address_error_domain_resolution);
+        }
+
+        addressError.setVisibility(View.VISIBLE);
+        updateView();
     }
 
     private void setSendToAddressText(String addressStr) {
@@ -1062,9 +1156,41 @@ public class SendFragment extends WalletFragment {
         getLoaderManager().destroyLoader(ID_RECEIVING_ADDRESS_LOADER);
         getLoaderManager().destroyLoader(ID_RATE_LOADER);
 
+        if (resolveUdDomainTask != null) {
+            resolveUdDomainTask.cancel(true);
+            resolveUdDomainTask = null;
+        }
         listener = null;
         resolver = null;
         super.onDetach();
+    }
+
+    private final class ResolveUdDomainTask extends android.os.AsyncTask<String, Void, String> {
+        private Exception error;
+
+        @Override
+        protected String doInBackground(String... params) {
+            try {
+                return UnstoppableDomainsResolver.resolveAddress(
+                        getActivity(),
+                        params[0],
+                        account.getCoinType().getSymbol());
+            } catch (Exception e) {
+                error = e;
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            if (isCancelled()) return;
+
+            if (result != null) {
+                onDomainResolved(result);
+            } else {
+                onDomainResolutionFailed(error != null ? error : new IOException("resolution_failed"));
+            }
+        }
     }
 
     @Override

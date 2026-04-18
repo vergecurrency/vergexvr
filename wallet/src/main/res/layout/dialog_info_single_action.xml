@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/pincode_dialog_bg"
+    android:orientation="vertical"
+    android:padding="22dp">
+
+    <TextView
+        android:id="@+id/info_dialog_title"
+        style="@style/PageTitleText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="14dp"
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/info_dialog_message"
+        style="@style/NormalText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/panel_bg"
+        android:lineSpacingExtra="4dp"
+        android:padding="16dp"
+        android:textColor="@color/text_primary"
+        android:textSize="15sp" />
+
+    <Button
+        android:id="@+id/info_dialog_ok"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/intro_action_button_bg"
+        android:elevation="6dp"
+        android:fontFamily="sans-serif-condensed"
+        android:text="@string/button_ok"
+        android:textAllCaps="true"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp" />
+
+</LinearLayout>

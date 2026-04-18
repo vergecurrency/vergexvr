@@ -1,12 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <gradient
-        android:angle="270"
-        android:endColor="@color/surface_card"
-        android:startColor="@color/surface_raised" />
-    <corners android:radius="24dp" />
-    <stroke
-        android:width="1dp"
-        android:color="@color/stroke_soft" />
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#090A0F" />
+            <corners android:radius="24dp" />
+            <stroke
+                android:width="1dp"
+                android:color="#253DD7CC" />
+        </shape>
+    </item>
+    <item android:left="-12dp" android:top="-16dp" android:right="110dp" android:bottom="140dp">
+        <shape android:shape="oval">
+            <gradient
+                android:angle="35"
+                android:centerColor="#12158A80"
+                android:endColor="#00158A80"
+                android:startColor="#02158A80" />
+        </shape>
+    </item>
+    <item android:left="110dp" android:top="120dp" android:right="-24dp" android:bottom="-24dp">
+        <shape android:shape="oval">
+            <gradient
+                android:angle="0"
+                android:centerColor="#18180E34"
+                android:endColor="#00180E34"
+                android:startColor="#02180E34" />
+        </shape>
+    </item>
+</layer-list>

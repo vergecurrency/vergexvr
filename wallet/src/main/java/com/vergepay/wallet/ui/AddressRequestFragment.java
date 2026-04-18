@@ -285,7 +285,7 @@ public class AddressRequestFragment extends WalletFragment {
 
         updateLabel();
 
-        updateQrCode(getUri());
+        updateQrCode(getQrContent());
     }
 
     private String getUri() {
@@ -297,6 +297,10 @@ public class AddressRequestFragment extends WalletFragment {
         } else {
             throw new UnsupportedCoinTypeException(type);
         }
+    }
+
+    private String getQrContent() {
+        return receiveAddress != null ? receiveAddress.toString() : "";
     }
 
     /**

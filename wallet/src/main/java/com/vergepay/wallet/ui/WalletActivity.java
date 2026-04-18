@@ -25,6 +25,8 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
 import android.widget.Toast;
 
 import com.vergepay.core.coins.CoinType;
@@ -263,25 +265,7 @@ final public class WalletActivity extends BaseWalletActivity implements
             }
             sendBroadcast(intent);
         } catch (PackageManager.NameNotFoundException e) {
-            new android.support.v7.app.AlertDialog.Builder(this)
-                    .setMessage("In order to use this application Orbot must be installed")
-                    .setPositiveButton("Install", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            try {
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=org.torproject.android")));
-                            } catch (ActivityNotFoundException anfe) {
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=org.torproject.android")));
-                            }
-                        }
-                    })
-                    .setNeutralButton("Tor is running", null)
-                    .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            finish();
-                        }
-                    }).show();
+            showOrbotRequiredDialog();
             e.printStackTrace();
         }
 
@@ -496,6 +480,47 @@ final public class WalletActivity extends BaseWalletActivity implements
 
         builder.setNegativeButton(R.string.button_dismiss, null);
         builder.create().show();
+    }
+
+    private void showOrbotRequiredDialog() {
+        final View view = getLayoutInflater().inflate(R.layout.dialog_orbot_required, null);
+        final AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(view)
+                .setCancelable(true)
+                .create();
+
+        view.findViewById(R.id.orbot_required_install).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW,
+                            Uri.parse("market://details?id=org.torproject.android")));
+                } catch (ActivityNotFoundException anfe) {
+                    startActivity(new Intent(Intent.ACTION_VIEW,
+                            Uri.parse("https://play.google.com/store/apps/details?id=org.torproject.android")));
+                }
+            }
+        });
+        view.findViewById(R.id.orbot_required_running).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        view.findViewById(R.id.orbot_required_exit).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                finish();
+            }
+        });
+
+        dialog.show();
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawableResource(android.R.color.transparent);
+        }
     }
 
     @Override

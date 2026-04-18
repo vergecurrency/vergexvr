@@ -46,6 +46,8 @@
     <string name="button_agree">Agree</string>
     <string name="button_disagree">Disagree</string>
     <string name="button_execute">Execute</string>
+    <string name="button_install">Install</string>
+    <string name="button_exit">Exit</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="scan_qr_code">Scan QR code</string>
@@ -101,6 +103,9 @@
     <!-- Wallet activity -->
     <string name="wallet_update_title">New version available</string>
     <string name="wallet_update_message">A new version of TORdroid is available, it contains new features and fixes.</string>
+    <string name="orbot_required_title">Orbot Required</string>
+    <string name="orbot_required_message">In order to use this application Orbot must be installed.</string>
+    <string name="orbot_required_running">Tor is running</string>
     <string name="pay_with">Send with</string>
     <string name="exchange_and_pay_title">Exchange and send</string>
     <string name="page_label_receive_xvg">Receive $XVG</string>
@@ -141,6 +146,10 @@
     <!-- Here the \"%1$s\" is the "coin name"-->
     <string name="unsupported_coin">Coin \"%1$s\" is not supported.</string>
     <string name="address_error">The provided address is not valid.</string>
+    <string name="address_resolving_domain">Resolving domain…</string>
+    <string name="address_error_domain_not_found">This domain does not have an XVG address record.</string>
+    <string name="address_error_domain_resolution">Could not resolve this domain.</string>
+    <string name="address_error_domain_token_missing">Unstoppable Domains API token is not configured.</string>
     <string name="amount_error">The provided amount is not valid</string>
     <string name="amount_error_empty">Please enter an amount</string>
     <string name="amount_error_negative">Cannot send a negative amount</string>

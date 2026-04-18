@@ -82,6 +82,7 @@
     <dimen name="retro_card_margin_horizontal">12dp</dimen>
     <dimen name="retro_card_margin_vertical">8dp</dimen>
     <dimen name="navbar_cutout_extra_top_pixel">10dp</dimen>
+    <dimen name="navbar_non_pixel_top_adjust">-4dp</dimen>
 
     <!-- Transaction Row -->
     <dimen name="transaction_row_margin_direction">@dimen/row_font_icon_margin</dimen>

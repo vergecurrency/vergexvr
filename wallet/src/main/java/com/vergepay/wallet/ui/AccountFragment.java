@@ -172,7 +172,9 @@ public class AccountFragment extends Fragment {
                 }
             });
         } else {
-            WindowInsetsHelper.applySystemTopInsetAsPadding(accountNavContainer, 0);
+            WindowInsetsHelper.applySystemTopInsetAsPadding(
+                    accountNavContainer,
+                    getResources().getDimensionPixelSize(R.dimen.navbar_non_pixel_top_adjust));
         }
 
         return view;

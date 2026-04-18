@@ -47,7 +47,7 @@ public class DialogBuilder extends AlertDialog.Builder {
     }
 
     public DialogBuilder(final Context context) {
-        super(context);
+        super(context, R.style.AppAlertDialogTheme);
 
         this.customTitle = LayoutInflater.from(context).inflate(R.layout.dialog_title, null);
         this.iconView = customTitle.findViewById(android.R.id.icon);
