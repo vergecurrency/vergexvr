@@ -80,9 +80,9 @@ public class CoinListItem extends LinearLayout implements Checkable {
         isChecked = checked;
 
         if (isChecked) {
-            view.setBackgroundResource(R.color.primary_100);
+            view.setBackgroundResource(R.drawable.coin_list_item_selected_bg);
         } else {
-            view.setBackgroundResource(0);
+            view.setBackgroundResource(R.drawable.drawer_item_default_bg);
         }
     }
 

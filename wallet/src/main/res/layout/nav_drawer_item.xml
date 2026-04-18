@@ -5,8 +5,10 @@
     android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
-    android:paddingTop="2dp"
-    android:paddingBottom="2dp"
+    android:background="@drawable/drawer_item_default_bg"
+    android:minHeight="52dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
     android:paddingStart="@dimen/half_standard_margin"
     android:paddingLeft="@dimen/half_standard_margin"
     android:paddingEnd="@dimen/half_standard_margin"
@@ -25,5 +27,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         style="@style/NormalText"
+        android:fontFamily="sans-serif-condensed"
+        android:textSize="16sp"
         tools:text="Coin name"/>
 </LinearLayout>

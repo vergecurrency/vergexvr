@@ -6,14 +6,20 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingTop="@dimen/overview_amount_margin_top"
-    android:paddingBottom="@dimen/transaction_row_padding_vertical" >
+    android:paddingTop="10dp"
+    android:paddingBottom="@dimen/transaction_row_padding_vertical"
+    android:paddingLeft="@dimen/retro_card_margin_horizontal"
+    android:paddingRight="@dimen/retro_card_margin_horizontal" >
 
 
     <LinearLayout
         android:orientation="vertical"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/hero_panel_bg"
+        android:gravity="center_horizontal"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp"
         android:paddingStart="@dimen/activity_horizontal_margin"
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingEnd="@dimen/activity_horizontal_margin"

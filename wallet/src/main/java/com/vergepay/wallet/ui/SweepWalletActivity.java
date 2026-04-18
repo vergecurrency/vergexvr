@@ -26,6 +26,8 @@ public class SweepWalletActivity extends BaseWalletActivity implements SweepWall
                     .add(R.id.container, fragment)
                     .commit();
         }
+
+        setupWrapperHeader();
     }
 
     @Override

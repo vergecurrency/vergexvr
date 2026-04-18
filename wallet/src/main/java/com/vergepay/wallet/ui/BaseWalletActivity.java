@@ -5,6 +5,10 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.os.Build;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.vergepay.core.coins.CoinType;
@@ -25,6 +29,48 @@ import static com.vergepay.wallet.util.Crypto.hashMD5;
  * @author John L. Jegutanis
  */
 abstract public class BaseWalletActivity extends AppCompatActivity {
+    protected void setupWrapperHeader() {
+        setupWrapperHeader(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+    }
+
+    protected void setupWrapperHeader(View.OnClickListener backClickListener) {
+        ImageButton backButton = findViewById(R.id.wrapper_back);
+        TextView titleView = findViewById(R.id.wrapper_title);
+
+        if (backButton != null) {
+            backButton.setOnClickListener(backClickListener);
+        }
+        if (titleView != null) {
+            titleView.setText(getTitle());
+        }
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
+
+        WindowInsetsHelper.applyPaddingInsets(findViewById(R.id.wrapper_root), false, true);
+        WindowInsetsHelper.applyTopInsetAsPadding(
+                findViewById(R.id.wrapper_nav_container),
+                getNavbarCutoutExtraTop());
+    }
+
+    protected int getNavbarCutoutExtraTop() {
+        String manufacturer = Build.MANUFACTURER != null ? Build.MANUFACTURER.toLowerCase() : "";
+        String model = Build.MODEL != null ? Build.MODEL.toLowerCase() : "";
+        String fingerprint = Build.FINGERPRINT != null ? Build.FINGERPRINT.toLowerCase() : "";
+
+        boolean isGoogleDevice = manufacturer.contains("google");
+        boolean isPixelLikeEmulator = model.contains("sdk_gphone") || fingerprint.contains("generic");
+
+        if (isGoogleDevice || isPixelLikeEmulator) {
+            return getResources().getDimensionPixelSize(R.dimen.navbar_cutout_extra_top_pixel);
+        }
+        return 0;
+    }
 
     public WalletApplication getWalletApplication() {
         return (WalletApplication) getApplication();

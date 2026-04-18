@@ -1,8 +1,6 @@
 package com.vergepay.wallet.ui;
 
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
-
 import com.vergepay.wallet.R;
 
 /**
@@ -21,11 +19,6 @@ public class ExchangeRatesActivity extends BaseWalletActivity {
                     .add(R.id.container, fragment)
                     .commit();
         }
-
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setDisplayShowHomeEnabled(false);
-        }
+        setupWrapperHeader();
     }
 }

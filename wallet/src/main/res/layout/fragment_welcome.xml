@@ -1,34 +1,41 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             tools:context="com.vergepay.wallet.ui.WelcomeFragment">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.vergepay.wallet.ui.WelcomeFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingLeft="24dp"
+        android:paddingTop="20dp"
+        android:paddingRight="24dp"
+        android:paddingBottom="24dp">
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.48" />
 
         <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
+            android:layout_width="330dp"
+            android:layout_height="330dp"
             android:layout_gravity="center_horizontal"
-            android:layout_weight="3"
-            android:padding="@dimen/standard_margin"
+            android:adjustViewBounds="true"
             android:src="@drawable/intro_logo"/>
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_weight="0"
+            android:layout_marginTop="10dp"
             android:gravity="center"
             android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/orbitron_medium"
                 android:gravity="center"
                 android:text="@string/welcome_title"
                 android:textColor="@color/white"
@@ -46,32 +53,46 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_weight=".5"
+            android:layout_marginTop="28dp"
             android:gravity="center"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:weightSum="2">
 
             <Button
                 android:id="@+id/create_wallet"
-                style="@style/Widget.AppCompat.Button.Borderless.Colored"
-                android:layout_width="@dimen/intro_button_width"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
+                android:layout_width="0dp"
+                android:layout_height="58dp"
+                android:layout_marginRight="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/intro_action_button_bg"
+                android:elevation="6dp"
+                android:fontFamily="sans-serif-condensed"
                 android:text="@string/create_wallet"
-                />
+                android:textAllCaps="true"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
 
             <Button
                 android:id="@+id/restore_wallet"
-                style="@style/Widget.AppCompat.Button.Borderless.Colored"
-                android:layout_width="@dimen/intro_button_width"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
+                android:layout_width="0dp"
+                android:layout_height="58dp"
+                android:layout_marginLeft="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/intro_action_button_alt_bg"
+                android:elevation="6dp"
+                android:fontFamily="sans-serif-condensed"
                 android:text="@string/restore_wallet"
-                />
+                android:textAllCaps="true"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
         </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.85" />
     </LinearLayout>
 </FrameLayout>
-
 

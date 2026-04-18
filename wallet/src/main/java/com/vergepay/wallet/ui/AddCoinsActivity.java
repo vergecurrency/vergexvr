@@ -41,8 +41,7 @@ public class AddCoinsActivity extends BaseWalletActivity
                     .add(R.id.container, new SelectCoinsFragment())
                     .commit();
         }
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(false);
+        setupWrapperHeader();
 
         wallet = getWalletApplication().getWallet();
     }

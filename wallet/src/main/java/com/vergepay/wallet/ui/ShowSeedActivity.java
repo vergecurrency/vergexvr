@@ -22,9 +22,7 @@ public class ShowSeedActivity extends BaseWalletActivity implements ShowSeedFrag
                     .add(R.id.container, new ShowSeedFragment(), SHOW_SEED_TAG)
                     .commit();
         }
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(false);
+        setupWrapperHeader();
     }
 
     @Override

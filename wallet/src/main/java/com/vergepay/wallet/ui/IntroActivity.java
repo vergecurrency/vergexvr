@@ -15,7 +15,8 @@ public class IntroActivity extends AbstractWalletFragmentActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_fragment_wrapper);
+        setContentView(R.layout.activity_fragment_plain);
+        WindowInsetsHelper.applyPaddingInsets(findViewById(R.id.container), true, true);
 
         // If we detected that this device is incompatible
         if (!getWalletApplication().getConfiguration().isDeviceCompatible()) {

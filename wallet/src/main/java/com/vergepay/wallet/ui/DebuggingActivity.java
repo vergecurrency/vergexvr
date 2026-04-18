@@ -22,9 +22,7 @@ public class DebuggingActivity extends BaseWalletActivity implements UnlockWalle
                     .add(R.id.container, new DebuggingFragment(), DEBUGGING_TAG)
                     .commit();
         }
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(false);
+        setupWrapperHeader();
     }
 
     @Override

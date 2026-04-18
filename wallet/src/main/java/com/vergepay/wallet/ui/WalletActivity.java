@@ -113,6 +113,7 @@ final public class WalletActivity extends BaseWalletActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wallet);
+        WindowInsetsHelper.applyPaddingInsets(findViewById(R.id.contents), false, false);
 		
 		new Lock();
 
@@ -165,6 +166,14 @@ final public class WalletActivity extends BaseWalletActivity implements
             }
         }
         tr.commit();
+
+        if (getSupportActionBar() != null) {
+            if (isOverviewVisible) {
+                getSupportActionBar().show();
+            } else {
+                getSupportActionBar().hide();
+            }
+        }
 
         // Setup navigation bar
         mNavigationDrawerFragment = (NavigationDrawerFragment)
@@ -282,10 +291,11 @@ final public class WalletActivity extends BaseWalletActivity implements
         // Restore the correct action bar shadow
         if (getSupportActionBar() != null) {
             if (isOverviewVisible) {
+                getSupportActionBar().show();
                 getSupportActionBar().setElevation(
                         getResources().getDimensionPixelSize(R.dimen.active_elevation));
             } else {
-                getSupportActionBar().setElevation(0);
+                getSupportActionBar().hide();
             }
         }
     }
@@ -357,6 +367,7 @@ final public class WalletActivity extends BaseWalletActivity implements
             }
             // Restore the default action bar shadow
             if (getSupportActionBar() != null) {
+                getSupportActionBar().show();
                 getSupportActionBar().setElevation(
                         getResources().getDimensionPixelSize(R.dimen.active_elevation));
             }
@@ -398,9 +409,8 @@ final public class WalletActivity extends BaseWalletActivity implements
             if (selectInNavDrawer) {
                 navDrawerSelectAccount(account, true);
             }
-            // Hide the shadow of the action bar because the PagerTabStrip of the AccountFragment is visible
             if (getSupportActionBar() != null) {
-                getSupportActionBar().setElevation(0);
+                getSupportActionBar().hide();
             }
         }
     }
@@ -806,6 +816,39 @@ final public class WalletActivity extends BaseWalletActivity implements
     @Override
     public void onSendSelected() {
         finishActionMode();
+    }
+
+    @Override
+    public void onSwapSelected() {
+        finishActionMode();
+    }
+
+    @Override
+    public boolean onAccountMenuItemSelected(int itemId) {
+        if (itemId == R.id.action_settings) {
+            startActivity(new Intent(WalletActivity.this, SettingsActivity.class));
+            return true;
+        } else if (itemId == R.id.action_refresh_wallet) {
+            refreshWallet();
+            return true;
+        } else if (itemId == R.id.action_sign_verify_message) {
+            signVerifyMessage();
+            return true;
+        } else if (itemId == R.id.action_account_details) {
+            accountDetails();
+            return true;
+        } else if (itemId == R.id.action_sweep_wallet) {
+            sweepWallet(null);
+            return true;
+        } else if (itemId == R.id.action_about) {
+            startActivity(new Intent(WalletActivity.this, AboutActivity.class));
+            return true;
+        } else if (itemId == R.id.action_get_verge) {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://vergecurrency.com/get-verge/"));
+            startActivity(browserIntent);
+            return true;
+        }
+        return false;
     }
 
 

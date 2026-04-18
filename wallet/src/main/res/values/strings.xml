@@ -27,6 +27,7 @@
     <!-- Generic items -->
     <string name="button_ok">OK</string>
     <string name="button_next">Next</string>
+    <string name="button_back">Back</string>
     <string name="button_finish">Finish</string>
     <string name="button_return">Return</string>
     <string name="button_confirm">Confirm</string>
@@ -53,6 +54,7 @@
     <string name="wallet_title_request">receive</string>
     <string name="wallet_title_balance">balance</string>
     <string name="wallet_title_send">send</string>
+    <string name="wallet_title_swap">swap</string>
     <string name="wallet_locked_message">Your wallet is locked</string>
     <string name="wallet_is_not_locked_message">Your wallet is not locked</string>
     <string name="unlock_wallet_title">Unlock your wallet</string>
@@ -86,7 +88,7 @@
     <string name="seed_regenerate_title">Touch to generate a new recovery phrase</string>
     <string name="backed_up_seed">I have safely stored my recovery phrase</string>
     <!-- Restore fragment -->
-    <string name="restore_info">Please enter your recovery phrase:</string>
+    <string name="restore_info">Please enter your recovery seedphrase words, or scan a private key QR code using the QR icon.</string>
     <string name="restore_seed_protected">Use a BIP39 passphrase</string>
     <string name="restore_skip_title">Skipping verification</string>
     <string name="restore_skip_info1">Please make sure that your recovery phrase matches the following:</string>
@@ -103,6 +105,7 @@
     <string name="exchange_and_pay_title">Exchange and send</string>
     <string name="page_label_receive_xvg">Receive $XVG</string>
     <string name="page_label_send_xvg">Send $XVG</string>
+    <string name="page_label_swap">Swap</string>
     <!-- PayToDialog-->
     <!-- Ambiguous address means that the wallet cannot deduce the correct address coin type -->
     <string name="ambiguous_address_title">Ambiguous address</string>
@@ -148,7 +151,7 @@
     <string name="amount_error_not_enough_money">Not enough money, current balance is %1$s</string>
     <string name="amount_warn_fees_apply">Slightly less will be sent because of fees</string>
     <!-- Set Password fragment -->
-    <string name="set_password_info">Set a password to protect your wallet in everyday use.</string>
+    <string name="set_password_info">Set a password to protect your wallet:</string>
     <string name="set_bip39_passphrase">Type your BIP39 passphrase</string>
     <string name="set_password1">Type your password</string>
     <string name="set_password2">Re-type your password</string>
@@ -158,7 +161,7 @@
     <string name="password_too_short_error">Password is too short, minimum %1$d characters.</string>
     <string name="passwords_mismatch">Passwords don\'t match</string>
     <string name="password_error">Could not proceed, password errors detected.</string>
-    <string name="password_skip_warn">By not setting a password, your wallet can be accessed without authorization.</string>
+    <string name="password_skip_warn">Are you sure you want to Skip making a password?</string>
     <string name="password_wallet_recovery">To restore your wallet, please provide the same BIP39 passphrase you used when created the protected recovery phrase.\nIf you enter a different passphrase, a new empty wallet will be created.</string>
     <!-- FinalizeWalletRestorationFragment -->
     <string name="wallet_restoration">Please wait while your wallet is being restored</string>
@@ -243,7 +246,7 @@
     <string name="exchange_rates_load_error">Could not load exchange rates</string>
     <string name="exchange_rates_empty_search">Could not find exchange rate</string>
     <!-- Select Coins -->
-    <string name="select_coins">If you are ready to open your wallet now, click "Verge" below, then click FINISH</string>
+    <string name="select_coins">If you are ready to open this wallet now, click the Verge icon below, and then click FINISH!</string>
     <!-- Previous Addresses -->
     <string name="title_activity_previous_addresses">My previous addresses</string>
     <string name="previous_addresses_used">Used address</string>

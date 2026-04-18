@@ -18,6 +18,8 @@ import android.support.v4.widget.CursorAdapter;
 import android.support.v7.view.ActionMode;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -115,6 +117,7 @@ public class SendFragment extends WalletFragment {
     private static final int UPDATE_WALLET_CHANGE = 2;
     private static final int UPDATE_MARKET = 3;
     private static final int SET_ADDRESS = 4;
+    private static final long SEND_BUTTON_GLOW_MS = 1400;
 
     // Loader IDs
     private static final int ID_RATE_LOADER = 0;
@@ -151,7 +154,7 @@ public class SendFragment extends WalletFragment {
     @BindView(R.id.address_error_message)   TextView addressError;
     @BindView(R.id.amount_error_message)    TextView amountError;
     @BindView(R.id.amount_warning_message)  TextView amountWarning;
-    @BindView(R.id.scan_qr_code)            ImageButton scanQrCodeButton;
+    @BindView(R.id.scan_qr_code)            Button scanQrCodeButton;
     @BindView(R.id.erase_address)           ImageButton eraseAddressButton;
     @BindView(R.id.tx_message_add_remove)   Button txMessageButton;
     @BindView(R.id.tx_message_label)        TextView txMessageLabel;
@@ -706,7 +709,7 @@ public class SendFragment extends WalletFragment {
     public void updateView() {
         if (isRemoving() || isDetached()) return;
 
-        sendConfirmButton.setEnabled(everythingValid());
+        updateSendButtonState();
 
         if (address == null) {
             setVisible(sendToAddressView);
@@ -732,6 +735,25 @@ public class SendFragment extends WalletFragment {
         // enable actions
         scanQrCodeButton.setEnabled(state == State.INPUT);
         eraseAddressButton.setEnabled(state == State.INPUT);
+    }
+
+    private void updateSendButtonState() {
+        boolean enabled = everythingValid();
+        sendConfirmButton.setEnabled(enabled);
+        sendConfirmButton.setAlpha(enabled ? 1f : 0.72f);
+
+        Animation currentAnimation = sendConfirmButton.getAnimation();
+        if (enabled) {
+            if (currentAnimation == null) {
+                AlphaAnimation pulse = new AlphaAnimation(0.88f, 1f);
+                pulse.setDuration(SEND_BUTTON_GLOW_MS);
+                pulse.setRepeatCount(Animation.INFINITE);
+                pulse.setRepeatMode(Animation.REVERSE);
+                sendConfirmButton.startAnimation(pulse);
+            }
+        } else if (currentAnimation != null) {
+            sendConfirmButton.clearAnimation();
+        }
     }
 
     private boolean isTxMessageValid() {

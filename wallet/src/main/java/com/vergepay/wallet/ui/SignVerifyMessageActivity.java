@@ -22,6 +22,8 @@ public class SignVerifyMessageActivity extends BaseWalletActivity implements Unl
                     .add(R.id.container, fragment, SIGN_VERIFY_FRAGMENT)
                     .commit();
         }
+
+        setupWrapperHeader();
     }
 
     @Override

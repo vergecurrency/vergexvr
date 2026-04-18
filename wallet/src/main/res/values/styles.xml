@@ -1,29 +1,18 @@
 <resources>
 
     <style name="AppThemeNoTitleBar" parent="Theme.AppCompat.NoActionBar">
-
         <item name="colorPrimary">@color/primary_800</item>
-
-        <!-- colorPrimaryDark is used for the status bar -->
         <item name="colorPrimaryDark">@color/primary_900</item>
-
-        <!-- colorAccent is used as the default value for colorControlActivated,
-             which is used to tint widgets -->
         <item name="colorAccent">@color/accent</item>
+        <item name="android:windowBackground">@drawable/wallet_screen_bg</item>
     </style>
 
     <style name="AppTheme" parent="Theme.AppCompat">
-        <!-- colorPrimary is used for the default action bar background -->
         <item name="colorPrimary">@color/primary_800</item>
-
-        <!-- colorPrimaryDark is used for the status bar -->
         <item name="colorPrimaryDark">@color/primary_900</item>
-
-        <!-- colorAccent is used as the default value for colorControlActivated,
-             which is used to tint widgets -->
         <item name="colorAccent">@color/accent</item>
-
         <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@drawable/wallet_screen_bg</item>
     </style>
 
     <!-- Special Button styles -->
@@ -34,7 +23,7 @@
     </style>
 
     <style name="BorderlessButtonLink" parent="BorderlessButton">
-        <item name="android:textColor">@color/primary_500</item>
+        <item name="android:textColor">@color/accent_alt</item>
     </style>
 
     <!-- Font icons -->
@@ -47,12 +36,14 @@
 
     <!-- Generic text styles -->
     <style name="NormalText" parent="@android:style/TextAppearance">
-        <item name="android:textColor">@color/white</item>
-        <item name="android:textColorLink">@color/white</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColorLink">@color/accent_alt</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
     </style>
 
     <style name="SecondaryText" parent="@android:style/TextAppearance">
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
 
     <style name="SmallHelpText" parent="SecondaryText">
@@ -98,6 +89,7 @@
     <!-- Widget amount style -->
     <style name="Amount" parent="NormalText">
         <item name="android:singleLine">true</item>
+        <item name="android:fontFamily">monospace</item>
     </style>
     <style name="AmountBig" parent="Amount">
         <item name="android:textSize">@dimen/amount_text_size_big</item>
@@ -120,7 +112,7 @@
 
     <!-- Widget send output -->
     <style name="SendOutputTypeText" parent="NormalText">
-        <item name="android:textColor">@color/primary_500</item>
+        <item name="android:textColor">@color/accent_alt</item>
     </style>
     <style name="SendOutputAmount" parent="NormalText">
         <item name="android:textSize">@dimen/send_output_amount_text_size</item>
@@ -151,6 +143,22 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <style name="SectionTitleText" parent="SecondaryText">
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/accent_alt</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:letterSpacing">0.16</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+
+    <style name="PageTitleText" parent="NormalText">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/accent_alt</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:gravity">center</item>
+    </style>
+
     <!-- About Activity -->
     <style name="AppNameLong">
         <item name="android:textSize">@dimen/app_name_long</item>
@@ -166,13 +174,40 @@
     </style>
 
     <style name="PincodeEditText" parent="Base.Widget.AppCompat.EditText">
+        <item name="android:background">@drawable/pincode_slot_bg</item>
         <item name="android:inputType">numberPassword</item>
         <item name="android:maxLength">1</item>
         <item name="android:singleLine">true</item>
         <item name="android:maxLines">1</item>
         <item name="android:textAlignment">center</item>
         <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textAppearance">@style/TextAppearance.AppCompat.Large</item>
+    </style>
+
+    <style name="RetroPopupMenu" parent="Widget.AppCompat.PopupMenu">
+        <item name="android:popupBackground">@drawable/retro_popup_menu_bg</item>
+        <item name="android:dropDownHorizontalOffset">-8dp</item>
+        <item name="android:dropDownVerticalOffset">6dp</item>
+        <item name="dropDownListViewStyle">@style/RetroPopupMenuListView</item>
+        <item name="android:textAppearanceLargePopupMenu">@style/RetroPopupMenuText</item>
+        <item name="android:textAppearanceSmallPopupMenu">@style/RetroPopupMenuText</item>
+        <item name="textAppearanceLargePopupMenu">@style/RetroPopupMenuText</item>
+        <item name="textAppearanceSmallPopupMenu">@style/RetroPopupMenuText</item>
+    </style>
+
+    <style name="RetroPopupMenuText" parent="@style/TextAppearance.AppCompat.Body1">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="RetroPopupMenuListView" parent="Widget.AppCompat.ListView.DropDown">
+        <item name="android:listSelector">@drawable/drawer_item_selected_bg</item>
+        <item name="android:divider">@android:color/transparent</item>
+        <item name="android:dividerHeight">4dp</item>
     </style>
 
 </resources>

@@ -2,9 +2,9 @@ package com.vergepay.wallet.ui;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.vergepay.wallet.R;
 
@@ -30,12 +30,16 @@ public class PreviousAddressesActivity extends BaseWalletActivity implements
                     .add(R.id.container, addressesList, LIST_ADDRESSES_TAG)
                     .commit();
         }
-
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setDisplayShowHomeEnabled(false);
-        }
+        setupWrapperHeader(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (getFM().findFragmentByTag(LIST_ADDRESSES_TAG).isVisible()) {
+                    finish();
+                } else {
+                    getSupportFragmentManager().popBackStack();
+                }
+            }
+        });
     }
 
     @Override

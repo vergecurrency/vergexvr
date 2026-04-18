@@ -3,9 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginLeft="@dimen/retro_card_margin_horizontal"
+    android:layout_marginRight="@dimen/retro_card_margin_horizontal"
+    android:layout_marginTop="@dimen/retro_card_margin_vertical"
+    android:layout_marginBottom="@dimen/retro_card_margin_vertical"
+    android:background="@drawable/list_card_bg"
     android:orientation="horizontal"
-    android:paddingTop="@dimen/transaction_row_padding_vertical"
-    android:paddingBottom="@dimen/transaction_row_padding_vertical"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp"
     android:paddingEnd="@dimen/transaction_row_padding_horizontal"
     android:paddingLeft="@dimen/transaction_row_padding_horizontal"
     android:paddingRight="@dimen/transaction_row_padding_horizontal"
@@ -68,6 +73,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
+                android:fontFamily="sans-serif-condensed"
                 tools:text="Send to" />
 
             <TextView

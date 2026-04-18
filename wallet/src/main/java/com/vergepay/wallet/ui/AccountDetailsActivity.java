@@ -20,6 +20,8 @@ public class AccountDetailsActivity extends BaseWalletActivity implements TradeS
                     .add(R.id.container, fragment)
                     .commit();
         }
+
+        setupWrapperHeader();
     }
 
     @Override

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="315"
+                android:endColor="@color/surface_card_alt"
+                android:startColor="#27184A" />
+            <corners android:radius="28dp" />
+            <stroke
+                android:width="1dp"
+                android:color="@color/stroke_glow" />
+        </shape>
+    </item>
+    <item android:right="-24dp" android:top="-28dp">
+        <shape android:shape="oval">
+            <gradient
+                android:angle="0"
+                android:centerColor="#66FF4FD8"
+                android:endColor="#00FF4FD8"
+                android:startColor="#10FF4FD8" />
+        </shape>
+    </item>
+    <item android:left="-18dp" android:bottom="-24dp">
+        <shape android:shape="oval">
+            <gradient
+                android:angle="0"
+                android:centerColor="#5530E3FF"
+                android:endColor="#0030E3FF"
+                android:startColor="#1030E3FF" />
+        </shape>
+    </item>
+</layer-list>

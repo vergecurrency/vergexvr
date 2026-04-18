@@ -152,6 +152,7 @@ public class RestoreFragment extends Fragment {
 
         // Next button
         view.findViewById(R.id.button_next).setOnClickListener(getOnNextListener());
+        view.findViewById(R.id.button_back).setOnClickListener(getOnBackListener());
 
         return view;
     }
@@ -190,6 +191,19 @@ public class RestoreFragment extends Fragment {
                 mnemonicTextView.setText("");
                 SkipDialogFragment skipDialog = SkipDialogFragment.newInstance(seed);
                 skipDialog.show(getFragmentManager(), null);
+            }
+        };
+    }
+
+    private View.OnClickListener getOnBackListener() {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (getFragmentManager() != null && getFragmentManager().getBackStackEntryCount() > 0) {
+                    getFragmentManager().popBackStack();
+                } else if (getActivity() != null) {
+                    getActivity().onBackPressed();
+                }
             }
         };
     }

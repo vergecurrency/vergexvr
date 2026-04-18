@@ -3,8 +3,8 @@ package com.vergepay.wallet.ui;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.ContentObserver;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Message;
 import android.support.v4.app.LoaderManager;
@@ -20,7 +20,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.vergepay.core.coins.CoinType;
+import com.vergepay.core.coins.FiatValue;
 import com.vergepay.core.coins.Value;
+import com.vergepay.core.util.ExchangeRateBase;
 import com.vergepay.core.util.GenericUtils;
 import com.vergepay.core.wallet.AbstractTransaction;
 import com.vergepay.core.wallet.AbstractWallet;
@@ -29,19 +31,21 @@ import com.vergepay.core.wallet.WalletConnectivityStatus;
 import com.vergepay.wallet.AddressBookProvider;
 import com.vergepay.wallet.Configuration;
 import com.vergepay.wallet.Constants;
-import com.vergepay.wallet.ExchangeRatesProvider;
-import com.vergepay.wallet.ExchangeRatesProvider.ExchangeRate;
 import com.vergepay.wallet.R;
 import com.vergepay.wallet.WalletApplication;
-import com.vergepay.wallet.ui.widget.Amount;
 import com.vergepay.wallet.ui.widget.SwipeRefreshLayout;
+import com.vergepay.wallet.util.NetworkUtils;
 import com.vergepay.wallet.util.ThrottlingWalletChangeListener;
 import com.vergepay.wallet.util.WeakHandler;
 import com.google.common.collect.Lists;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.TransactionConfidence;
 import org.bitcoinj.utils.Threading;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,12 +81,17 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
 
     private static final int ID_TRANSACTION_LOADER = 0;
     private static final int ID_RATE_LOADER = 1;
+    private static final String COINGECKO_XVG_TICKER_URL = "https://api.coingecko.com/api/v3/simple/price?ids=verge&vs_currencies=usd";
+    private static final String CRYPTOCOMPARE_XVG_TICKER_URL = "https://min-api.cryptocompare.com/data/price?fsym=XVG&tsyms=USD";
+    private static final String PREF_BALANCE_CACHE = "balance_fragment_cache";
+    private static final String PREF_XVG_USD_RATE = "xvg_usd_rate";
+    private static final String FALLBACK_XVG_USD_RATE = "0.0038";
 
     private String accountId;
     private WalletAccount pocket;
     private CoinType type;
     private Coin currentBalance;
-    private ExchangeRate exchangeRate;
+    private Value xvgUsdRate;
 
     private boolean isFullAmount = false;
     private WalletApplication application;
@@ -94,8 +103,8 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
     @BindView(R.id.swipeContainer) SwipeRefreshLayout swipeContainer;
     @BindView(R.id.history_empty) View emptyPocketMessage;
     @BindView(R.id.get_verge) View getVergeMessage;
-    @BindView(R.id.account_balance) Amount accountBalance;
-    @BindView(R.id.account_exchanged_balance) Amount accountExchangedBalance;
+    @BindView(R.id.account_balance) TextView accountBalance;
+    @BindView(R.id.account_exchanged_balance) TextView accountExchangedBalance;
     @BindView(R.id.connection_label) TextView connectionLabel;
     @BindView(R.id.connected_dot) ImageView connectedDot;
     @BindView(R.id.disconnected_dot) ImageView disconnectedDot;
@@ -159,9 +168,7 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         }
 
         setupAdapter(inflater);
-        accountBalance.setSymbol(type.getSymbol());
-        exchangeRate = ExchangeRatesProvider.getRate(
-                application.getApplicationContext(), type.getSymbol(), config.getExchangeCurrencyCode());
+        hydrateCachedRate();
         // Update the amount
         updateBalance(pocket.getBalance());
 
@@ -287,16 +294,20 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
     private void setConnectivityStatus(final WalletConnectivityStatus connectivity) {
         switch (connectivity) {
             case CONNECTED:
+                connectionLabel.setVisibility(View.VISIBLE);
+                connectionLabel.setText("Connected");
                 connectedDot.setVisibility(View.VISIBLE);
                 disconnectedDot.setVisibility(View.GONE);
                 break;
             case LOADING:
-                connectionLabel.setVisibility(View.GONE);
+                connectionLabel.setVisibility(View.VISIBLE);
+                connectionLabel.setText("Connecting");
                 connectedDot.setVisibility(View.INVISIBLE);
                 disconnectedDot.setVisibility(View.VISIBLE);
                 break;
             case DISCONNECTED:
                 connectionLabel.setVisibility(View.VISIBLE);
+                connectionLabel.setText(getString(R.string.disconnected_label));
                 connectedDot.setVisibility(View.INVISIBLE);
                 disconnectedDot.setVisibility(View.VISIBLE);
                 break;
@@ -354,6 +365,7 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         pocket.addEventListener(walletChangeListener, Threading.SAME_THREAD);
 
         checkEmptyPocketMessage();
+        hydrateCachedRate();
 
         updateView();
     }
@@ -467,24 +479,21 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         };
     }
 
-    private final LoaderCallbacks<Cursor> rateLoaderCallbacks = new LoaderManager.LoaderCallbacks<Cursor>() {
+    private final LoaderCallbacks<Value> rateLoaderCallbacks = new LoaderManager.LoaderCallbacks<Value>() {
         @Override
-        public Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
-            String localSymbol = config.getExchangeCurrencyCode();
-            String coinSymbol = type.getSymbol();
-            return new ExchangeRateLoader(getActivity(), config, localSymbol, coinSymbol);
+        public Loader<Value> onCreateLoader(final int id, final Bundle args) {
+            return new BinanceRateLoader(getActivity());
         }
 
         @Override
-        public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
-            if (data != null && data.getCount() > 0) {
-                data.moveToFirst();
-                exchangeRate = ExchangeRatesProvider.getExchangeRate(data);
+        public void onLoadFinished(final Loader<Value> loader, final Value data) {
+            if (data != null) {
+                xvgUsdRate = data;
                 handler.sendEmptyMessage(UPDATE_VIEW);
                 if (log.isInfoEnabled()) {
                     try {
                         log.info("Got exchange rate: {}",
-                                exchangeRate.rate.convert(type.oneCoin()).toFriendlyString());
+                                GenericUtils.formatFiatValue(data));
                     } catch (Exception e) {
                         log.warn(e.getMessage());
                     }
@@ -493,7 +502,7 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         }
 
         @Override
-        public void onLoaderReset(final Loader<Cursor> loader) { }
+        public void onLoaderReset(final Loader<Value> loader) { }
     };
 
     @Override
@@ -503,19 +512,21 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         if (currentBalance != null) {
             String newBalanceStr = GenericUtils.formatCoinValue(type, currentBalance,
                     isFullAmount ? AMOUNT_FULL_PRECISION : AMOUNT_SHORT_PRECISION, AMOUNT_SHIFT);
-            accountBalance.setAmount(newBalanceStr);
+            accountBalance.setText(newBalanceStr + " " + type.getSymbol());
         }
 
-        if (currentBalance != null && exchangeRate != null && getView() != null) {
+        if (currentBalance != null && xvgUsdRate != null && getView() != null) {
             try {
-                Value fiatAmount = exchangeRate.rate.convert(type, currentBalance);
-                accountExchangedBalance.setAmount(GenericUtils.formatFiatValue(fiatAmount));
-                accountExchangedBalance.setSymbol(fiatAmount.type.getSymbol());
+                Value fiatAmount = new ExchangeRateBase(type.oneCoin(), xvgUsdRate).convert(type, currentBalance);
+                accountExchangedBalance.setText("$" + GenericUtils.formatFiatValue(fiatAmount) + " USD");
+                accountExchangedBalance.setVisibility(View.VISIBLE);
             } catch (Exception e) {
-                // Should not happen
-                accountExchangedBalance.setAmount("");
-                accountExchangedBalance.setSymbol("ERROR");
+                accountExchangedBalance.setText("");
+                accountExchangedBalance.setVisibility(View.GONE);
             }
+        } else {
+            accountExchangedBalance.setText("");
+            accountExchangedBalance.setVisibility(View.GONE);
         }
 
         swipeContainer.setRefreshing(pocket.isLoading());
@@ -525,6 +536,28 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
 
     private void clearLabelCache() {
         if (adapter != null) adapter.clearLabelCache();
+    }
+
+    private void hydrateCachedRate() {
+        Value cachedRate = readCachedRate();
+        if (cachedRate != null) {
+            xvgUsdRate = cachedRate;
+        }
+    }
+
+    private Value readCachedRate() {
+        SharedPreferences prefs = getActivity().getSharedPreferences(PREF_BALANCE_CACHE, Context.MODE_PRIVATE);
+        String cachedPrice = prefs.getString(PREF_XVG_USD_RATE, null);
+        if (cachedPrice == null || cachedPrice.length() == 0) {
+            cachedPrice = FALLBACK_XVG_USD_RATE;
+        }
+
+        try {
+            return FiatValue.parse("USD", cachedPrice);
+        } catch (Exception e) {
+            log.warn("Could not read cached overview USD rate: {}", e.getMessage());
+            return null;
+        }
     }
 
     private static class MyHandler extends WeakHandler<BalanceFragment> {
@@ -559,6 +592,91 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         @Override
         public void onChange(final boolean selfChange) {
             handler.sendEmptyMessage(CLEAR_LABEL_CACHE);
+        }
+    }
+
+    private static class BinanceRateLoader extends AsyncTaskLoader<Value> {
+        private BinanceRateLoader(final Context context) {
+            super(context);
+        }
+
+        @Override
+        protected void onStartLoading() {
+            forceLoad();
+        }
+
+        private String parseUsdPrice(JSONObject json) {
+            String price = json.optString("price", null);
+            if (price != null && price.length() > 0) {
+                return price;
+            }
+
+            double cryptoCompareUsd = json.optDouble("USD", -1d);
+            if (cryptoCompareUsd >= 0d) {
+                return String.valueOf(cryptoCompareUsd);
+            }
+
+            JSONObject verge = json.optJSONObject("verge");
+            if (verge != null) {
+                double usd = verge.optDouble("usd", -1d);
+                if (usd >= 0d) {
+                    return String.valueOf(usd);
+                }
+            }
+            return null;
+        }
+
+        private Value getCachedRate() {
+            SharedPreferences prefs = getContext().getSharedPreferences(PREF_BALANCE_CACHE, Context.MODE_PRIVATE);
+            String cachedPrice = prefs.getString(PREF_XVG_USD_RATE, null);
+            if (cachedPrice == null || cachedPrice.length() == 0) {
+                cachedPrice = FALLBACK_XVG_USD_RATE;
+            }
+            try {
+                return FiatValue.parse("USD", cachedPrice);
+            } catch (Exception e) {
+                try {
+                    return FiatValue.parse("USD", FALLBACK_XVG_USD_RATE);
+                } catch (Exception ignored) {
+                    return null;
+                }
+            }
+        }
+
+        private void cacheRate(String price) {
+            getContext().getSharedPreferences(PREF_BALANCE_CACHE, Context.MODE_PRIVATE)
+                    .edit()
+                    .putString(PREF_XVG_USD_RATE, price)
+                    .apply();
+        }
+
+        @Override
+        public Value loadInBackground() {
+            String[] urls = new String[] {
+                    COINGECKO_XVG_TICKER_URL,
+                    CRYPTOCOMPARE_XVG_TICKER_URL
+            };
+            try {
+                OkHttpClient client = NetworkUtils.getHttpClient(getContext().getApplicationContext());
+                for (String url : urls) {
+                    Request request = NetworkUtils.getBrowserRequestBuilder(url).build();
+                    Response response = client.newCall(request).execute();
+                    if (!response.isSuccessful()) {
+                        log.warn("Overview rate request failed with HTTP {} for {}", response.code(), url);
+                        continue;
+                    }
+
+                    JSONObject json = new JSONObject(response.body().string());
+                    String price = parseUsdPrice(json);
+                    if (price != null && price.length() > 0) {
+                        cacheRate(price);
+                        return FiatValue.parse("USD", price);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Could not load XVG price: {}", e.getMessage());
+            }
+            return getCachedRate();
         }
     }
 

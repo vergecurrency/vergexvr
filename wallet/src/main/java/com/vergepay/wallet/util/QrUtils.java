@@ -36,6 +36,11 @@ public class QrUtils {
         return setQr(view, res, content, R.dimen.qr_code_size, R.dimen.qr_code_quite_zone_pixels);
     }
 
+    public static boolean setQr(final ImageView view, final Resources res, final String content,
+                                final int viewSizeResId) {
+        return setQr(view, res, content, viewSizeResId, R.dimen.qr_code_quite_zone_pixels);
+    }
+
     private static boolean setQr(ImageView view, Resources res, String content,
                                  int viewSizeResId, int qrQuiteZoneResId) {
 

@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/navigation_drawer_bg"
+    android:background="@drawable/drawer_panel_bg"
     android:orientation="vertical"
     tools:context=".NavigationDrawerFragment">
 
@@ -12,8 +12,12 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:choiceMode="singleChoice"
+        android:paddingTop="18dp"
+        android:paddingBottom="18dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:clipToPadding="false"
         android:divider="@android:color/transparent"
         android:dividerHeight="0dp" />
 
 </LinearLayout>
-

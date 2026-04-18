@@ -3,10 +3,12 @@ package com.vergepay.wallet.ui;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Message;
+import android.os.Build;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -14,6 +16,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Gravity;
+import android.view.ContextThemeWrapper;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.vergepay.core.uri.CoinURI;
@@ -42,21 +48,29 @@ public class AccountFragment extends Fragment {
     private static final Logger log = LoggerFactory.getLogger(AccountFragment.class);
 
     private static final String ACCOUNT_CURRENT_SCREEN = "account_current_screen";
-    private static final int NUM_OF_SCREENS = 3;
+    private static final int NUM_OF_SCREENS = 4;
     // Set offscreen page limit to 2 because receive fragment draws a QR code and we don't
     // want to re-render that if we go to the SendFragment and back
-    private static final int OFF_SCREEN_LIMIT = 2;
+    private static final int OFF_SCREEN_LIMIT = 3;
 
     // Screen ids
     private static final int RECEIVE = 0;
     private static final int BALANCE = 1;
     private static final int SEND = 2;
+    private static final int SWAP = 3;
 
     // Handler ids
     private static final int SEND_TO_URI = 0;
 
     private int currentScreen;
     @BindView(R.id.pager) ViewPager viewPager;
+    @BindView(R.id.nav_receive) TextView receiveNav;
+    @BindView(R.id.nav_balance) TextView balanceNav;
+    @BindView(R.id.nav_send) TextView sendNav;
+    @BindView(R.id.nav_swap) TextView swapNav;
+    @BindView(R.id.nav_overflow) ImageButton overflowNav;
+    @BindView(R.id.account_nav_container) View accountNavContainer;
+    @BindView(R.id.account_root) View accountRoot;
     NavigationDrawerFragment mNavigationDrawerFragment;
     @Nullable private WalletAccount account;
     private Listener listener;
@@ -96,11 +110,28 @@ public class AccountFragment extends Fragment {
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
 
+        receiveNav.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { goToReceive(true); }
+        });
+        balanceNav.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { goToBalance(true); }
+        });
+        sendNav.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { goToSend(true); }
+        });
+        swapNav.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { goToSwap(true); }
+        });
+        overflowNav.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { showOverflowMenu(v); }
+        });
+
         viewPager.setOffscreenPageLimit(OFF_SCREEN_LIMIT);
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
                 currentScreen = position;
+                updateNavigationSelection();
                 if (position == BALANCE) Keyboard.hideKeyboard(getActivity());
                 if (listener != null) {
                     switch (position) {
@@ -112,6 +143,9 @@ public class AccountFragment extends Fragment {
                             break;
                         case SEND:
                             listener.onSendSelected();
+                            break;
+                        case SWAP:
+                            listener.onSwapSelected();
                             break;
                         default:
                             throw new RuntimeException("Unknown screen item: " + position);
@@ -126,7 +160,26 @@ public class AccountFragment extends Fragment {
         viewPager.setAdapter(
                 new AppSectionsPagerAdapter(getActivity(), getChildFragmentManager(), account));
 
+        WindowInsetsHelper.applyPaddingInsets(view, false, false);
+        WindowInsetsHelper.applyTopInsetAsPadding(
+                accountNavContainer,
+                getNavbarCutoutExtraTop());
+
         return view;
+    }
+
+    private int getNavbarCutoutExtraTop() {
+        String manufacturer = Build.MANUFACTURER != null ? Build.MANUFACTURER.toLowerCase() : "";
+        String model = Build.MODEL != null ? Build.MODEL.toLowerCase() : "";
+        String fingerprint = Build.FINGERPRINT != null ? Build.FINGERPRINT.toLowerCase() : "";
+
+        boolean isGoogleDevice = manufacturer.contains("google");
+        boolean isPixelLikeEmulator = model.contains("sdk_gphone") || fingerprint.contains("generic");
+
+        if (isGoogleDevice || isPixelLikeEmulator) {
+            return getResources().getDimensionPixelSize(R.dimen.navbar_cutout_extra_top_pixel);
+        }
+        return 0;
     }
 
     @Override
@@ -184,12 +237,15 @@ public class AccountFragment extends Fragment {
                 case SEND:
                     inflater.inflate(R.menu.send, menu);
                     break;
+                case SWAP:
+                    break;
             }
         }
     }
 
     private void updateView() {
         goToItem(currentScreen, true);
+        updateNavigationSelection();
     }
 
     @Nullable
@@ -244,6 +300,9 @@ public class AccountFragment extends Fragment {
                 case SEND:
                     if (f instanceof SendFragment) return f;
                     break;
+                case SWAP:
+                    if (f instanceof SwapWidgetFragment) return f;
+                    break;
                 default:
                     throw new RuntimeException("Cannot get fragment, unknown screen item: " + item);
             }
@@ -261,6 +320,8 @@ public class AccountFragment extends Fragment {
                 return (T) BalanceFragment.newInstance(accountId);
             case SEND:
                 return (T) SendFragment.newInstance(accountId);
+            case SWAP:
+                return (T) SwapWidgetFragment.newInstance();
             default:
                 throw new RuntimeException("Cannot create fragment, unknown screen item: " + item);
         }
@@ -278,12 +339,70 @@ public class AccountFragment extends Fragment {
         return goToItem(SEND, smoothScroll);
     }
 
+    public boolean goToSwap(boolean smoothScroll) {
+        return goToItem(SWAP, smoothScroll);
+    }
+
     private boolean goToItem(int item, boolean smoothScroll) {
+        currentScreen = item;
+        updateNavigationSelection();
         if (viewPager != null && viewPager.getCurrentItem() != item) {
             viewPager.setCurrentItem(item, smoothScroll);
             return true;
         }
         return false;
+    }
+
+    private void updateNavigationSelection() {
+        if (receiveNav == null || balanceNav == null || sendNav == null || swapNav == null) return;
+
+        setNavSelected(receiveNav, currentScreen == RECEIVE);
+        setNavSelected(balanceNav, currentScreen == BALANCE);
+        setNavSelected(sendNav, currentScreen == SEND);
+        setNavSelected(swapNav, currentScreen == SWAP);
+    }
+
+    private void setNavSelected(TextView view, boolean selected) {
+        view.setBackgroundResource(selected
+                ? R.drawable.account_nav_item_selected_bg
+                : R.drawable.account_nav_item_default_bg);
+        view.setTextColor(getResources().getColor(selected ? R.color.text_primary : R.color.text_secondary));
+    }
+
+    private void showOverflowMenu(View anchor) {
+        if (getContext() == null) return;
+
+        ContextThemeWrapper popupContext = new ContextThemeWrapper(getContext(), R.style.RetroPopupMenu);
+        PopupMenu popup = new PopupMenu(popupContext, anchor, Gravity.END, 0, R.style.RetroPopupMenu);
+        popup.getMenuInflater().inflate(R.menu.global, popup.getMenu());
+        switch (currentScreen) {
+            case RECEIVE:
+                popup.getMenuInflater().inflate(R.menu.request, popup.getMenu());
+                break;
+            case BALANCE:
+                popup.getMenuInflater().inflate(R.menu.balance, popup.getMenu());
+                popup.getMenu().removeItem(R.id.action_scan_qr_code);
+                break;
+            case SEND:
+                popup.getMenuInflater().inflate(R.menu.send, popup.getMenu());
+                break;
+            case SWAP:
+                break;
+            default:
+                break;
+        }
+
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (listener != null && listener.onAccountMenuItemSelected(item.getItemId())) {
+                    return true;
+                }
+                Fragment activeFragment = getFragment(getChildFragmentManager(), currentScreen);
+                return activeFragment != null && activeFragment.onOptionsItemSelected(item);
+            }
+        });
+        popup.show();
     }
 
     public boolean resetSend() {
@@ -299,10 +418,12 @@ public class AccountFragment extends Fragment {
         private final String receiveTitle;
         private final String sendTitle;
         private final String balanceTitle;
+        private final String swapTitle;
 
         private AddressRequestFragment request;
         private SendFragment send;
         private BalanceFragment balance;
+        private SwapWidgetFragment swap;
 
         private final WalletAccount account;
 
@@ -311,6 +432,7 @@ public class AccountFragment extends Fragment {
             receiveTitle = context.getString(R.string.wallet_title_request);
             sendTitle = context.getString(R.string.wallet_title_send);
             balanceTitle = context.getString(R.string.wallet_title_balance);
+            swapTitle = context.getString(R.string.wallet_title_swap);
             this.account = account;
         }
 
@@ -326,6 +448,9 @@ public class AccountFragment extends Fragment {
                 case BALANCE:
                     if (balance == null) balance = createFragment(account, i);
                     return balance;
+                case SWAP:
+                    if (swap == null) swap = createFragment(account, i);
+                    return swap;
                 default:
                     throw new RuntimeException("Cannot get item, unknown screen item: " + i);
             }
@@ -343,6 +468,7 @@ public class AccountFragment extends Fragment {
                 case RECEIVE: return receiveTitle;
                 case SEND: return sendTitle;
                 case BALANCE: return balanceTitle;
+                case SWAP: return swapTitle;
                 default: throw new RuntimeException("Cannot get item, unknown screen item: " + i);
             }
         }
@@ -365,5 +491,7 @@ public class AccountFragment extends Fragment {
         void onReceiveSelected();
         void onBalanceSelected();
         void onSendSelected();
+        void onSwapSelected();
+        boolean onAccountMenuItemSelected(int itemId);
     }
 }
