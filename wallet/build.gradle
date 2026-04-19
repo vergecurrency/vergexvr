@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 35
-    buildToolsVersion '35.0.0'
 
     def unstoppableApiToken = project.findProperty("UNSTOPPABLE_DOMAINS_API_TOKEN") ?: ""
 
