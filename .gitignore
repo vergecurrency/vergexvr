@@ -1,6 +1,7 @@
 .gradle
 .codex-gradle/
 .codex-gradle-home/
+.codex-android/
 .codex-android-home/
 /local.properties
 /.idea
