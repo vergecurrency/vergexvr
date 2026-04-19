@@ -5,6 +5,7 @@ Verge Tor Wallet for Android
 - App starts with a SOCKS5 proxy on `127.0.0.1:9050`
 - Current Android API level in use: 36
 - Unstoppable Domains resolution is supported for XVG sends via `crypto.XVG.address`
+- Includes a dedicated `metaRelease` build variant for Meta Quest / Meta Horizon Store packaging without changing the standard Android release path
 
 Play Store emulator images sandbox traffic more heavily, so the app's attempts to connect through Orbot can fail there.
 This is why Orbot can work on physical devices but fail inside modern AVD images.
@@ -68,6 +69,51 @@ For device testing:
 - Enable USB Debugging
 - Plug the device in
 - Press the green play button in Android Studio and choose the target device
+
+Command line builds:
+
+- Standard unsigned release APK:
+  `./gradlew :wallet:assembleRelease`
+- Meta Quest unsigned APK:
+  `./gradlew :wallet:assembleMetaRelease`
+
+Generated APKs:
+
+- Standard Android:
+  `wallet/build/outputs/apk/release/wallet-release-unsigned.apk`
+- Meta Quest:
+  `wallet/build/outputs/apk/metaRelease/wallet-metaRelease-unsigned.apk`
+
+## Meta Quest
+
+The repo now has a separate `metaRelease` build variant so Meta packaging can evolve independently from the normal Android / Google Play path.
+
+Use this when you want to:
+
+- keep Meta-only manifest or resource changes out of `src/main`
+- generate a Quest-targeted unsigned APK for sideloading or store submission prep
+- preserve the existing `debug` and `release` variants for standard Android distribution
+
+Meta-only source set:
+
+- `wallet/src/metaRelease/AndroidManifest.xml`
+- `wallet/src/metaRelease/res/...`
+
+For local headset testing over USB:
+
+- enable Developer Mode on the Quest
+- connect the headset with a data-capable USB cable
+- authorize USB debugging in-headset
+- install a signed APK with `adb install -r <apk>`
+
+If you are using Android Studio's signing wizard, select the `metaRelease` variant when generating a signed APK for Meta.
+
+## GitHub Actions
+
+The Android workflow now publishes two unsigned APK artifacts on CI:
+
+- `tordroid` for the normal Android release APK
+- `tordroid-meta` for the `metaRelease` APK
 
 Note:
 If you are attempting to build on a Lollipop emulator, use `Android 5.x armeabi-v7a`.

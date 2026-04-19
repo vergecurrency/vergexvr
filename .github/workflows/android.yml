@@ -24,15 +24,17 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
         
-      - name: Build Unsigned Release APK with Gradle
-        run: bash ./gradlew assembleRelease --stacktrace
-        
-      - name: Get apk path
-        id: apk-path
-        run: echo "path=$(find . -regex '^.*/build/outputs/apk/.*\.apk$' -type f | head -1)" >> $GITHUB_OUTPUT
+      - name: Build Unsigned Release APKs with Gradle
+        run: bash ./gradlew assembleRelease assembleMetaRelease --stacktrace
       
-      - name: Upload APK
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
           name: tordroid
           path: ./wallet/build/outputs/apk/release/wallet-release-unsigned.apk
+
+      - name: Upload Meta APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: tordroid-meta
+          path: ./wallet/build/outputs/apk/metaRelease/wallet-metaRelease-unsigned.apk
