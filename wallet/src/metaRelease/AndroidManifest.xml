@@ -1,8 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <application>
+    <uses-permission
+        android:name="android.permission.NFC"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.RECEIVE_BOOT_COMPLETED"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.USE_FINGERPRINT"
+        tools:node="remove" />
+
+    <uses-feature
+        android:name="android.hardware.nfc"
+        tools:node="remove" />
+    <uses-feature
+        android:name="android.hardware.camera.flash"
+        tools:node="remove" />
+    <uses-feature
+        android:name="android.hardware.bluetooth"
+        tools:node="remove" />
+
+    <application
+        android:resizeableActivity="true"
+        tools:replace="android:resizeableActivity">
         <!-- Meta-only manifest entries belong here so the main app build stays unchanged. -->
+        <activity
+            android:name="com.vergepay.wallet.ui.WalletActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.SendActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.IntroActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.PasswordConfirmationActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.SignTransactionActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.AboutActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.AddCoinsActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.TransactionDetailsActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.ExchangeRatesActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.PreviousAddressesActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.SettingsActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.ShowSeedActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.TradeActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.ExchangeHistoryActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.TradeStatusActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.SignVerifyMessageActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.AccountDetailsActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.SweepWalletActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.FeesSettingsActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.ApplockActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.DebuggingActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
     </application>
 
 </manifest>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="Theme.AppCompat">
+        <item name="colorPrimary">@color/primary_800</item>
+        <item name="colorPrimaryDark">@color/primary_900</item>
+        <item name="colorAccent">@color/accent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@drawable/wallet_screen_bg</item>
+        <item name="alertDialogTheme">@style/AppAlertDialogTheme</item>
+        <item name="android:alertDialogTheme">@style/AppAlertDialogTheme</item>
+    </style>
+
+    <style name="AppThemeNoTitleBar" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/primary_800</item>
+        <item name="colorPrimaryDark">@color/primary_900</item>
+        <item name="colorAccent">@color/accent</item>
+        <item name="android:windowBackground">@drawable/wallet_screen_bg</item>
+        <item name="alertDialogTheme">@style/AppAlertDialogTheme</item>
+        <item name="android:alertDialogTheme">@style/AppAlertDialogTheme</item>
+    </style>
+
+    <style name="NormalText" parent="@android:style/TextAppearance">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColorLink">@color/accent_alt</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="SecondaryText" parent="@android:style/TextAppearance">
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">17sp</item>
+    </style>
+
+    <style name="PageTitleText" parent="NormalText">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/accent_alt</item>
+        <item name="android:textSize">26sp</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="RetroPopupMenuText" parent="@style/TextAppearance.AppCompat.Body1">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    
+    <style name="PincodeEditText" parent="Base.Widget.AppCompat.EditText">
+        <item name="android:background">@drawable/pincode_slot_bg</item>
+        <item name="android:inputType">numberPassword</item>
+        <item name="android:maxLength">1</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textAlignment">center</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAppearance">@style/TextAppearance.AppCompat.Large</item>
+    </style>
+</resources>
