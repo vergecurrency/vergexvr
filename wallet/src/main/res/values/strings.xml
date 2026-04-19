@@ -74,7 +74,7 @@
     <string name="trade">Exchange</string>
     <string name="receive">Receive</string>
     <!-- Welcome fragment -->
-    <string name="welcome_title">Verge Android Wallet</string>
+    <string name="welcome_title">VergeXVR</string>
     <string name="welcome_subtitle">(requires Orbot/Tor running)</string>
     <string name="create_wallet">Create a new wallet</string>
     <string name="restore_wallet">Restore a wallet</string>

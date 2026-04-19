@@ -38,6 +38,10 @@ android {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        metaRelease {
+            initWith release
+            matchingFallbacks = ['release']
+        }
     }
 
     sourceSets {
