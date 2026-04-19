@@ -12,7 +12,7 @@ import android.view.animation.LinearInterpolator;
 import java.util.Random;
 
 public class IntroSmokeView extends View {
-    private static final int PARTICLE_COUNT = 9;
+    private static final int PARTICLE_COUNT = 18;
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Random random = new Random(1337L);
@@ -56,11 +56,11 @@ public class IntroSmokeView extends View {
     private SmokeParticle createParticle(float startOffset) {
         SmokeParticle particle = new SmokeParticle();
         particle.startOffset = startOffset;
-        particle.baseX = 0.22f + random.nextFloat() * 0.56f;
-        particle.baseRadius = 18f + random.nextFloat() * 28f;
-        particle.verticalTravel = 0.38f + random.nextFloat() * 0.22f;
-        particle.horizontalDrift = 0.04f + random.nextFloat() * 0.06f;
-        particle.alphaScale = 0.16f + random.nextFloat() * 0.18f;
+        particle.baseX = 0.08f + random.nextFloat() * 0.84f;
+        particle.baseRadius = 26f + random.nextFloat() * 44f;
+        particle.verticalTravel = 0.46f + random.nextFloat() * 0.28f;
+        particle.horizontalDrift = 0.03f + random.nextFloat() * 0.08f;
+        particle.alphaScale = 0.08f + random.nextFloat() * 0.12f;
         particle.color = random.nextBoolean() ? Color.parseColor("#66D9FFF7") : Color.parseColor("#557A3DF0");
         return particle;
     }
@@ -101,7 +101,7 @@ public class IntroSmokeView extends View {
 
             float cx = width * particle.baseX
                     + (float) Math.sin((t * Math.PI * 2f) + i) * width * particle.horizontalDrift;
-            float cy = height * (0.82f - (particle.verticalTravel * eased));
+            float cy = height * (0.95f - (particle.verticalTravel * eased));
             float radius = particle.baseRadius * (0.72f + (0.85f * eased));
             int alpha = Math.min(255, Math.max(0, (int) (255f * particle.alphaScale * alphaEnvelope)));
 

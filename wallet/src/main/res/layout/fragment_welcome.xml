@@ -5,6 +5,12 @@
     android:background="@drawable/intro_screen_bg"
     tools:context="com.vergepay.wallet.ui.WelcomeFragment">
 
+    <com.vergepay.wallet.ui.widget.IntroSmokeView
+        android:id="@+id/intro_smoke"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.8" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -23,12 +29,6 @@
             android:layout_width="330dp"
             android:layout_height="330dp"
             android:layout_gravity="center_horizontal">
-
-            <com.vergepay.wallet.ui.widget.IntroSmokeView
-                android:id="@+id/intro_smoke"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:alpha="0.8" />
 
             <ImageView
                 android:id="@+id/intro_logo"
