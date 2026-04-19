@@ -149,6 +149,7 @@ public class SendFragment extends WalletFragment {
     private ShapeShiftMarketInfo marketInfo;
     @Nullable private ResolveUdDomainTask resolveUdDomainTask;
     @Nullable private String resolvingDomain;
+    @Nullable private String resolvedDomainLabel;
     private boolean sendAfterDomainResolve;
 
     @BindView(R.id.send_to_address)         AutoCompleteTextView sendToAddressView;
@@ -483,6 +484,7 @@ public class SendFragment extends WalletFragment {
 
     private void clearAddress(boolean clearTextField) {
         address = null;
+        resolvedDomainLabel = null;
         if (clearTextField) setSendToAddressText(null);
         sendAmountType = account.getCoinType();
         addressTypeCanChange = false;
@@ -1011,12 +1013,16 @@ public class SendFragment extends WalletFragment {
         if (!isAdded()) return;
 
         resolveUdDomainTask = null;
+        resolvedDomainLabel = resolvingDomain;
         resolvingDomain = null;
 
         try {
             AbstractAddress resolved = account.getCoinType().newAddress(resolvedAddress);
             setAddress(resolved, false);
             sendAmountType = resolved.getType();
+            if (resolvedDomainLabel != null) {
+                AddressBookProvider.setLabel(getActivity(), resolved, resolvedDomainLabel);
+            }
             addressError.setVisibility(View.GONE);
             updateView();
             validateAmount();
@@ -1037,6 +1043,7 @@ public class SendFragment extends WalletFragment {
 
         resolveUdDomainTask = null;
         resolvingDomain = null;
+        resolvedDomainLabel = null;
         sendAfterDomainResolve = false;
         clearAddress(false);
 

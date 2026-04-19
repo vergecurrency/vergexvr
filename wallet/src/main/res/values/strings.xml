@@ -135,7 +135,7 @@
     <!-- Send Activity -->
     <string name="send_coins_activity_title">Send coins</string>
     <!-- Send fragment -->
-    <string name="send_coins_fragment_receiving_address_tip">name or address</string>
+    <string name="send_coins_fragment_receiving_address_tip">Enter an XVG address or a web3 name, ex: DQuGAFQy6R47Nj1UNYjKpYZvTS9QvAsyQN or sunerok.wallet</string>
     <string name="send_coins_error_network">Could not connect to the coin network</string>
     <string name="send_coins_error_dust">The sending amount is too small and will be rejected by the network</string>
     <!-- Here the %1$s is a detailed error message -->

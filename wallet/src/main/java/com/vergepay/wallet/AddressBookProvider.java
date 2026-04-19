@@ -81,6 +81,27 @@ public class AddressBookProvider extends ContentProvider {
         return label;
     }
 
+    public static void setLabel(final Context context, final AbstractAddress address, final String label) {
+        if (context == null || address == null) return;
+
+        final Uri uri = contentUri(context.getPackageName(), address.getType())
+                .buildUpon().appendPath(address.toString()).build();
+        final ContentValues values = new ContentValues();
+        values.put(KEY_LABEL, label);
+
+        final Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
+        final boolean exists = cursor != null && cursor.moveToFirst();
+        if (cursor != null) {
+            cursor.close();
+        }
+
+        if (exists) {
+            context.getContentResolver().update(uri, values, null, null);
+        } else {
+            context.getContentResolver().insert(uri, values);
+        }
+    }
+
     private Helper helper;
 
     @Override
