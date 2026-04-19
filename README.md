@@ -42,13 +42,6 @@ The send screen can resolve supported web3 names such as `sunerok.wallet` to Ver
   `crypto.XVG.address`
 - Requests use the app's configured SOCKS proxy path on `127.0.0.1:9050`
 
-To enable UD resolution during local builds, add this to your local Gradle properties:
-
-```properties
-UNSTOPPABLE_DOMAINS_API_TOKEN=your_token_here
-```
-
-The app injects that value into `BuildConfig.UNSTOPPABLE_DOMAINS_API_TOKEN` at build time.
 
 ## Building the app
 
@@ -81,4 +74,8 @@ If you are attempting to build on a Lollipop emulator, use `Android 5.x armeabi-
 It will not build on an x86/x86_64 emulator there.
 
 Original fork by Coinomi 2017
-2017 to present by [justinvforvendetta](https://github.com/justinvforvendetta)
+overhauled in 2017 to present by [justinvforvendetta](https://github.com/justinvforvendetta)
+
+
+
+.

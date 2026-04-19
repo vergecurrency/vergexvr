@@ -339,20 +339,13 @@ public class TransactionsListAdapter extends BaseAdapter {
 
         if (label != null) {
             rowLabel.setText(label);
-            if (address != null) {
-                rowAddress.setText(GenericUtils.addressSplitToGroups(address));
-                rowAddress.setVisibility(View.VISIBLE);
-            } else {
-                rowAddress.setVisibility(View.GONE);
-            }
         } else if (address != null) {
             rowLabel.setText(GenericUtils.addressSplitToGroups(address));
-            rowAddress.setVisibility(View.GONE);
         } else {
             rowLabel.setText("???"); // should not happen
         }
         rowAddress.setVisibility(View.GONE);
-        rowLabel.setTypeface(label != null ? Typeface.DEFAULT : Typeface.MONOSPACE);
+        rowLabel.setTypeface(address != null ? Typeface.MONOSPACE : Typeface.DEFAULT);
 
         // value
         rowValue.setAlwaysSigned(true);

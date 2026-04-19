@@ -1,5 +1,7 @@
 .gradle
 .codex-gradle/
+.codex-gradle-home/
+.codex-android-home/
 /local.properties
 /.idea
 *.iml

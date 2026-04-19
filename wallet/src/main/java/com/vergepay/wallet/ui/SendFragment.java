@@ -600,6 +600,7 @@ public class SendFragment extends WalletFragment {
         }
         intent.putExtra(Constants.ARG_ACCOUNT_ID, account.getId());
         intent.putExtra(Constants.ARG_SEND_TO_ADDRESS, toAddress);
+        if (resolvedDomainLabel != null) intent.putExtra(Constants.ARG_SEND_TO_LABEL, resolvedDomainLabel);
         if (txMessage != null) intent.putExtra(Constants.ARG_TX_MESSAGE, txMessage);
 
         startActivityForResult(intent, SIGN_TRANSACTION);

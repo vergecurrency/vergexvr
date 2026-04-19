@@ -38,6 +38,7 @@ import com.vergepay.core.wallet.AbstractWallet;
 import com.vergepay.core.wallet.SendRequest;
 import com.vergepay.core.wallet.Wallet;
 import com.vergepay.core.wallet.WalletAccount;
+import com.vergepay.wallet.AddressBookProvider;
 import com.vergepay.wallet.Configuration;
 import com.vergepay.wallet.ExchangeHistoryProvider;
 import com.vergepay.wallet.ExchangeHistoryProvider.ExchangeEntry;
@@ -69,6 +70,7 @@ import static com.vergepay.wallet.Constants.ARG_EMPTY_WALLET;
 import static com.vergepay.wallet.Constants.ARG_SEND_REQUEST;
 import static com.vergepay.wallet.Constants.ARG_SEND_TO_ACCOUNT_ID;
 import static com.vergepay.wallet.Constants.ARG_SEND_TO_ADDRESS;
+import static com.vergepay.wallet.Constants.ARG_SEND_TO_LABEL;
 import static com.vergepay.wallet.Constants.ARG_SEND_VALUE;
 import static com.vergepay.wallet.Constants.ARG_TX_MESSAGE;
 import static com.vergepay.wallet.ExchangeRatesProvider.getRates;
@@ -123,6 +125,7 @@ public class MakeTransactionFragment extends Fragment {
     @Nullable private AbstractAddress tradeWithdrawAddress;
     @Nullable private Value tradeWithdrawAmount;
     @Nullable private TxMessage txMessage;
+    @Nullable private String sendToLabel;
     private boolean transactionBroadcast = false;
     @Nullable private Exception error;
     private HashMap<String, ExchangeRate> localRates = new HashMap<>();
@@ -180,6 +183,10 @@ public class MakeTransactionFragment extends Fragment {
             } else {
                 sendToAddress = (AbstractAddress) checkNotNull(args.getSerializable(ARG_SEND_TO_ADDRESS));
                 sendingToAccount = false;
+            }
+            sendToLabel = args.getString(ARG_SEND_TO_LABEL);
+            if (!sendingToAccount && sendToAddress != null && sendToLabel != null) {
+                AddressBookProvider.setLabel(getContext(), sendToAddress, sendToLabel);
             }
 
             txMessage = (TxMessage) args.getSerializable(ARG_TX_MESSAGE);
