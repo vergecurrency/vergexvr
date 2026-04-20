@@ -43,10 +43,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-
 import static com.vergepay.core.Preconditions.checkNotNull;
 
 /**
@@ -69,14 +65,14 @@ public class AddressRequestFragment extends WalletFragment {
     private WalletAccount account;
     private String message;
 
-    @BindView(R.id.request_address_label) TextView addressLabelView;
-    @BindView(R.id.request_address) TextView addressView;
-    @BindView(R.id.request_address_copy) View addressCopyView;
-    @BindView(R.id.request_coin_amount) AmountEditView sendCoinAmountView;
-    @BindView(R.id.request_scroll) ScrollView requestScrollView;
-    @BindView(R.id.request_amount_row) View requestAmountRow;
-    @BindView(R.id.view_previous_addresses) View previousAddressesLink;
-    @BindView(R.id.qr_code) ImageView qrView;
+    private TextView addressLabelView;
+    private TextView addressView;
+    private View addressCopyView;
+    private AmountEditView sendCoinAmountView;
+    private ScrollView requestScrollView;
+    private View requestAmountRow;
+    private View previousAddressesLink;
+    private ImageView qrView;
     String lastQrContent;
     ContentResolver resolver;
 
@@ -163,10 +159,35 @@ public class AddressRequestFragment extends WalletFragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_request, container, false);
-        ButterKnife.bind(this, view);
+        addressLabelView = view.findViewById(R.id.request_address_label);
+        addressView = view.findViewById(R.id.request_address);
+        addressCopyView = view.findViewById(R.id.request_address_copy);
+        sendCoinAmountView = view.findViewById(R.id.request_coin_amount);
+        requestScrollView = view.findViewById(R.id.request_scroll);
+        requestAmountRow = view.findViewById(R.id.request_amount_row);
+        previousAddressesLink = view.findViewById(R.id.view_previous_addresses);
+        qrView = view.findViewById(R.id.qr_code);
 
         sendCoinAmountView.resetType(type, true);
         sendCoinAmountView.setListener(amountsListener);
+        addressView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onAddressClick();
+            }
+        });
+        addressCopyView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onAddressCopyClick();
+            }
+        });
+        previousAddressesLink.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onPreviousAddressesClick();
+            }
+        });
 
         return view;
     }
@@ -187,17 +208,14 @@ public class AddressRequestFragment extends WalletFragment {
         }
     }
 
-    @OnClick(R.id.request_address_view)
     public void onAddressClick() {
         copyCurrentAddress();
     }
 
-    @OnClick(R.id.request_address_copy)
     public void onAddressCopyClick() {
         copyCurrentAddress();
     }
 
-    @OnClick(R.id.view_previous_addresses)
     public void onPreviousAddressesClick() {
         Intent intent = new Intent(getActivity(), PreviousAddressesActivity.class);
         intent.putExtra(Constants.ARG_ACCOUNT_ID, accountId);

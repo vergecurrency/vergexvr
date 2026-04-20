@@ -39,9 +39,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 import static com.vergepay.wallet.util.UiUtils.toastGenericError;
 
 /**
@@ -66,14 +63,14 @@ public class AccountFragment extends Fragment {
     private static final int SEND_TO_URI = 0;
 
     private int currentScreen;
-    @BindView(R.id.pager) ViewPager viewPager;
-    @BindView(R.id.nav_receive) TextView receiveNav;
-    @BindView(R.id.nav_balance) TextView balanceNav;
-    @BindView(R.id.nav_send) TextView sendNav;
-    @BindView(R.id.nav_swap) TextView swapNav;
-    @BindView(R.id.nav_overflow) ImageButton overflowNav;
-    @BindView(R.id.account_nav_container) View accountNavContainer;
-    @BindView(R.id.account_root) View accountRoot;
+    private ViewPager viewPager;
+    private TextView receiveNav;
+    private TextView balanceNav;
+    private TextView sendNav;
+    private TextView swapNav;
+    private ImageButton overflowNav;
+    private View accountNavContainer;
+    private View accountRoot;
     NavigationDrawerFragment mNavigationDrawerFragment;
     @Nullable private WalletAccount account;
     private Listener listener;
@@ -108,7 +105,14 @@ public class AccountFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_account, container, false);
-        ButterKnife.bind(this, view);
+        viewPager = view.findViewById(R.id.pager);
+        receiveNav = view.findViewById(R.id.nav_receive);
+        balanceNav = view.findViewById(R.id.nav_balance);
+        sendNav = view.findViewById(R.id.nav_send);
+        swapNav = view.findViewById(R.id.nav_swap);
+        overflowNav = view.findViewById(R.id.nav_overflow);
+        accountNavContainer = view.findViewById(R.id.account_nav_container);
+        accountRoot = view.findViewById(R.id.account_root);
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);

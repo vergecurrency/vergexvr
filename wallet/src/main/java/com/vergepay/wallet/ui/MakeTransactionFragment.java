@@ -59,10 +59,6 @@ import java.util.HashMap;
 
 import javax.annotation.Nullable;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-
 import static com.vergepay.core.Preconditions.checkNotNull;
 import static com.vergepay.core.Preconditions.checkState;
 import static com.vergepay.wallet.Constants.ARG_ACCOUNT_ID;
@@ -131,10 +127,10 @@ public class MakeTransactionFragment extends Fragment {
     private HashMap<String, ExchangeRate> localRates = new HashMap<>();
     private CountDownTimer countDownTimer;
 
-    @BindView(R.id.transaction_info) TextView transactionInfo;
-    @BindView(R.id.password) EditText passwordView;
-    @BindView(R.id.transaction_amount_visualizer) TransactionAmountVisualizer txVisualizer;
-    @BindView(R.id.transaction_trade_withdraw) SendOutput tradeWithdrawSendOutput;
+    private TextView transactionInfo;
+    private EditText passwordView;
+    private TransactionAmountVisualizer txVisualizer;
+    private SendOutput tradeWithdrawSendOutput;
 
     public static MakeTransactionFragment newInstance(Bundle args) {
         MakeTransactionFragment fragment = new MakeTransactionFragment();
@@ -219,7 +215,10 @@ public class MakeTransactionFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_make_transaction, container, false);
-        ButterKnife.bind(this, view);
+        transactionInfo = view.findViewById(R.id.transaction_info);
+        passwordView = view.findViewById(R.id.password);
+        txVisualizer = view.findViewById(R.id.transaction_amount_visualizer);
+        tradeWithdrawSendOutput = view.findViewById(R.id.transaction_trade_withdraw);
 
         if (error != null) return view;
 
@@ -250,12 +249,17 @@ public class MakeTransactionFragment extends Fragment {
             }
         });
         poweredByShapeShift.setVisibility((isExchangeNeeded() ? View.VISIBLE : View.GONE));
+        view.findViewById(R.id.button_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onConfirmClick();
+            }
+        });
 
         return view;
     }
 
-    @OnClick(R.id.button_confirm)
-    void onConfirmClick() {
+    private void onConfirmClick() {
         if (passwordView.isShown()) {
             Keyboard.hideKeyboard(getActivity());
             password = passwordView.getText().toString();

@@ -31,9 +31,6 @@ import java.util.Arrays;
 
 import javax.annotation.Nullable;
 
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-
 import static com.vergepay.core.Preconditions.checkNotNull;
 
 /**
@@ -58,7 +55,12 @@ public class DebuggingFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_debugging, container, false);
-        ButterKnife.bind(this, view);
+        view.findViewById(R.id.button_execute_password_test).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onExecutePasswordTest();
+            }
+        });
 
         return view;
     }
@@ -70,8 +72,7 @@ public class DebuggingFragment extends Fragment {
         wallet = application.getWallet();
     }
 
-    @OnClick(R.id.button_execute_password_test)
-    void onExecutePasswordTest() {
+    private void onExecutePasswordTest() {
         if (wallet.isEncrypted()) {
             showUnlockDialog();
         } else {

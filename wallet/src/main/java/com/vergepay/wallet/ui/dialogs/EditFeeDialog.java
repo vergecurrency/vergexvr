@@ -21,29 +21,20 @@ import com.vergepay.wallet.R;
 import com.vergepay.wallet.WalletApplication;
 import com.vergepay.wallet.ui.widget.AmountEditView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 import static com.vergepay.core.Preconditions.checkState;
 
 /**
  * @author John L. Jegutanis
  */
 public class EditFeeDialog extends DialogFragment {
-    @BindView(R.id.fee_title)
-    TextView title;
-    @BindView(R.id.fee_description)
-    TextView description;
-    @BindView(R.id.fee_amount)
-    AmountEditView feeAmount;
-    @BindView(R.id.fee_cancel)
-    Button cancelButton;
-    @BindView(R.id.fee_default)
-    Button defaultButton;
-    @BindView(R.id.fee_ok)
-    Button okButton;
-    Configuration configuration;
-    Resources resources;
+    private TextView title;
+    private TextView description;
+    private AmountEditView feeAmount;
+    private Button cancelButton;
+    private Button defaultButton;
+    private Button okButton;
+    private Configuration configuration;
+    private Resources resources;
 
     public static EditFeeDialog newInstance(ValueType type) {
         EditFeeDialog dialog = new EditFeeDialog();
@@ -63,7 +54,12 @@ public class EditFeeDialog extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         checkState(getArguments().containsKey(Constants.ARG_COIN_ID), "Must provide coin id");
         View view = View.inflate(getActivity(), R.layout.dialog_edit_fee_themed, null);
-        ButterKnife.bind(this, view);
+        title = view.findViewById(R.id.fee_title);
+        description = view.findViewById(R.id.fee_description);
+        feeAmount = view.findViewById(R.id.fee_amount);
+        cancelButton = view.findViewById(R.id.fee_cancel);
+        defaultButton = view.findViewById(R.id.fee_default);
+        okButton = view.findViewById(R.id.fee_ok);
 
         // TODO move to xml
         feeAmount.setSingleLine(true);

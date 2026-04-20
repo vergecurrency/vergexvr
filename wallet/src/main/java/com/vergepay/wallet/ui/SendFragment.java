@@ -83,10 +83,6 @@ import java.util.Timer;
 
 import javax.annotation.Nullable;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-
 import static android.view.View.GONE;
 import static android.view.View.OnClickListener;
 import static android.view.View.VISIBLE;
@@ -152,20 +148,20 @@ public class SendFragment extends WalletFragment {
     @Nullable private String resolvedDomainLabel;
     private boolean sendAfterDomainResolve;
 
-    @BindView(R.id.send_to_address)         AutoCompleteTextView sendToAddressView;
-    @BindView(R.id.send_to_address_static)  AddressView sendToStaticAddressView;
-    @BindView(R.id.send_coin_amount)        AmountEditView sendCoinAmountView;
-    @BindView(R.id.send_local_amount)       AmountEditView sendLocalAmountView;
-    @BindView(R.id.address_error_message)   TextView addressError;
-    @BindView(R.id.amount_error_message)    TextView amountError;
-    @BindView(R.id.amount_warning_message)  TextView amountWarning;
-    @BindView(R.id.scan_qr_code)            Button scanQrCodeButton;
-    @BindView(R.id.erase_address)           ImageButton eraseAddressButton;
-    @BindView(R.id.tx_message_add_remove)   Button txMessageButton;
-    @BindView(R.id.tx_message_label)        TextView txMessageLabel;
-    @BindView(R.id.tx_message)              EditText txMessageView;
-    @BindView(R.id.tx_message_counter)      TextView txMessageCounter;
-    @BindView(R.id.send_confirm)            Button sendConfirmButton;
+    private AutoCompleteTextView sendToAddressView;
+    private AddressView sendToStaticAddressView;
+    private AmountEditView sendCoinAmountView;
+    private AmountEditView sendLocalAmountView;
+    private TextView addressError;
+    private TextView amountError;
+    private TextView amountWarning;
+    private Button scanQrCodeButton;
+    private ImageButton eraseAddressButton;
+    private Button txMessageButton;
+    private TextView txMessageLabel;
+    private EditText txMessageView;
+    private TextView txMessageCounter;
+    private Button sendConfirmButton;
     @Nullable ReceivingAddressViewAdapter sendToAdapter;
     CurrencyCalculatorLink amountCalculatorLink;
     Timer timer;
@@ -311,12 +307,49 @@ public class SendFragment extends WalletFragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_send, container, false);
-        ButterKnife.bind(this, view);
+        sendToAddressView = view.findViewById(R.id.send_to_address);
+        sendToStaticAddressView = view.findViewById(R.id.send_to_address_static);
+        sendCoinAmountView = view.findViewById(R.id.send_coin_amount);
+        sendLocalAmountView = view.findViewById(R.id.send_local_amount);
+        addressError = view.findViewById(R.id.address_error_message);
+        amountError = view.findViewById(R.id.amount_error_message);
+        amountWarning = view.findViewById(R.id.amount_warning_message);
+        scanQrCodeButton = view.findViewById(R.id.scan_qr_code);
+        eraseAddressButton = view.findViewById(R.id.erase_address);
+        txMessageButton = view.findViewById(R.id.tx_message_add_remove);
+        txMessageLabel = view.findViewById(R.id.tx_message_label);
+        txMessageView = view.findViewById(R.id.tx_message);
+        txMessageCounter = view.findViewById(R.id.tx_message_counter);
+        sendConfirmButton = view.findViewById(R.id.send_confirm);
 
         sendToAdapter = new ReceivingAddressViewAdapter(inflater.getContext());
         sendToAddressView.setAdapter(sendToAdapter);
         sendToAddressView.setOnFocusChangeListener(receivingAddressListener);
         sendToAddressView.addTextChangedListener(receivingAddressListener);
+        eraseAddressButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onAddressClearClick();
+            }
+        });
+        scanQrCodeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                handleScan();
+            }
+        });
+        sendConfirmButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onSendClick();
+            }
+        });
+        sendToStaticAddressView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onStaticAddressClick();
+            }
+        });
 
         sendCoinAmountView.resetType(sendAmountType, true);
         if (sendAmount != null) sendCoinAmountView.setAmount(sendAmount, false);
@@ -476,7 +509,6 @@ public class SendFragment extends WalletFragment {
         }
     }
 
-    @OnClick(R.id.erase_address)
     public void onAddressClearClick() {
         clearAddress(true);
         updateView();
@@ -542,12 +574,10 @@ public class SendFragment extends WalletFragment {
         }
     }
 
-    @OnClick(R.id.scan_qr_code)
-    void handleScan() {
+    private void handleScan() {
         startActivityForResult(new Intent(getActivity(), ScanActivity.class), REQUEST_CODE_SCAN);
     }
 
-    @OnClick(R.id.send_confirm)
     public void onSendClick() {
         if (address == null) {
             String input = sendToAddressView.getText().toString().trim();
@@ -1222,7 +1252,6 @@ public class SendFragment extends WalletFragment {
         }
     }
 
-    @OnClick(R.id.send_to_address_static)
     void onStaticAddressClick() {
         if (address != null) {
             final boolean showChangeType = addressTypeCanChange &&

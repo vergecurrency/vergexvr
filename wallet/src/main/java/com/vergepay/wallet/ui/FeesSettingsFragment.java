@@ -17,18 +17,13 @@ import com.vergepay.wallet.WalletApplication;
 import com.vergepay.wallet.ui.adaptors.FeesListAdapter;
 import com.vergepay.wallet.ui.dialogs.EditFeeDialog;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnItemClick;
-
 /**
  * Fragment that restores a wallet
  */
 public class FeesSettingsFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String EDIT_FEE_DIALOG = "edit_fee_dialog";
 
-    @BindView(R.id.coins_list) ListView coinList;
-
+    private ListView coinList;
     private Configuration config;
     private Context context;
     private FeesListAdapter adapter;
@@ -48,14 +43,14 @@ public class FeesSettingsFragment extends Fragment implements SharedPreferences.
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_fees_settings_list, container, false);
-        ButterKnife.bind(this, view);
+        coinList = view.findViewById(R.id.coins_list);
         coinList.setAdapter(adapter);
+        coinList.setOnItemClickListener((parent, itemView, position, id) -> editFee(position));
 
         return view;
     }
 
-    @OnItemClick(R.id.coins_list)
-    void editFee(int currentSelection) {
+    private void editFee(int currentSelection) {
         Value fee = (Value) coinList.getItemAtPosition(currentSelection);
         // Create the fragment and show it as a dialog.
         DialogFragment editFeeDialog = EditFeeDialog.newInstance(fee.type);

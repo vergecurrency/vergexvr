@@ -14,8 +14,6 @@ import com.vergepay.core.coins.CoinType;
 import com.vergepay.wallet.R;
 import com.vergepay.wallet.ui.DialogBuilder;
 
-import butterknife.ButterKnife;
-
 /**
  * @author John L. Jegutanis
  */
@@ -54,9 +52,9 @@ public class ConfirmAddCoinUnlockWalletDialog extends DialogFragment {
         final boolean askPassword = getArguments().getBoolean(ASK_PASSWORD);
         final LayoutInflater inflater = LayoutInflater.from(getActivity());
         final View view = inflater.inflate(R.layout.add_account_dialog, null);
-        final TextView passwordMessage = ButterKnife.findById(view, R.id.password_message);
-        final EditText password = ButterKnife.findById(view, R.id.password);
-        final EditText description = ButterKnife.findById(view, R.id.edit_account_description);
+        final TextView passwordMessage = view.findViewById(R.id.password_message);
+        final EditText password = view.findViewById(R.id.password);
+        final EditText description = view.findViewById(R.id.edit_account_description);
 
         if (!askPassword) {
             passwordMessage.setVisibility(View.GONE);

@@ -14,8 +14,6 @@ import com.vergepay.core.wallet.WalletAccount;
 import com.vergepay.wallet.R;
 import com.vergepay.wallet.WalletApplication;
 
-import butterknife.ButterKnife;
-
 import static com.vergepay.core.Preconditions.checkNotNull;
 import static com.vergepay.wallet.Constants.ARG_ACCOUNT_ID;
 
@@ -62,7 +60,7 @@ public final class EditAccountFragment extends DialogFragment {
         final LayoutInflater inflater = LayoutInflater.from(context);
         final DialogBuilder dialog = new DialogBuilder(context);
         final View view = inflater.inflate(R.layout.edit_account_dialog, null);
-        final EditText descriptionView = ButterKnife.findById(view, R.id.edit_account_description);
+        final EditText descriptionView = view.findViewById(R.id.edit_account_description);
         descriptionView.setText(account.getDescription());
         descriptionView.setHint(account.getCoinType().getName());
 

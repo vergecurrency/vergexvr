@@ -70,8 +70,6 @@ android {
         implementation 'com.google.zxing:core:3.5.4'
         implementation 'ch.acra:acra:4.11.1' // startpullingfromnewlocation
         implementation 'com.android.support:support-v4-preferencefragment:1.0.0@aar'
-        implementation 'com.jakewharton:butterknife:8.8.1' // ButterKnife.findById() is deprecated, needs FindByViewId() updates
-        annotationProcessor 'com.jakewharton:butterknife-compiler:9.0.0'
     }
     packagingOptions {
         jniLibs {

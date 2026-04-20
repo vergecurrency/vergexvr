@@ -58,11 +58,6 @@ import java.util.concurrent.RejectedExecutionException;
 
 import javax.annotation.Nonnull;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.OnItemClick;
-
 /**
  * Use the {@link BalanceFragment#newInstance} factory method to
  * create an instance of this fragment.
@@ -99,15 +94,15 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
     private final MyHandler handler = new MyHandler(this);
     private final ContentObserver addressBookObserver = new AddressBookObserver(handler);
 
-    @BindView(R.id.transaction_rows) ListView transactionRows;
-    @BindView(R.id.swipeContainer) SwipeRefreshLayout swipeContainer;
-    @BindView(R.id.history_empty) View emptyPocketMessage;
-    @BindView(R.id.get_verge) View getVergeMessage;
-    @BindView(R.id.account_balance) TextView accountBalance;
-    @BindView(R.id.account_exchanged_balance) TextView accountExchangedBalance;
-    @BindView(R.id.connection_label) TextView connectionLabel;
-    @BindView(R.id.connected_dot) ImageView connectedDot;
-    @BindView(R.id.disconnected_dot) ImageView disconnectedDot;
+    private ListView transactionRows;
+    private SwipeRefreshLayout swipeContainer;
+    private View emptyPocketMessage;
+    private View getVergeMessage;
+    private TextView accountBalance;
+    private TextView accountExchangedBalance;
+    private TextView connectionLabel;
+    private ImageView connectedDot;
+    private ImageView disconnectedDot;
     private TransactionsListAdapter adapter;
     private Listener listener;
     private ContentResolver resolver;
@@ -156,7 +151,33 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_balance, container, false);
         addHeaderAndFooterToList(inflater, container, view);
-        ButterKnife.bind(this, view);
+        transactionRows = view.findViewById(R.id.transaction_rows);
+        swipeContainer = view.findViewById(R.id.swipeContainer);
+        emptyPocketMessage = view.findViewById(R.id.history_empty);
+        getVergeMessage = view.findViewById(R.id.get_verge);
+        accountBalance = view.findViewById(R.id.account_balance);
+        accountExchangedBalance = view.findViewById(R.id.account_exchanged_balance);
+        connectionLabel = view.findViewById(R.id.connection_label);
+        connectedDot = view.findViewById(R.id.connected_dot);
+        disconnectedDot = view.findViewById(R.id.disconnected_dot);
+        transactionRows.setOnItemClickListener(new android.widget.AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(android.widget.AdapterView<?> parent, View itemView, int position, long id) {
+                BalanceFragment.this.onItemClick(position);
+            }
+        });
+        accountBalance.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onMainAmountClick();
+            }
+        });
+        accountExchangedBalance.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onLocalAmountClick();
+            }
+        });
 
         setupSwipeContainer();
 
@@ -201,7 +222,7 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
     }
 
     private void addHeaderAndFooterToList(LayoutInflater inflater, ViewGroup container, View view) {
-        ListView list = ButterKnife.findById(view, R.id.transaction_rows);
+        ListView list = view.findViewById(R.id.transaction_rows);
 
         // Initialize header
         View header = inflater.inflate(R.layout.fragment_balance_header, null);
@@ -221,7 +242,6 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         handler.sendMessageDelayed(handler.obtainMessage(WALLET_CHANGED), 2000);
     }
 
-    @OnItemClick(R.id.transaction_rows)
     public void onItemClick(int position) {
         if (position >= transactionRows.getHeaderViewsCount()) {
             // Note the usage of getItemAtPosition() instead of adapter's getItem() because
@@ -239,13 +259,11 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         }
     }
 
-    @OnClick(R.id.account_balance)
     public void onMainAmountClick() {
         isFullAmount = !isFullAmount;
         updateView();
     }
 
-    @OnClick(R.id.account_exchanged_balance)
     public void onLocalAmountClick() {
         if (listener != null) listener.onLocalAmountClick();
     }

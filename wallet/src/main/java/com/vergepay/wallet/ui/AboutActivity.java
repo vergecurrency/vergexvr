@@ -9,9 +9,6 @@ import android.widget.TextView;
 import com.vergepay.wallet.R;
 import com.vergepay.wallet.util.Fonts;
 
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-
 public class AboutActivity extends BaseWalletActivity {
 
     @Override
@@ -19,7 +16,6 @@ public class AboutActivity extends BaseWalletActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_about);
-        ButterKnife.bind(this);
         setupWrapperHeader();
 
         TextView version = findViewById(R.id.about_version);
@@ -30,10 +26,15 @@ public class AboutActivity extends BaseWalletActivity {
         }
 
         Fonts.setTypeface(findViewById(R.id.translation_globe), Fonts.Font.COINOMI_FONT_ICONS);
+        findViewById(R.id.terms_of_service_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onTermsOfUseClick();
+            }
+        });
     }
 
-    @OnClick(R.id.terms_of_service_button)
-    void onTermsOfUseClick() {
+    private void onTermsOfUseClick() {
         final View view = getLayoutInflater().inflate(R.layout.dialog_terms_of_use, null);
         view.findViewById(R.id.terms_disagree).setVisibility(View.GONE);
         ((TextView) view.findViewById(R.id.terms_agree)).setText(R.string.button_ok);
