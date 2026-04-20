@@ -16,7 +16,7 @@ dependencies {
     api 'com.google.code.findbugs:jsr305:3.0.2'
     api 'com.madgag.spongycastle:core:1.58.0.0'
     api 'com.lambdaworks:scrypt:1.4.0'
-    api 'org.junit.jupiter:junit-jupiter-api:5.14.1'
+    api 'org.junit.jupiter:junit-jupiter-api:6.0.3'
     api 'com.google.protobuf:protobuf-java:3.25.3'
     api 'org.slf4j:slf4j-jdk14:2.0.17'
     api 'org.json:json:20250517'
