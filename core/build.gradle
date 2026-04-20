@@ -19,7 +19,7 @@ dependencies {
     api 'org.junit.jupiter:junit-jupiter-api:5.14.1'
     api 'com.google.protobuf:protobuf-java:3.25.3'
     api 'org.slf4j:slf4j-jdk14:2.0.17'
-    api 'org.json:json:20250517'
+    api 'org.json:json:20251224'
     api 'com.squareup.okhttp:okhttp:2.7.5'
 
     testImplementation 'junit:junit:4.13.2'
