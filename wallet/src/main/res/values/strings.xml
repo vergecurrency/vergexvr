@@ -76,6 +76,7 @@
     <!-- Welcome fragment -->
     <string name="welcome_title">VergeXVR</string>
     <string name="welcome_subtitle">(requires Orbot/Tor running)</string>
+    <string name="welcome_text">Welcome to TORdroid</string>
     <string name="create_wallet">Create a new wallet</string>
     <string name="restore_wallet">Restore a wallet</string>
     <!-- Intro -->
@@ -434,6 +435,7 @@ This disclaimer was amended for the last time on January 1st, 2016.</string>
 
 	<string name="use_pincode_only">Use pincode only</string>
     <string name="use_fingerprint_pincode">Use fingerprint + pincode</string>
+    <string name="skip_button_label">Skip</string>
     <string name="app_lock_description">App lock allows you to secure your wallet using PIN-code or fingerprint (if it\'s present on your phone). You can add app lock later in Settings menu</string>
     <string name="error_no_fingerprints">In order to use fingerprint app lock, please add atleast one fingerprint at Android Security settings</string>
     <string name="add_fingerprint_label">Touch your fingerprint sensor to add fingerprint app lock</string>

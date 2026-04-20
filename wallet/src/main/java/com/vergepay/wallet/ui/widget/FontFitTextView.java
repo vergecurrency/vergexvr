@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
  * Based on
  * http://stackoverflow.com/questions/2617266/how-to-adjust-text-font-size-to-fit-textview?answertab=votes#tab-top
  */
-public class FontFitTextView extends android.support.v7.widget.AppCompatTextView {
+public class FontFitTextView extends androidx.appcompat.widget.AppCompatTextView {
     private static final Logger log = LoggerFactory.getLogger(FontFitTextView.class);
 
     //Attributes

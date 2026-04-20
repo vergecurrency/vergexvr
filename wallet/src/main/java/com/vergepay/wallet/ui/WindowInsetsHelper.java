@@ -1,8 +1,8 @@
 package com.vergepay.wallet.ui;
 
 import android.os.Build;
-import android.support.v4.view.ViewCompat;
-import android.support.v4.view.WindowInsetsCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import android.util.Log;
 import android.view.DisplayCutout;
 import android.view.View;
@@ -39,7 +39,7 @@ final class WindowInsetsHelper {
         final int basePaddingRight = view.getPaddingRight();
         final int basePaddingBottom = view.getPaddingBottom();
 
-        ViewCompat.setOnApplyWindowInsetsListener(view, new android.support.v4.view.OnApplyWindowInsetsListener() {
+        ViewCompat.setOnApplyWindowInsetsListener(view, new androidx.core.view.OnApplyWindowInsetsListener() {
             @Override
             public WindowInsetsCompat onApplyWindowInsets(View v, WindowInsetsCompat insets) {
                 int topInset = applyTopInset ? resolveTopInset(v, insets) : 0;
@@ -65,7 +65,7 @@ final class WindowInsetsHelper {
         final int basePaddingRight = view.getPaddingRight();
         final int basePaddingBottom = view.getPaddingBottom();
 
-        ViewCompat.setOnApplyWindowInsetsListener(view, new android.support.v4.view.OnApplyWindowInsetsListener() {
+        ViewCompat.setOnApplyWindowInsetsListener(view, new androidx.core.view.OnApplyWindowInsetsListener() {
             @Override
             public WindowInsetsCompat onApplyWindowInsets(View v, WindowInsetsCompat insets) {
                 v.setPadding(
@@ -88,7 +88,7 @@ final class WindowInsetsHelper {
         final int basePaddingRight = view.getPaddingRight();
         final int basePaddingBottom = view.getPaddingBottom();
 
-        ViewCompat.setOnApplyWindowInsetsListener(view, new android.support.v4.view.OnApplyWindowInsetsListener() {
+        ViewCompat.setOnApplyWindowInsetsListener(view, new androidx.core.view.OnApplyWindowInsetsListener() {
             @Override
             public WindowInsetsCompat onApplyWindowInsets(View v, WindowInsetsCompat insets) {
                 v.setPadding(
@@ -111,7 +111,7 @@ final class WindowInsetsHelper {
                 (ViewGroup.MarginLayoutParams) view.getLayoutParams();
         final int baseTopMargin = layoutParams.topMargin;
 
-        ViewCompat.setOnApplyWindowInsetsListener(view, new android.support.v4.view.OnApplyWindowInsetsListener() {
+        ViewCompat.setOnApplyWindowInsetsListener(view, new androidx.core.view.OnApplyWindowInsetsListener() {
             @Override
             public WindowInsetsCompat onApplyWindowInsets(View v, WindowInsetsCompat insets) {
                 ViewGroup.MarginLayoutParams currentParams =

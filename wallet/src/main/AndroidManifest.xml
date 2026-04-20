@@ -116,7 +116,7 @@
             android:label="@string/title_activity_about"
             android:theme="@style/AppTheme">
             <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
+                android:name="androidx.core.app.NavUtils.PARENT_ACTIVITY"
                 android:value="com.vergepay.wallet.ui.WalletActivity"/>
         </activity>
         <activity
@@ -125,7 +125,7 @@
             android:label="@string/title_activity_add_coins"
             android:theme="@style/AppTheme">
             <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
+                android:name="androidx.core.app.NavUtils.PARENT_ACTIVITY"
                 android:value="com.vergepay.wallet.ui.WalletActivity"/>
         </activity>
         <activity
@@ -139,7 +139,7 @@
             android:label="@string/title_activity_exchange_rates"
             android:theme="@style/AppTheme">
             <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
+                android:name="androidx.core.app.NavUtils.PARENT_ACTIVITY"
                 android:value="com.vergepay.wallet.ui.WalletActivity"/>
         </activity>
         <activity
@@ -153,7 +153,7 @@
             android:label="@string/title_activity_settings"
             android:theme="@style/AppTheme">
             <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
+                android:name="androidx.core.app.NavUtils.PARENT_ACTIVITY"
                 android:value="com.vergepay.wallet.ui.WalletActivity"/>
         </activity>
         <activity
@@ -162,7 +162,7 @@
             android:label="@string/title_activity_show_seed"
             android:theme="@style/AppTheme">
             <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
+                android:name="androidx.core.app.NavUtils.PARENT_ACTIVITY"
                 android:value="com.vergepay.wallet.ui.SettingsActivity"/>
         </activity>
         <activity
@@ -171,7 +171,7 @@
             android:label="@string/title_activity_trade"
             android:theme="@style/AppTheme">
             <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
+                android:name="androidx.core.app.NavUtils.PARENT_ACTIVITY"
                 android:value="com.vergepay.wallet.ui.WalletActivity"/>
         </activity>
         <activity
@@ -180,7 +180,7 @@
             android:label="@string/title_activity_exchange_history"
             android:theme="@style/AppTheme">
             <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
+                android:name="androidx.core.app.NavUtils.PARENT_ACTIVITY"
                 android:value="com.vergepay.wallet.ui.TradeActivity"/>
         </activity>
         <activity
@@ -209,7 +209,7 @@
             android:label="@string/title_activity_transaction_fees"
             android:theme="@style/AppTheme">
             <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
+                android:name="androidx.core.app.NavUtils.PARENT_ACTIVITY"
                 android:value="com.vergepay.wallet.ui.SettingsActivity"/>
         </activity>
 		<activity android:name="com.vergepay.wallet.ui.ApplockActivity" android:exported="false"/>
@@ -219,7 +219,7 @@
             android:label="@string/title_activity_debugging"
             android:theme="@style/AppTheme">
             <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
+                android:name="androidx.core.app.NavUtils.PARENT_ACTIVITY"
                 android:value="com.vergepay.wallet.ui.SettingsActivity"/>
         </activity>
 
