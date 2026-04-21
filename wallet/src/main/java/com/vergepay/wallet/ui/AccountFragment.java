@@ -48,16 +48,17 @@ public class AccountFragment extends Fragment {
     private static final Logger log = LoggerFactory.getLogger(AccountFragment.class);
 
     private static final String ACCOUNT_CURRENT_SCREEN = "account_current_screen";
-    private static final int NUM_OF_SCREENS = 4;
+    private static final int NUM_OF_SCREENS = 5;
     // Set offscreen page limit to 2 because receive fragment draws a QR code and we don't
     // want to re-render that if we go to the SendFragment and back
-    private static final int OFF_SCREEN_LIMIT = 3;
+    private static final int OFF_SCREEN_LIMIT = 4;
 
     // Screen ids
     private static final int RECEIVE = 0;
     private static final int BALANCE = 1;
     private static final int SEND = 2;
     private static final int SWAP = 3;
+    private static final int GAMES = 4;
 
     // Handler ids
     private static final int SEND_TO_URI = 0;
@@ -68,6 +69,7 @@ public class AccountFragment extends Fragment {
     private TextView balanceNav;
     private TextView sendNav;
     private TextView swapNav;
+    private TextView gamesNav;
     private ImageButton overflowNav;
     private View accountNavContainer;
     private View accountRoot;
@@ -110,6 +112,7 @@ public class AccountFragment extends Fragment {
         balanceNav = view.findViewById(R.id.nav_balance);
         sendNav = view.findViewById(R.id.nav_send);
         swapNav = view.findViewById(R.id.nav_swap);
+        gamesNav = view.findViewById(R.id.nav_games);
         overflowNav = view.findViewById(R.id.nav_overflow);
         accountNavContainer = view.findViewById(R.id.account_nav_container);
         accountRoot = view.findViewById(R.id.account_root);
@@ -128,6 +131,9 @@ public class AccountFragment extends Fragment {
         });
         swapNav.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { goToSwap(true); }
+        });
+        gamesNav.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { goToGames(true); }
         });
         overflowNav.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { showOverflowMenu(v); }
@@ -153,6 +159,9 @@ public class AccountFragment extends Fragment {
                             break;
                         case SWAP:
                             listener.onSwapSelected();
+                            break;
+                        case GAMES:
+                            listener.onGamesSelected();
                             break;
                         default:
                             throw new RuntimeException("Unknown screen item: " + position);
@@ -278,6 +287,8 @@ public class AccountFragment extends Fragment {
                     break;
                 case SWAP:
                     break;
+                case GAMES:
+                    break;
             }
         }
     }
@@ -342,6 +353,9 @@ public class AccountFragment extends Fragment {
                 case SWAP:
                     if (f instanceof SwapWidgetFragment) return f;
                     break;
+                case GAMES:
+                    if (f instanceof GamesFragment) return f;
+                    break;
                 default:
                     throw new RuntimeException("Cannot get fragment, unknown screen item: " + item);
             }
@@ -361,6 +375,8 @@ public class AccountFragment extends Fragment {
                 return (T) SendFragment.newInstance(accountId);
             case SWAP:
                 return (T) SwapWidgetFragment.newInstance();
+            case GAMES:
+                return (T) GamesFragment.newInstance();
             default:
                 throw new RuntimeException("Cannot create fragment, unknown screen item: " + item);
         }
@@ -382,6 +398,10 @@ public class AccountFragment extends Fragment {
         return goToItem(SWAP, smoothScroll);
     }
 
+    public boolean goToGames(boolean smoothScroll) {
+        return goToItem(GAMES, smoothScroll);
+    }
+
     private boolean goToItem(int item, boolean smoothScroll) {
         currentScreen = item;
         updateNavigationSelection();
@@ -393,12 +413,14 @@ public class AccountFragment extends Fragment {
     }
 
     private void updateNavigationSelection() {
-        if (receiveNav == null || balanceNav == null || sendNav == null || swapNav == null) return;
+        if (receiveNav == null || balanceNav == null || sendNav == null || swapNav == null
+                || gamesNav == null) return;
 
         setNavSelected(receiveNav, currentScreen == RECEIVE);
         setNavSelected(balanceNav, currentScreen == BALANCE);
         setNavSelected(sendNav, currentScreen == SEND);
         setNavSelected(swapNav, currentScreen == SWAP);
+        setNavSelected(gamesNav, currentScreen == GAMES);
     }
 
     private void setNavSelected(TextView view, boolean selected) {
@@ -426,6 +448,8 @@ public class AccountFragment extends Fragment {
                 popup.getMenuInflater().inflate(R.menu.send, popup.getMenu());
                 break;
             case SWAP:
+                break;
+            case GAMES:
                 break;
             default:
                 break;
@@ -458,11 +482,13 @@ public class AccountFragment extends Fragment {
         private final String sendTitle;
         private final String balanceTitle;
         private final String swapTitle;
+        private final String gamesTitle;
 
         private AddressRequestFragment request;
         private SendFragment send;
         private BalanceFragment balance;
         private SwapWidgetFragment swap;
+        private GamesFragment games;
 
         private final WalletAccount account;
 
@@ -472,6 +498,7 @@ public class AccountFragment extends Fragment {
             sendTitle = context.getString(R.string.wallet_title_send);
             balanceTitle = context.getString(R.string.wallet_title_balance);
             swapTitle = context.getString(R.string.wallet_title_swap);
+            gamesTitle = context.getString(R.string.wallet_title_games);
             this.account = account;
         }
 
@@ -490,6 +517,9 @@ public class AccountFragment extends Fragment {
                 case SWAP:
                     if (swap == null) swap = createFragment(account, i);
                     return swap;
+                case GAMES:
+                    if (games == null) games = createFragment(account, i);
+                    return games;
                 default:
                     throw new RuntimeException("Cannot get item, unknown screen item: " + i);
             }
@@ -508,6 +538,7 @@ public class AccountFragment extends Fragment {
                 case SEND: return sendTitle;
                 case BALANCE: return balanceTitle;
                 case SWAP: return swapTitle;
+                case GAMES: return gamesTitle;
                 default: throw new RuntimeException("Cannot get item, unknown screen item: " + i);
             }
         }
@@ -531,6 +562,7 @@ public class AccountFragment extends Fragment {
         void onBalanceSelected();
         void onSendSelected();
         void onSwapSelected();
+        void onGamesSelected();
         boolean onAccountMenuItemSelected(int itemId);
     }
 }

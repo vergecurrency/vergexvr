@@ -787,6 +787,11 @@ final public class WalletActivity extends BaseWalletActivity implements
     }
 
     @Override
+    public void onGamesSelected() {
+        finishActionMode();
+    }
+
+    @Override
     public boolean onAccountMenuItemSelected(int itemId) {
         if (itemId == R.id.action_settings) {
             startActivity(new Intent(WalletActivity.this, SettingsActivity.class));

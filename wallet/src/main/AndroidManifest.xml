@@ -203,6 +203,15 @@
             android:theme="@style/AppTheme">
         </activity>
         <activity
+            android:name="com.vergepay.wallet.ui.TetrisActivity"
+            android:parentActivityName="com.vergepay.wallet.ui.WalletActivity"
+            android:label="@string/title_activity_tetris"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="androidx.core.app.NavUtils.PARENT_ACTIVITY"
+                android:value="com.vergepay.wallet.ui.WalletActivity"/>
+        </activity>
+        <activity
             android:name="com.vergepay.wallet.ui.FeesSettingsActivity"
             android:parentActivityName="com.vergepay.wallet.ui.SettingsActivity"
             android:label="@string/title_activity_transaction_fees"

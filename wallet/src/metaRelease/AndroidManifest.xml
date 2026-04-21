@@ -112,6 +112,10 @@
             android:screenOrientation="landscape"
             tools:replace="android:screenOrientation" />
         <activity
+            android:name="com.vergepay.wallet.ui.TetrisActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
             android:name="com.vergepay.wallet.ui.ApplockActivity"
             android:screenOrientation="landscape"
             tools:replace="android:screenOrientation" />

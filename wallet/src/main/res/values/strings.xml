@@ -57,6 +57,7 @@
     <string name="wallet_title_balance">balance</string>
     <string name="wallet_title_send">send</string>
     <string name="wallet_title_swap">swap</string>
+    <string name="wallet_title_games">games</string>
     <string name="wallet_locked_message">Your wallet is locked</string>
     <string name="wallet_is_not_locked_message">Your wallet is not locked</string>
     <string name="unlock_wallet_title">Unlock your wallet</string>
@@ -109,6 +110,7 @@
     <string name="page_label_receive_xvg">Receive $XVG</string>
     <string name="page_label_send_xvg">Send $XVG</string>
     <string name="page_label_swap">Swap</string>
+    <string name="page_label_games">Games</string>
     <!-- PayToDialog-->
     <!-- Ambiguous address means that the wallet cannot deduce the correct address coin type -->
     <string name="ambiguous_address_title">Ambiguous address</string>
@@ -260,6 +262,7 @@
     <string name="status_unknown">Transaction status unknown</string>
     <!-- Exchange Rates -->
     <string name="title_activity_exchange_rates">Exchange rates</string>
+    <string name="title_activity_tetris">Tetris</string>
     <!-- %1$s is the symbol of a fiat currency e.g. Set EUR as a ... -->
     <string name="set_local_currency">Set %1$s as a local currency</string>
     <string name="exchange_rates_loading">Loading exchange rates</string>
@@ -455,5 +458,28 @@ This disclaimer was amended for the last time on January 1st, 2016.</string>
 	<string name="touch_fingerprint_label">Scan your finger to unlock app</string>
     <string name="remove_app_lock">Remove app lock</string>
     <string name="https_vergecurrency_com_get_verge" translatable="false">https://vergecurrency.com/get-verge/</string>
+
+    <string name="games_hero_title">Games</string>
+    <string name="games_hero_subtitle">Take a break without leaving the wallet. Tetris is the first built-in game option.</string>
+    <string name="games_tetris_title">Tetris</string>
+    <string name="games_tetris_description">Classic block stacking with score, lines, levels, next-piece preview, and fast-drop controls.</string>
+    <string name="games_tetris_button">Play Tetris</string>
+    <string name="games_reference_note">Reference inspiration: LyapunovJingci/Tetris on GitHub.</string>
+
+    <string name="tetris_score_label">Score</string>
+    <string name="tetris_lines_label">Lines</string>
+    <string name="tetris_level_label">Level</string>
+    <string name="tetris_next_label">Next</string>
+    <string name="tetris_status_live">Game in progress</string>
+    <string name="tetris_status_game_over">Game over</string>
+    <string name="tetris_control_hint">Controls follow the referenced Android Tetris layout: drop, rotate, move, and soft drop.</string>
+    <string name="tetris_restart_button">Restart</string>
+    <string name="tetris_hard_drop_button">Drop</string>
+    <string name="tetris_rotate_button">Rotate</string>
+    <string name="tetris_left_button">Left</string>
+    <string name="tetris_down_button">Down</string>
+    <string name="tetris_right_button">Right</string>
+    <string name="tetris_game_over_title">Game over</string>
+    <string name="tetris_game_over_message">Final score: %1$d</string>
 
 </resources>
