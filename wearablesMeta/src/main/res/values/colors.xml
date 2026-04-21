@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="wearables_window_bg">#0D1117</color>
+    <color name="wearables_panel_bg">#16202A</color>
+    <color name="wearables_text_primary">#EAF6F3</color>
+    <color name="wearables_text_secondary">#A6C4BE</color>
+    <color name="wearables_accent">#20DFC8</color>
+</resources>

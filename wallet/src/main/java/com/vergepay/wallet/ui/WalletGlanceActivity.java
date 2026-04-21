@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -38,6 +41,7 @@ public class WalletGlanceActivity extends BaseWalletActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wallet_glance);
+        configureGlanceWindow();
 
         amountView = findViewById(R.id.wallet_glance_amount);
         valueView = findViewById(R.id.wallet_glance_value);
@@ -136,7 +140,25 @@ public class WalletGlanceActivity extends BaseWalletActivity {
 
     private void openWallet() {
         Intent intent = new Intent(this, WalletActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
+        finish();
+    }
+
+    private void configureGlanceWindow() {
+        final Window window = getWindow();
+        if (window == null) {
+            return;
+        }
+
+        window.setBackgroundDrawableResource(android.R.color.transparent);
+
+        final WindowManager.LayoutParams params = window.getAttributes();
+        params.width = getResources().getDimensionPixelSize(R.dimen.meta_glance_window_width);
+        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        params.gravity = Gravity.TOP | Gravity.END;
+        params.dimAmount = 0f;
+        window.setAttributes(params);
+        window.setLayout(params.width, params.height);
     }
 }

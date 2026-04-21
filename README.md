@@ -6,6 +6,7 @@ Verge Tor Wallet for Android
 - Current Android API level in use: 36
 - Unstoppable Domains resolution is supported for XVG sends via `crypto.XVG.address`
 - Includes a dedicated `metaRelease` build variant for Meta / Horizon OS packaging without changing the standard Android release path
+- Includes a separate `wearablesMeta` app module for future Meta AI glasses companion work without mixing that code into the Quest / Horizon headset app
 
 Play Store emulator images sandbox traffic more heavily, so the app's attempts to connect through Orbot can fail there.
 This is why Orbot can work on physical devices but fail inside modern AVD images.
@@ -108,6 +109,24 @@ For local Meta headset testing over USB:
 - install a signed APK with `adb install -r <apk>`
 
 If you are using Android Studio's signing wizard, select the `metaRelease` variant when generating a signed APK for Meta.
+
+## Meta Wearables
+
+The repo also includes a separate `wearablesMeta` Android app module intended for Meta AI glasses companion integrations.
+
+Use this module when you want to:
+
+- build Ray-Ban Meta / Oakley Meta companion functionality without coupling it to the Quest headset UI
+- share wallet and account logic through `:core`
+- keep Horizon OS windowing code inside `:wallet` and wearables session code inside a dedicated app target
+
+Current module path:
+
+- `wearablesMeta/`
+
+Example command line build:
+
+- `./gradlew :wearablesMeta:assembleDebug`
 
 ## GitHub Actions
 

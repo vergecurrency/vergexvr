@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Verge Wearables</string>
+    <string name="wearables_title">Meta Wearables Module</string>
+    <string name="wearables_subtitle">Separate app target for Ray-Ban Meta and Oakley Meta companion integrations.</string>
+    <string name="wearables_panel_title">Scaffold Ready</string>
+    <string name="wearables_panel_body">This module is intentionally separate from the Quest headset app. Shared wallet logic should live in :core, while glasses-specific session, camera, and voice flows belong here.</string>
+</resources>

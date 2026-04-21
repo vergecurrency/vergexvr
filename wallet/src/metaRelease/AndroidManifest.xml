@@ -124,7 +124,9 @@
             android:excludeFromRecents="true"
             android:exported="true"
             android:label="@string/meta_glance_name"
+            android:launchMode="singleTask"
             android:screenOrientation="landscape"
+            android:taskAffinity="com.vergepay.wallet.glance"
             android:theme="@style/AppThemeMetaGlance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
