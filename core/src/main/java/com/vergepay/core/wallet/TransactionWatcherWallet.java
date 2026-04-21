@@ -17,6 +17,7 @@ import com.vergepay.core.coins.Value;
 import com.vergepay.core.exceptions.TransactionBroadcastException;
 import com.vergepay.core.network.AddressStatus;
 import com.vergepay.core.network.BlockHeader;
+import com.vergepay.core.network.ServerClient;
 import com.vergepay.core.network.ServerClient.HistoryTx;
 import com.vergepay.core.network.ServerClient.UnspentTx;
 import com.vergepay.core.network.interfaces.BlockchainConnection;
@@ -30,6 +31,7 @@ import com.vergepay.core.wallet.families.bitcoin.BitWalletTransaction;
 import com.vergepay.core.wallet.families.bitcoin.OutPointOutput;
 import com.vergepay.core.wallet.families.bitcoin.TrimmedOutPoint;
 import com.vergepay.core.wallet.families.bitcoin.TrimmedTransaction;
+import com.vergepay.stratumj.ServerAddress;
 
 import org.bitcoinj.core.ScriptException;
 import org.bitcoinj.core.Sha256Hash;
@@ -1495,6 +1497,23 @@ abstract public class TransactionWatcherWallet extends AbstractWallet<BitTransac
         lock.lock();
         try {
             return blockchainConnection != null;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Nullable
+    @Override
+    public String getConnectedServerName() {
+        lock.lock();
+        try {
+            if (blockchainConnection instanceof ServerClient) {
+                ServerAddress address = ((ServerClient) blockchainConnection).getConnectedServerAddress();
+                if (address != null) {
+                    return address.getHost() + ":" + address.getPort();
+                }
+            }
+            return null;
         } finally {
             lock.unlock();
         }

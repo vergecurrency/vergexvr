@@ -139,6 +139,30 @@
     <string name="wallet_summary_status_open_phone">Open Verge on your phone</string>
     <string name="no_wallet_pocket_selected">No wallet account selected</string>
     <string name="get_tx_broadcast_error">Transaction broadcast error</string>
+    <string name="title_activity_connections">Connections</string>
+    <string name="pref_summary_connections">Choose which Verge server the wallet uses and reconnect immediately.</string>
+    <string name="connections_status_server_label">Server</string>
+    <string name="pref_title_saved_connections">Saved servers</string>
+    <string name="pref_summary_saved_connections">Verge randomizes across this saved server pool on startup and falls through the rest immediately if one fails.</string>
+    <string name="pref_title_verge_connection_profile">Verge server</string>
+    <string name="pref_summary_verge_connection_profile">Pick a specific Verge server. All connections are routed through Tor.</string>
+    <string name="pref_connection_option_legacy_onion">7eagtn6nsmlyjhjv647ejj4j4orgb2cotoc5dl73qpamhvbvioao4zad.onion:50001</string>
+    <string name="pref_connection_option_electrum_cloud">electrum-verge.cloud:50001</string>
+    <string name="pref_connection_option_electrumx_cloud">electrumx-verge.cloud:50001</string>
+    <string name="pref_connection_connected">Connected now</string>
+    <string name="connections_status_trying_saved_servers">Trying saved servers</string>
+    <string name="pref_title_add_custom_connection_dialog">Add custom server</string>
+    <string name="pref_title_add_custom_connection_button">+ Custom Server</string>
+    <string name="pref_summary_add_custom_connection">Enter a host and port to add another Verge server to the list.</string>
+    <string name="connection_host_hint">Server host</string>
+    <string name="connection_port_hint">Port</string>
+    <string name="connection_protocol_hint">Server type</string>
+    <string name="connection_protocol_summary">Choose Electrum for legacy servers and ElectrumX for modern ElectrumX backends.</string>
+    <string name="connection_protocol_electrum">Electrum</string>
+    <string name="connection_protocol_electrumx">ElectrumX</string>
+    <string name="connection_protocol_auto">Auto</string>
+    <string name="connection_error_host_required">Enter a server host.</string>
+    <string name="connection_error_port_invalid">Enter a valid port between 1 and 65535.</string>
     <!-- Receive fragment -->
     <string name="receive_address_label">My address</string>
     <string name="create_new_address">Create a new address?</string>
@@ -481,5 +505,11 @@ This disclaimer was amended for the last time on January 1st, 2016.</string>
     <string name="tetris_right_button">Right</string>
     <string name="tetris_game_over_title">Game over</string>
     <string name="tetris_game_over_message">Final score: %1$d</string>
+    <string name="pref_title_meta_category">Meta</string>
+    <string name="pref_title_meta_startup_target">Start On Device Boot</string>
+    <string name="pref_summary_meta_startup_target">Choose what opens automatically on supported Meta devices after startup.</string>
+    <string name="pref_meta_startup_option_off">Off</string>
+    <string name="pref_meta_startup_option_glance">Glance</string>
+    <string name="pref_meta_startup_option_wallet">Wallet</string>
 
 </resources>

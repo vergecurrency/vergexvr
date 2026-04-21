@@ -32,7 +32,23 @@ public class GamesFragment extends Fragment {
                 if (getContext() == null) {
                     return;
                 }
-                startActivity(new Intent(getContext(), TetrisActivity.class));
+                Intent intent = new Intent(getContext(), TetrisActivity.class);
+                if (getResources().getBoolean(R.bool.wallet_meta_variant)) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                }
+                startActivity(intent);
+
+                if (getResources().getBoolean(R.bool.wallet_meta_variant)
+                        && getActivity() != null
+                        && getActivity().getWindow() != null) {
+                    final androidx.fragment.app.FragmentActivity activity = getActivity();
+                    activity.getWindow().getDecorView().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            activity.moveTaskToBack(false);
+                        }
+                    });
+                }
             }
         };
         tetrisCard.setOnClickListener(listener);

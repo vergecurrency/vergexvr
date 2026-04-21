@@ -7,6 +7,7 @@ import android.text.format.DateUtils;
 
 import com.vergepay.core.coins.CoinType;
 import com.vergepay.core.coins.Value;
+import com.vergepay.stratumj.ServerAddress;
 import com.vergepay.wallet.util.WalletUtils;
 import com.google.common.collect.ImmutableMap;
 
@@ -15,7 +16,10 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -56,6 +60,16 @@ public class Configuration {
     public static final String PREFS_KEY_REMIND_BACKUP = "remind_backup";
 
     public static final String PREFS_KEY_MANUAL_RECEIVING_ADDRESSES = "manual_receiving_addresses";
+    public static final String PREFS_KEY_VERGE_CONNECTION_PROFILE = "verge_connection_profile";
+    public static final String PREFS_KEY_VERGE_CUSTOM_CONNECTIONS = "verge_custom_connections";
+    public static final String PREFS_VALUE_VERGE_CONNECTION_LEGACY_ONION = "legacy_onion";
+    public static final String PREFS_VALUE_VERGE_CONNECTION_ELECTRUM_CLOUD = "electrum_cloud";
+    public static final String PREFS_VALUE_VERGE_CONNECTION_ELECTRUMX_CLOUD = "electrumx_cloud";
+    public static final String PREFS_VALUE_VERGE_CONNECTION_ELECTRUMX_TOR = "electrumx_tor";
+    public static final String PREFS_KEY_META_STARTUP_TARGET = "meta_startup_target";
+    public static final String PREFS_VALUE_META_STARTUP_DISABLED = "disabled";
+    public static final String PREFS_VALUE_META_STARTUP_GLANCE = "glance";
+    public static final String PREFS_VALUE_META_STARTUP_WALLET = "wallet";
 
     public static final String PREFS_KEY_DEVICE_COMPATIBLE = "device_compatible";
 
@@ -96,6 +110,12 @@ public class Configuration {
     private void applyUpdates() {
         if (prefs.contains(PREFS_KEY_LAST_POCKET)) {
             prefs.edit().remove(PREFS_KEY_LAST_POCKET).apply();
+        }
+
+        String vergeConnection = prefs.getString(PREFS_KEY_VERGE_CONNECTION_PROFILE, null);
+        if (PREFS_VALUE_VERGE_CONNECTION_ELECTRUMX_TOR.equals(vergeConnection)) {
+            prefs.edit().putString(PREFS_KEY_VERGE_CONNECTION_PROFILE,
+                    PREFS_VALUE_VERGE_CONNECTION_ELECTRUMX_CLOUD).apply();
         }
     }
 
@@ -231,6 +251,78 @@ public class Configuration {
 
     public boolean isManualAddressManagement() {
         return prefs.getBoolean(PREFS_KEY_MANUAL_RECEIVING_ADDRESSES, false);
+    }
+
+    @NonNull
+    public String getVergeConnectionProfile() {
+        String storedValue = prefs.getString(PREFS_KEY_VERGE_CONNECTION_PROFILE,
+                PREFS_VALUE_VERGE_CONNECTION_ELECTRUMX_CLOUD);
+        if (PREFS_VALUE_VERGE_CONNECTION_ELECTRUMX_TOR.equals(storedValue)) {
+            return PREFS_VALUE_VERGE_CONNECTION_ELECTRUMX_CLOUD;
+        }
+        return storedValue;
+    }
+
+    @NonNull
+    public Set<String> getVergeCustomConnectionIds() {
+        Set<String> customConnections = prefs.getStringSet(PREFS_KEY_VERGE_CUSTOM_CONNECTIONS, null);
+        if (customConnections == null) {
+            return Collections.emptySet();
+        }
+        return new LinkedHashSet<>(customConnections);
+    }
+
+    public void addVergeCustomConnection(String connectionId) {
+        LinkedHashSet<String> updated = new LinkedHashSet<>(getVergeCustomConnectionIds());
+        updated.add(connectionId);
+        prefs.edit()
+                .putStringSet(PREFS_KEY_VERGE_CUSTOM_CONNECTIONS, updated)
+                .apply();
+    }
+
+    public static boolean isCustomVergeConnectionId(@Nullable String connectionId) {
+        return connectionId != null && connectionId.startsWith("custom|");
+    }
+
+    @NonNull
+    public static String buildCustomVergeConnectionId(String host, int port,
+                                                      @NonNull ServerAddress.Protocol protocol) {
+        return "custom|" + host.trim().toLowerCase() + "|" + port + "|"
+                + protocol.name().toLowerCase();
+    }
+
+    @Nullable
+    public static String[] parseCustomVergeConnectionId(@Nullable String connectionId) {
+        if (!isCustomVergeConnectionId(connectionId)) {
+            return null;
+        }
+
+        String[] parts = connectionId.split("\\|", 4);
+        if (parts.length < 3 || parts.length > 4) {
+            return null;
+        }
+        String protocol = parts.length == 4 ? parts[3]
+                : ServerAddress.Protocol.AUTO.name().toLowerCase();
+        return new String[] { parts[1], parts[2], protocol };
+    }
+
+    @NonNull
+    public static ServerAddress.Protocol parseCustomVergeConnectionProtocol(@Nullable String protocolValue) {
+        if (protocolValue == null) {
+            return ServerAddress.Protocol.AUTO;
+        }
+
+        String normalized = protocolValue.trim().toUpperCase();
+        try {
+            return ServerAddress.Protocol.valueOf(normalized);
+        } catch (IllegalArgumentException e) {
+            return ServerAddress.Protocol.AUTO;
+        }
+    }
+
+    @NonNull
+    public String getMetaStartupTarget() {
+        return prefs.getString(PREFS_KEY_META_STARTUP_TARGET, PREFS_VALUE_META_STARTUP_DISABLED);
     }
 
     public void setDeviceCompatible(final boolean isDeviceCompatible) {

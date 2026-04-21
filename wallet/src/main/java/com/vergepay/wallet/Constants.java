@@ -21,7 +21,9 @@ import java.net.Proxy;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -106,8 +108,13 @@ public class Constants {
     public static final Proxy TOR_LOCAL_PROXY =
             new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("127.0.0.1", TOR_SOCKS_PORT));
 
-    // TODO move to resource files
-    public static final List<CoinAddress> DEFAULT_COINS_SERVERS = ImmutableList.of(
+    private static final String VERGE_LEGACY_ONION_HOST =
+            "7eagtn6nsmlyjhjv647ejj4j4orgb2cotoc5dl73qpamhvbvioao4zad.onion";
+    private static final int VERGE_DEFAULT_PORT = 50001;
+    private static final String VERGE_ELECTRUM_CLOUD_HOST = "electrum-verge.cloud";
+    private static final String VERGE_ELECTRUMX_CLOUD_HOST = "electrumx-verge.cloud";
+
+    private static final List<CoinAddress> BASE_COINS_SERVERS = ImmutableList.of(
             new CoinAddress(BitcoinMain.get(),      new ServerAddress("btc-cce-1.verge.net", 5001),
                                                     new ServerAddress("btc-cce-2.verge.net", 5001)),
             new CoinAddress(BitcoinTest.get(),      new ServerAddress("btc-testnet-cce-1.verge.net", 15001),
@@ -119,10 +126,66 @@ public class Constants {
             new CoinAddress(LitecoinTest.get(),     new ServerAddress("ltc-testnet-cce-1.verge.net", 15002),
                                                     new ServerAddress("ltc-testnet-cce-2.verge.net", 15002)),
 			new CoinAddress(NxtMain.get(),          new ServerAddress("176.9.65.41", 7876),
-                                                    new ServerAddress("176.9.65.41", 7876)),
-            new CoinAddress(VergeMain.get(),        new ServerAddress("7eagtn6nsmlyjhjv647ejj4j4orgb2cotoc5dl73qpamhvbvioao4zad.onion", 50001, TOR_LOCAL_PROXY),
-                                                    new ServerAddress("7eagtn6nsmlyjhjv647ejj4j4orgb2cotoc5dl73qpamhvbvioao4zad.onion", 50001, TOR_LOCAL_PROXY)) //add v3 electrum
+                                                    new ServerAddress("176.9.65.41", 7876))
     );
+
+    public static final List<CoinAddress> DEFAULT_COINS_SERVERS = getCoinServers(null);
+
+    public static List<CoinAddress> getCoinServers(Configuration config) {
+        ArrayList<CoinAddress> servers = new ArrayList<>(BASE_COINS_SERVERS);
+        servers.add(getVergeCoinServer(config));
+        return ImmutableList.copyOf(servers);
+    }
+
+    public static CoinAddress getVergeCoinServer(Configuration config) {
+        return new CoinAddress(VergeMain.get(), buildVergeServerPool(config));
+    }
+
+    private static List<ServerAddress> buildVergeServerPool(Configuration config) {
+        LinkedHashMap<String, ServerAddress> pool = new LinkedHashMap<>();
+
+        addVergeServer(pool, VERGE_LEGACY_ONION_HOST, VERGE_DEFAULT_PORT,
+                ServerAddress.Protocol.LEGACY_ELECTRUM);
+        addVergeServer(pool, VERGE_ELECTRUM_CLOUD_HOST, VERGE_DEFAULT_PORT,
+                ServerAddress.Protocol.ELECTRUMX);
+        addVergeServer(pool, VERGE_ELECTRUMX_CLOUD_HOST, VERGE_DEFAULT_PORT,
+                ServerAddress.Protocol.ELECTRUMX);
+
+        if (config != null) {
+            List<String> customIds = new ArrayList<>(config.getVergeCustomConnectionIds());
+            Collections.sort(customIds);
+            for (String customId : customIds) {
+                String[] customConnection = Configuration.parseCustomVergeConnectionId(customId);
+                if (customConnection == null) {
+                    continue;
+                }
+
+                try {
+                    int port = Integer.parseInt(customConnection[1]);
+                    ServerAddress.Protocol protocol =
+                            Configuration.parseCustomVergeConnectionProtocol(customConnection[2]);
+                    addVergeServer(pool, customConnection[0], port, protocol);
+                } catch (NumberFormatException e) {
+                    // Ignore malformed custom entries.
+                }
+            }
+        }
+
+        ArrayList<ServerAddress> shuffledPool = new ArrayList<>(pool.values());
+        Collections.shuffle(shuffledPool);
+        return shuffledPool;
+    }
+
+    private static void addVergeServer(LinkedHashMap<String, ServerAddress> pool,
+                                       String host, int port, ServerAddress.Protocol protocol) {
+        String normalizedHost = host.trim().toLowerCase();
+        String endpoint = normalizedHost + ":" + port;
+        if (pool.containsKey(endpoint)) {
+            return;
+        }
+
+        pool.put(endpoint, new ServerAddress(normalizedHost, port, TOR_LOCAL_PROXY, protocol));
+    }
 
     public static final HashMap<CoinType, Integer> COINS_ICONS;
     public static final HashMap<CoinType, String> COINS_BLOCK_EXPLORERS;

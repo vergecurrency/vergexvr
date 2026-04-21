@@ -6,9 +6,6 @@
         android:name="android.permission.NFC"
         tools:node="remove" />
     <uses-permission
-        android:name="android.permission.RECEIVE_BOOT_COMPLETED"
-        tools:node="remove" />
-    <uses-permission
         android:name="android.permission.BLUETOOTH"
         tools:node="remove" />
     <uses-permission
@@ -36,9 +33,7 @@
         <activity
             android:name="com.vergepay.wallet.ui.WalletActivity"
             android:screenOrientation="landscape"
-            tools:replace="android:screenOrientation">
-            <intent-filter tools:node="removeAll" />
-        </activity>
+            tools:replace="android:screenOrientation" />
         <activity
             android:name="com.vergepay.wallet.ui.SendActivity"
             android:screenOrientation="landscape"
@@ -80,6 +75,10 @@
             android:screenOrientation="landscape"
             tools:replace="android:screenOrientation" />
         <activity
+            android:name="com.vergepay.wallet.ui.ConnectionsActivity"
+            android:screenOrientation="landscape"
+            tools:replace="android:screenOrientation" />
+        <activity
             android:name="com.vergepay.wallet.ui.ShowSeedActivity"
             android:screenOrientation="landscape"
             tools:replace="android:screenOrientation" />
@@ -113,8 +112,12 @@
             tools:replace="android:screenOrientation" />
         <activity
             android:name="com.vergepay.wallet.ui.TetrisActivity"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
             android:screenOrientation="landscape"
-            tools:replace="android:screenOrientation" />
+            android:taskAffinity="com.vergepay.wallet.tetris"
+            android:theme="@style/AppThemeMetaGame"
+            tools:replace="android:screenOrientation,android:theme" />
         <activity
             android:name="com.vergepay.wallet.ui.ApplockActivity"
             android:screenOrientation="landscape"
@@ -137,6 +140,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name="com.vergepay.wallet.receiver.MetaStartupReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

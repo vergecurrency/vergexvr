@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="meta_startup_target_entries">
+        <item>@string/pref_meta_startup_option_off</item>
+        <item>@string/pref_meta_startup_option_glance</item>
+        <item>@string/pref_meta_startup_option_wallet</item>
+    </string-array>
+
+    <string-array name="meta_startup_target_values">
+        <item>disabled</item>
+        <item>glance</item>
+        <item>wallet</item>
+    </string-array>
+</resources>

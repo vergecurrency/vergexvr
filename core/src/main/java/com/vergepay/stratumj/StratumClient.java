@@ -70,8 +70,10 @@ public class StratumClient extends AbstractExecutionThreadService {
         log.debug("Opening a socket to " + address.getHost() + ":" + address.getPort());
 
         Socket socket = address.getProxy() == null ? new Socket() : new Socket(address.getProxy());
-        socket.connect(new InetSocketAddress(address.getHost(), address.getPort()),
-                SOCKET_CONNECT_TIMEOUT_MS);
+        InetSocketAddress endpoint = address.getProxy() == null
+                ? new InetSocketAddress(address.getHost(), address.getPort())
+                : InetSocketAddress.createUnresolved(address.getHost(), address.getPort());
+        socket.connect(endpoint, SOCKET_CONNECT_TIMEOUT_MS);
 
         return socket;
     }

@@ -27,6 +27,7 @@ import com.vergepay.stratumj.messages.ResultMessage;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.TransactionOutPoint;
 import org.bitcoinj.core.Utils;
+import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.utils.ListenerRegistration;
 import org.bitcoinj.utils.Threading;
 import org.json.JSONArray;
@@ -37,10 +38,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
@@ -56,8 +59,9 @@ public class ServerClient implements BitBlockchainConnection {
     private static final Logger log = LoggerFactory.getLogger(ServerClient.class);
 
     private static final ScheduledThreadPoolExecutor connectionExec;
-    private static final String CLIENT_PROTOCOL = "0.9";
-    private static final Random RANDOM = new Random();
+    private static final String ELECTRUMX_CLIENT_NAME = "VergeXVR";
+    private static final String ELECTRUMX_CLIENT_PROTOCOL = "1.4";
+    private static final String LEGACY_CLIENT_PROTOCOL = "0.9";
     private static final long MAX_WAIT = 16;
     private static final long CONNECTION_STABILIZATION = 30;
 
@@ -90,6 +94,10 @@ public class ServerClient implements BitBlockchainConnection {
     private boolean stopped = false;
     private File cacheDir;
     private int cacheSize;
+    private boolean protocolNegotiated;
+    private boolean connectionBroadcasted;
+    @Nullable private ServerAddress.Protocol activeProtocol;
+    private final HashMap<String, AbstractAddress> subscribedScriptHashes = new HashMap<>();
 
     public ServerClient(CoinAddress coinAddress, ConnectivityHelper connectivityHelper) {
         this.connectivityHelper = connectivityHelper;
@@ -129,58 +137,267 @@ public class ServerClient implements BitBlockchainConnection {
     private StratumClient createStratumClient() {
         checkState(stratumClient == null);
         lastServerAddress = getServerAddress();
+        activeProtocol = getInitialProtocol(lastServerAddress);
+        protocolNegotiated = activeProtocol == ServerAddress.Protocol.LEGACY_ELECTRUM;
+        connectionBroadcasted = false;
+        subscribedScriptHashes.clear();
         stratumClient = new StratumClient(lastServerAddress);
         stratumClient.addListener(serviceListener, Threading.USER_THREAD);
         return stratumClient;
     }    private final Service.Listener serviceListener = new Service.Listener() {
         @Override
         public void running() {
-            // Check if connection is up as this event is fired even if there is no connection
-            if (isActivelyConnected()) {
-                log.info("{} client connected to {}", type.getName(), lastServerAddress);
-                broadcastOnConnection();
-
-                // Test that the connection is stable
-                reschedule(connectionCheckTask, CONNECTION_STABILIZATION, TimeUnit.SECONDS);
+            if (hasLiveTransport()) {
+                if (activeProtocol == null) {
+                    detectProtocol();
+                } else if (protocolNegotiated) {
+                    onNegotiatedConnectionReady();
+                } else {
+                    negotiateProtocol();
+                }
             }
         }
 
         @Override
         public void terminated(Service.State from) {
             log.info("{} client stopped", type.getName());
-            broadcastOnDisconnect();
+            if (connectionBroadcasted) {
+                broadcastOnDisconnect();
+                connectionBroadcasted = false;
+            }
             failedAddresses.add(lastServerAddress);
+            if (failedAddresses.size() >= addresses.size()) {
+                retrySeconds = Math.min(Math.max(1, retrySeconds * 2), MAX_WAIT);
+            } else {
+                retrySeconds = 0;
+            }
             lastServerAddress = null;
+            activeProtocol = null;
+            protocolNegotiated = false;
+            subscribedScriptHashes.clear();
             stratumClient = null;
             // Try to restart
             if (!stopped) {
-                log.info("Reconnecting {} in {} seconds", type.getName(), retrySeconds);
                 connectionExec.remove(connectionCheckTask);
                 connectionExec.remove(reconnectTask);
                 if (retrySeconds > 0) {
+                    log.info("Reconnecting {} in {} seconds after exhausting saved servers",
+                            type.getName(), retrySeconds);
                     reconnectAt = System.currentTimeMillis() + retrySeconds * 1000;
                     connectionExec.schedule(reconnectTask, retrySeconds, TimeUnit.SECONDS);
                 } else {
+                    log.info("Trying next {} server immediately", type.getName());
                     connectionExec.execute(reconnectTask);
                 }
             }
         }
     };
 
+    private boolean usesElectrumXProtocol() {
+        return activeProtocol == ServerAddress.Protocol.ELECTRUMX;
+    }
+
+    @Nullable
+    private ServerAddress.Protocol getInitialProtocol(@Nullable ServerAddress address) {
+        if (address == null || address.getProtocol() == ServerAddress.Protocol.AUTO) {
+            return null;
+        }
+        return address.getProtocol();
+    }
+
+    private boolean hasLiveTransport() {
+        return stratumClient != null && stratumClient.isConnected() && stratumClient.isRunning();
+    }
+
+    private void detectProtocol() {
+        final CallMessage versionMessage = new CallMessage("server.version",
+                ImmutableList.of(ELECTRUMX_CLIENT_NAME, ELECTRUMX_CLIENT_PROTOCOL));
+        ListenableFuture<ResultMessage> versionReply = stratumClient.call(versionMessage);
+        Futures.addCallback(versionReply, new FutureCallback<ResultMessage>() {
+            @Override
+            public void onSuccess(@Nullable ResultMessage result) {
+                if (!hasLiveTransport() || result == null) {
+                    return;
+                }
+
+                ServerAddress.Protocol detectedProtocol = detectProtocolFromVersion(result);
+                if (detectedProtocol == null) {
+                    probeProtocolFromHeaders();
+                    return;
+                }
+
+                activeProtocol = detectedProtocol;
+                protocolNegotiated = true;
+
+                if (detectedProtocol == ServerAddress.Protocol.ELECTRUMX) {
+                    log.info("{} auto-detected ElectrumX protocol {} on {}",
+                            type.getName(), safeProtocolVersion(result), lastServerAddress);
+                } else {
+                    log.info("{} auto-detected legacy Electrum protocol on {}",
+                            type.getName(), lastServerAddress);
+                }
+                onNegotiatedConnectionReady();
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                if (t instanceof CancellationException) {
+                    log.debug("Canceled protocol detection for {}", type.getName());
+                } else {
+                    log.warn("server.version auto-detect failed for {}, probing headers instead",
+                            type.getName(), t);
+                }
+                probeProtocolFromHeaders();
+            }
+        }, Threading.USER_THREAD);
+    }
+
+    @Nullable
+    private ServerAddress.Protocol detectProtocolFromVersion(ResultMessage result) {
+        JSONArray payload = result.getResult();
+        if (payload.length() >= 2) {
+            return ServerAddress.Protocol.ELECTRUMX;
+        }
+        if (payload.length() == 1) {
+            return ServerAddress.Protocol.LEGACY_ELECTRUM;
+        }
+        return null;
+    }
+
+    private String safeProtocolVersion(ResultMessage result) {
+        try {
+            return result.getResult().getString(1);
+        } catch (Exception e) {
+            return ELECTRUMX_CLIENT_PROTOCOL;
+        }
+    }
+
+    private void probeProtocolFromHeaders() {
+        if (!hasLiveTransport()) {
+            return;
+        }
+
+        final CallMessage headersMessage = new CallMessage("blockchain.headers.subscribe", (List) null);
+        ListenableFuture<ResultMessage> headerReply = stratumClient.call(headersMessage);
+        Futures.addCallback(headerReply, new FutureCallback<ResultMessage>() {
+            @Override
+            public void onSuccess(@Nullable ResultMessage result) {
+                if (!hasLiveTransport() || result == null) {
+                    return;
+                }
+
+                ServerAddress.Protocol detectedProtocol = detectProtocolFromHeaders(result);
+                if (detectedProtocol == null) {
+                    log.error("Could not determine protocol for {}", lastServerAddress);
+                    if (stratumClient != null) {
+                        stratumClient.disconnect();
+                    }
+                    return;
+                }
+
+                activeProtocol = detectedProtocol;
+                protocolNegotiated = detectedProtocol == ServerAddress.Protocol.LEGACY_ELECTRUM;
+                if (detectedProtocol == ServerAddress.Protocol.ELECTRUMX) {
+                    negotiateProtocol();
+                } else {
+                    log.info("{} auto-detected legacy Electrum protocol via headers on {}",
+                            type.getName(), lastServerAddress);
+                    onNegotiatedConnectionReady();
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                if (!(t instanceof CancellationException)) {
+                    log.error("Failed to auto-detect protocol from headers for {}", type.getName(), t);
+                }
+                if (stratumClient != null) {
+                    stratumClient.disconnect();
+                }
+            }
+        }, Threading.USER_THREAD);
+    }
+
+    @Nullable
+    private ServerAddress.Protocol detectProtocolFromHeaders(ResultMessage result) {
+        try {
+            Object payload = result.getResult().get(0);
+            if (!(payload instanceof JSONObject)) {
+                return ServerAddress.Protocol.ELECTRUMX;
+            }
+
+            JSONObject header = (JSONObject) payload;
+            if (header.has("hex") || header.has("height") || header.has("header")) {
+                return ServerAddress.Protocol.ELECTRUMX;
+            }
+            if (header.has("timestamp") || header.has("block_height")) {
+                return ServerAddress.Protocol.LEGACY_ELECTRUM;
+            }
+        } catch (JSONException e) {
+            log.error("Could not parse headers probe response", e);
+        }
+        return null;
+    }
+
+    private void negotiateProtocol() {
+        final CallMessage versionMessage = new CallMessage("server.version",
+                ImmutableList.of(ELECTRUMX_CLIENT_NAME, ELECTRUMX_CLIENT_PROTOCOL));
+        ListenableFuture<ResultMessage> versionReply = stratumClient.call(versionMessage);
+        Futures.addCallback(versionReply, new FutureCallback<ResultMessage>() {
+            @Override
+            public void onSuccess(@Nullable ResultMessage result) {
+                if (!hasLiveTransport()) {
+                    return;
+                }
+
+                protocolNegotiated = true;
+                if (result != null && log.isInfoEnabled()) {
+                    try {
+                        log.info("{} negotiated ElectrumX protocol {} with {}",
+                                type.getName(), safeProtocolVersion(result), lastServerAddress);
+                    } catch (Exception e) {
+                        log.info("{} negotiated ElectrumX protocol with {}", type.getName(),
+                                lastServerAddress);
+                    }
+                }
+                onNegotiatedConnectionReady();
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                if (t instanceof CancellationException) {
+                    log.debug("Canceled protocol negotiation for {}", type.getName());
+                } else {
+                    log.error("Failed to negotiate ElectrumX session for {}", type.getName(), t);
+                }
+                if (stratumClient != null) {
+                    stratumClient.disconnect();
+                }
+            }
+        }, Threading.USER_THREAD);
+    }
+
+    private void onNegotiatedConnectionReady() {
+        log.info("{} client connected to {}", type.getName(), lastServerAddress);
+        connectionBroadcasted = true;
+        broadcastOnConnection();
+
+        // Test that the connection is stable
+        reschedule(connectionCheckTask, CONNECTION_STABILIZATION, TimeUnit.SECONDS);
+    }
+
     private ServerAddress getServerAddress() {
-        // If we blacklisted all servers, reset
-        if (failedAddresses.size() == addresses.size()) {
+        if (failedAddresses.size() >= addresses.size()) {
             failedAddresses.clear();
         }
-        retrySeconds = Math.min(Math.max(1, retrySeconds * 2), MAX_WAIT);
 
-        ServerAddress address;
-        // Not the most efficient, but does the job
-        while (true) {
-            address = addresses.get(RANDOM.nextInt(addresses.size()));
-            if (!failedAddresses.contains(address)) break;
+        for (ServerAddress address : addresses) {
+            if (!failedAddresses.contains(address)) {
+                return address;
+            }
         }
-        return address;
+
+        throw new IllegalStateException("No Verge server addresses available for " + type.getName());
     }
 
     public void startAsync() {
@@ -210,7 +427,10 @@ public class ServerClient implements BitBlockchainConnection {
     public void stopAsync() {
         if (stopped) return;
         stopped = true;
-        if (isActivelyConnected()) broadcastOnDisconnect();
+        if (connectionBroadcasted) {
+            broadcastOnDisconnect();
+            connectionBroadcasted = false;
+        }
         eventListeners.clear();
         connectionExec.remove(reconnectTask);
         if (stratumClient != null) {
@@ -220,7 +440,15 @@ public class ServerClient implements BitBlockchainConnection {
     }
 
     public boolean isActivelyConnected() {
-        return stratumClient != null && stratumClient.isConnected() && stratumClient.isRunning();
+        return protocolNegotiated && hasLiveTransport();
+    }
+
+    @Nullable
+    public ServerAddress getConnectedServerAddress() {
+        if (lastServerAddress == null || !hasLiveTransport()) {
+            return null;
+        }
+        return lastServerAddress;
     }
 
     /**
@@ -304,7 +532,63 @@ public class ServerClient implements BitBlockchainConnection {
     }
 
     private BlockHeader parseBlockHeader(CoinType type, JSONObject json) throws JSONException {
+        if (json.has("hex") && json.has("height")) {
+            return parseRawBlockHeader(json.getString("hex"), json.getInt("height"));
+        }
         return new BlockHeader(type, json.getLong("timestamp"), json.getInt("block_height"));
+    }
+
+    private BlockHeader parseBlockHeader(ResultMessage result, int requestedHeight) throws JSONException {
+        Object header = result.getResult().get(0);
+        if (header instanceof JSONObject) {
+            JSONObject headerJson = (JSONObject) header;
+            if (headerJson.has("header")) {
+                return parseRawBlockHeader(headerJson.getString("header"), requestedHeight);
+            }
+            return parseBlockHeader(type, headerJson);
+        }
+        return parseRawBlockHeader(String.valueOf(header), requestedHeight);
+    }
+
+    private BlockHeader parseRawBlockHeader(String hexHeader, int height) {
+        byte[] headerBytes = Utils.HEX.decode(hexHeader);
+        if (headerBytes.length < 72) {
+            throw new IllegalArgumentException("Unexpected raw block header length: " + headerBytes.length);
+        }
+        return new BlockHeader(type, readUint32LE(headerBytes, 68), height);
+    }
+
+    private long readUint32LE(byte[] bytes, int offset) {
+        return (((long) bytes[offset] & 0xff))
+                | (((long) bytes[offset + 1] & 0xff) << 8)
+                | (((long) bytes[offset + 2] & 0xff) << 16)
+                | (((long) bytes[offset + 3] & 0xff) << 24);
+    }
+
+    private String toScriptHash(AbstractAddress address) throws AddressMalformedException {
+        BitAddress bitAddress = BitAddress.from(address);
+        byte[] scriptBytes = ScriptBuilder.createOutputScript(bitAddress).getProgram();
+        byte[] digest;
+        try {
+            digest = MessageDigest.getInstance("SHA-256").digest(scriptBytes);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("Missing SHA-256 digest support", e);
+        }
+
+        for (int i = 0; i < digest.length / 2; i++) {
+            byte left = digest[i];
+            int rightIndex = digest.length - 1 - i;
+            digest[i] = digest[rightIndex];
+            digest[rightIndex] = left;
+        }
+        return Utils.HEX.encode(digest);
+    }
+
+    @Nullable
+    private AbstractAddress getSubscribedAddress(String scriptHash) {
+        synchronized (subscribedScriptHashes) {
+            return subscribedScriptHashes.get(scriptHash);
+        }
     }
 
     @Override
@@ -320,6 +604,8 @@ public class ServerClient implements BitBlockchainConnection {
                     listener.onNewBlock(header);
                 } catch (JSONException e) {
                     log.error("Unexpected JSON format", e);
+                } catch (IllegalArgumentException e) {
+                    log.error("Unexpected block header format", e);
                 }
             }
         };
@@ -338,6 +624,8 @@ public class ServerClient implements BitBlockchainConnection {
                     listener.onNewBlock(header);
                 } catch (JSONException e) {
                     log.error("Unexpected JSON format", e);
+                } catch (IllegalArgumentException e) {
+                    log.error("Unexpected block header format", e);
                 }
             }
 
@@ -362,7 +650,17 @@ public class ServerClient implements BitBlockchainConnection {
             @Override
             public void handle(CallMessage message) {
                 try {
-                    AbstractAddress address = BitAddress.from(type, message.getParams().getString(0));
+                    AbstractAddress address;
+                    if (usesElectrumXProtocol()) {
+                        String scriptHash = message.getParams().getString(0);
+                        address = getSubscribedAddress(scriptHash);
+                        if (address == null) {
+                            log.warn("Received update for unknown script hash {}", scriptHash);
+                            return;
+                        }
+                    } else {
+                        address = BitAddress.from(type, message.getParams().getString(0));
+                    }
                     AddressStatus status;
                     if (message.getParams().isNull(1)) {
                         status = new AddressStatus(address, null);
@@ -379,9 +677,27 @@ public class ServerClient implements BitBlockchainConnection {
         };
 
         for (final AbstractAddress address : addresses) {
+            final String subscriptionKey;
+            final String methodName;
+            try {
+                if (usesElectrumXProtocol()) {
+                    subscriptionKey = toScriptHash(address);
+                    synchronized (subscribedScriptHashes) {
+                        subscribedScriptHashes.put(subscriptionKey, address);
+                    }
+                    methodName = "blockchain.scripthash.subscribe";
+                } else {
+                    subscriptionKey = address.toString();
+                    methodName = "blockchain.address.subscribe";
+                }
+            } catch (AddressMalformedException e) {
+                log.error("Could not derive subscription key for {}", address, e);
+                continue;
+            }
+
             log.debug("Going to subscribe to {}", address);
-            final CallMessage callMessage = new CallMessage("blockchain.address.subscribe",
-                    Collections.singletonList(address.toString()));
+            final CallMessage callMessage = new CallMessage(methodName,
+                    Collections.singletonList(subscriptionKey));
             ListenableFuture<ResultMessage> reply = stratumClient.subscribe(callMessage, addressHandler);
 
             Futures.addCallback(reply, new FutureCallback<ResultMessage>() {
@@ -419,8 +735,23 @@ public class ServerClient implements BitBlockchainConnection {
                              final BitTransactionEventListener listener) {
         checkNotNull(stratumClient);
 
-        final CallMessage message = new CallMessage("blockchain.address.listunspent",
-                Collections.singletonList(status.getAddress().toString()));
+        final String methodName;
+        final String lookupKey;
+        try {
+            if (usesElectrumXProtocol()) {
+                methodName = "blockchain.scripthash.listunspent";
+                lookupKey = toScriptHash(status.getAddress());
+            } else {
+                methodName = "blockchain.address.listunspent";
+                lookupKey = status.getAddress().toString();
+            }
+        } catch (AddressMalformedException e) {
+            log.error("Could not derive lookup key for {}", status.getAddress(), e);
+            return;
+        }
+
+        final CallMessage message = new CallMessage(methodName,
+                Collections.singletonList(lookupKey));
         final ListenableFuture<ResultMessage> result = stratumClient.call(message);
 
         Futures.addCallback(result, new FutureCallback<ResultMessage>() {
@@ -452,8 +783,23 @@ public class ServerClient implements BitBlockchainConnection {
                              final TransactionEventListener<BitTransaction> listener) {
         checkNotNull(stratumClient);
 
-        final CallMessage message = new CallMessage("blockchain.address.get_history",
-                Collections.singletonList(status.getAddress().toString()));
+        final String methodName;
+        final String lookupKey;
+        try {
+            if (usesElectrumXProtocol()) {
+                methodName = "blockchain.scripthash.get_history";
+                lookupKey = toScriptHash(status.getAddress());
+            } else {
+                methodName = "blockchain.address.get_history";
+                lookupKey = status.getAddress().toString();
+            }
+        } catch (AddressMalformedException e) {
+            log.error("Could not derive lookup key for {}", status.getAddress(), e);
+            return;
+        }
+
+        final CallMessage message = new CallMessage(methodName,
+                Collections.singletonList(lookupKey));
         final ListenableFuture<ResultMessage> result = stratumClient.call(message);
 
         Futures.addCallback(result, new FutureCallback<ResultMessage>() {
@@ -569,7 +915,10 @@ public class ServerClient implements BitBlockchainConnection {
     public void getBlock(final int height, final TransactionEventListener<BitTransaction> listener) {
         checkNotNull(stratumClient);
 
-        final CallMessage message = new CallMessage("blockchain.block.get_header", height);
+        final String methodName = usesElectrumXProtocol()
+                ? "blockchain.block.header"
+                : "blockchain.block.get_header";
+        final CallMessage message = new CallMessage(methodName, height);
 
         final ListenableFuture<ResultMessage> result = stratumClient.call(message);
 
@@ -577,10 +926,12 @@ public class ServerClient implements BitBlockchainConnection {
             @Override
             public void onSuccess(ResultMessage result) {
                 try {
-                    BlockHeader header = parseBlockHeader(type, result.getResult().getJSONObject(0));
+                    BlockHeader header = parseBlockHeader(result, height);
                     listener.onBlockUpdate(header);
                 } catch (JSONException e) {
                     log.error("Unexpected JSON format", e);
+                } catch (IllegalArgumentException e) {
+                    log.error("Unexpected block header format", e);
                 }
             }
 
@@ -657,12 +1008,16 @@ public class ServerClient implements BitBlockchainConnection {
             return;
         }
 
-        if (versionString == null) {
-            versionString = this.getClass().getCanonicalName();
+        final CallMessage pingMsg;
+        if (usesElectrumXProtocol()) {
+            pingMsg = new CallMessage("server.ping", (List) null);
+        } else {
+            if (versionString == null) {
+                versionString = this.getClass().getCanonicalName();
+            }
+            pingMsg = new CallMessage("server.version",
+                    ImmutableList.of(versionString, LEGACY_CLIENT_PROTOCOL));
         }
-
-        final CallMessage pingMsg = new CallMessage("server.version",
-                ImmutableList.of(versionString, CLIENT_PROTOCOL));
         ListenableFuture<ResultMessage> pong = stratumClient.call(pingMsg);
         Futures.addCallback(pong, new FutureCallback<ResultMessage>() {
             @Override

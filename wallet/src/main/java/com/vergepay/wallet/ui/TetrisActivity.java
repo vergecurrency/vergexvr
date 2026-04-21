@@ -1,10 +1,15 @@
 package com.vergepay.wallet.ui;
 
+import android.graphics.Color;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -26,6 +31,7 @@ public class TetrisActivity extends AppCompatActivity {
     private TextView levelView;
     private TextView statusView;
 
+    private boolean metaVariant;
     private boolean resumed;
     private boolean showingGameOver;
 
@@ -51,7 +57,14 @@ public class TetrisActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        metaVariant = getResources().getBoolean(R.bool.wallet_meta_variant);
+        if (metaVariant) {
+            configureMetaWindow();
+        }
         setContentView(R.layout.activity_tetris);
+
+        View root = findViewById(R.id.tetris_root);
+        WindowInsetsHelper.applyPaddingInsets(root, true, true);
 
         boardView = findViewById(R.id.tetris_board);
         previewView = findViewById(R.id.tetris_next_board);
@@ -64,8 +77,12 @@ public class TetrisActivity extends AppCompatActivity {
         previewView.setGridSize(TetrisGame.PREVIEW_SIZE, TetrisGame.PREVIEW_SIZE);
 
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(R.string.title_activity_tetris);
+            if (metaVariant) {
+                getSupportActionBar().hide();
+            } else {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setTitle(R.string.title_activity_tetris);
+            }
         }
 
         findViewById(R.id.tetris_move_left).setOnClickListener(v -> {
@@ -92,6 +109,10 @@ public class TetrisActivity extends AppCompatActivity {
             refreshUi();
         });
         findViewById(R.id.tetris_restart).setOnClickListener(v -> restartGame());
+        View exitView = findViewById(R.id.tetris_exit);
+        if (exitView != null) {
+            exitView.setOnClickListener(v -> finish());
+        }
 
         restartGame();
     }
@@ -99,6 +120,9 @@ public class TetrisActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (metaVariant) {
+            applyMetaImmersiveMode();
+        }
         resumed = true;
         rescheduleTick();
     }
@@ -117,6 +141,14 @@ public class TetrisActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (metaVariant && hasFocus) {
+            applyMetaImmersiveMode();
+        }
     }
 
     private void restartGame() {
@@ -175,5 +207,29 @@ public class TetrisActivity extends AppCompatActivity {
                         })
                 .setCancelable(false)
                 .show();
+    }
+
+    private void configureMetaWindow() {
+        Window window = getWindow();
+        window.setBackgroundDrawableResource(android.R.color.transparent);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS
+                    | WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(Color.TRANSPARENT);
+            window.setNavigationBarColor(Color.TRANSPARENT);
+        }
+    }
+
+    private void applyMetaImmersiveMode() {
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 }

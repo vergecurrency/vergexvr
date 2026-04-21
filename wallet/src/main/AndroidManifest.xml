@@ -156,6 +156,15 @@
                 android:value="com.vergepay.wallet.ui.WalletActivity"/>
         </activity>
         <activity
+            android:name="com.vergepay.wallet.ui.ConnectionsActivity"
+            android:parentActivityName="com.vergepay.wallet.ui.SettingsActivity"
+            android:label="@string/title_activity_connections"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="androidx.core.app.NavUtils.PARENT_ACTIVITY"
+                android:value="com.vergepay.wallet.ui.SettingsActivity"/>
+        </activity>
+        <activity
             android:name="com.vergepay.wallet.ui.ShowSeedActivity"
             android:parentActivityName="com.vergepay.wallet.ui.SettingsActivity"
             android:label="@string/title_activity_show_seed"

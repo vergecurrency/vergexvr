@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <Preference
+        android:key="saved_connections_info"
+        android:title="@string/pref_title_saved_connections"
+        android:summary="@string/pref_summary_saved_connections"
+        android:selectable="false" />
+
+    <PreferenceCategory
+        android:key="saved_connections_category"
+        android:title="@string/pref_title_verge_connection_profile" />
+
+    <Preference
+        android:key="add_custom_connection"
+        android:title="@string/pref_title_add_custom_connection_button"
+        android:summary="@string/pref_summary_add_custom_connection" />
+
+</PreferenceScreen>

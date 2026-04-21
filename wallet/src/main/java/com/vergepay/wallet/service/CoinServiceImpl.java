@@ -249,7 +249,8 @@ public class CoinServiceImpl extends Service implements CoinService {
     }
 
     private ServerClients getServerClients(Wallet wallet) {
-        ServerClients newClients = new ServerClients(Constants.DEFAULT_COINS_SERVERS, connHelper);
+        ServerClients newClients = new ServerClients(
+                Constants.getCoinServers(config), connHelper);
         if (application.getTxCachePath() != null) {
             newClients.setCacheDir(application.getTxCachePath(), Constants.TX_CACHE_SIZE);
         }
@@ -390,6 +391,22 @@ public class CoinServiceImpl extends Service implements CoinService {
         }
     }
 
+    private void reloadConnections() {
+        Wallet wallet = application.getWallet();
+        if (wallet == null) {
+            log.warn("Skipping connection reload because no wallet is loaded");
+            return;
+        }
+
+        for (WalletAccount account : wallet.getAllAccounts()) {
+            account.refresh();
+        }
+
+        disconnectClients();
+        application.startTor();
+        connectAccountsAfterTorReady();
+    }
+
     private ConnectivityHelper getConnectivityHelper(final ConnectivityManager manager) {
         return new ConnectivityHelper() {
             @Override
@@ -416,6 +433,8 @@ public class CoinServiceImpl extends Service implements CoinService {
 
         } else if (CoinService.ACTION_CLEAR_CONNECTIONS.equals(action)) {
             disconnectClients();
+        } else if (CoinService.ACTION_RELOAD_CONNECTIONS.equals(action)) {
+            reloadConnections();
         } else if (CoinService.ACTION_RESET_ACCOUNT.equals(action)) {
             if (application.getWallet() != null) {
                 Wallet wallet = application.getWallet();

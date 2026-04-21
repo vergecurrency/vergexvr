@@ -46,6 +46,9 @@ public interface WalletAccount<T extends AbstractTransaction, A extends Abstract
 
     boolean isLoading();
 
+    @Nullable
+    String getConnectedServerName();
+
     void disconnect();
 
     WalletConnectivityStatus getConnectivityStatus();

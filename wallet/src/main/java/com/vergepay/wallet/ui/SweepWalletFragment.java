@@ -205,7 +205,9 @@ public class SweepWalletFragment extends Fragment {
                 }
             };
 
-            serverClients = new ServerClients(Constants.DEFAULT_COINS_SERVERS, connHelper);
+            WalletApplication application = (WalletApplication) context.getApplicationContext();
+            serverClients = new ServerClients(
+                    Constants.getCoinServers(application.getConfiguration()), connHelper);
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement " + Listener.class);
         }
