@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="AppThemeWearablesMeta" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/wearables_panel_bg</item>
+        <item name="colorPrimary">@color/wearables_button_bg</item>
         <item name="colorPrimaryDark">@color/wearables_window_bg</item>
         <item name="colorAccent">@color/wearables_accent</item>
         <item name="android:windowBackground">@color/wearables_window_bg</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
 </resources>

@@ -1,56 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/wearables_window_bg">
+    android:background="@android:color/transparent"
+    android:padding="24dp">
 
     <LinearLayout
+        android:id="@+id/wearables_panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:background="@drawable/wearables_glance_panel_bg"
+        android:clickable="true"
+        android:focusable="true"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="20dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:shadowColor="#A6000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="4"
             android:text="@string/wearables_title"
-            android:textColor="@color/wearables_text_primary"
-            android:textSize="28sp"
+            android:textAllCaps="true"
+            android:textColor="@color/wearables_text_secondary"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/wearables_amount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/wearables_subtitle"
-            android:textColor="@color/wearables_text_secondary"
-            android:textSize="16sp" />
+            android:layout_marginTop="14dp"
+            android:shadowColor="#CC000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="6"
+            android:textColor="@color/wearables_text_primary"
+            android:textSize="30sp"
+            android:textStyle="bold" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/wearables_value"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:background="@color/wearables_panel_bg"
-            android:orientation="vertical"
-            android:padding="20dp">
+            android:layout_marginTop="6dp"
+            android:shadowColor="#CC000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="6"
+            android:textColor="@color/wearables_text_primary"
+            android:textSize="18sp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/wearables_panel_title"
-                android:textColor="@color/wearables_text_primary"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+        <TextView
+            android:id="@+id/wearables_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:shadowColor="#CC000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="6"
+            android:textColor="@color/wearables_accent"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="@string/wearables_panel_body"
-                android:textColor="@color/wearables_text_secondary"
-                android:textSize="15sp" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/wearables_detail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:shadowColor="#B3000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="4"
+            android:textColor="@color/wearables_text_secondary"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/wearables_open_wallet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/wearables_open_wallet_bg"
+            android:paddingLeft="14dp"
+            android:paddingTop="8dp"
+            android:paddingRight="14dp"
+            android:paddingBottom="8dp"
+            android:text="@string/wearables_open_wallet"
+            android:textColor="@color/wearables_text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 
-</ScrollView>
+</FrameLayout>

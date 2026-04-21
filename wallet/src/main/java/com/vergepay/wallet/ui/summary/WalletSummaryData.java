@@ -11,6 +11,8 @@ import com.vergepay.core.coins.Value;
 import com.vergepay.core.util.ExchangeRateBase;
 import com.vergepay.core.util.GenericUtils;
 import com.vergepay.core.wallet.WalletAccount;
+import com.vergepay.core.wallet.WalletConnectivityStatus;
+import com.vergepay.wallet.Constants;
 import com.vergepay.wallet.Configuration;
 import com.vergepay.wallet.R;
 import com.vergepay.wallet.WalletApplication;
@@ -28,6 +30,7 @@ public final class WalletSummaryData {
 
     private static final String PREF_BALANCE_CACHE = "balance_fragment_cache";
     private static final String PREF_XVG_USD_RATE = "xvg_usd_rate";
+    private static final String PREF_SUMMARY_UPDATED_AT = "summary_updated_at";
     private static final String FALLBACK_XVG_USD_RATE = "0.0038";
 
     private WalletSummaryData() { }
@@ -66,13 +69,30 @@ public final class WalletSummaryData {
                 .apply();
     }
 
+    public static void touchUpdatedAt(Context context) {
+        context.getApplicationContext()
+                .getSharedPreferences(PREF_BALANCE_CACHE, Context.MODE_PRIVATE)
+                .edit()
+                .putLong(PREF_SUMMARY_UPDATED_AT, System.currentTimeMillis())
+                .apply();
+    }
+
+    public static long readUpdatedAt(Context context) {
+        return context.getApplicationContext()
+                .getSharedPreferences(PREF_BALANCE_CACHE, Context.MODE_PRIVATE)
+                .getLong(PREF_SUMMARY_UPDATED_AT, 0L);
+    }
+
     @NonNull
     public static Snapshot load(Context context) {
         WalletAccount account = getPrimaryAccount(context);
         if (account == null) {
             return new Snapshot(false, null,
                     context.getString(R.string.wallet_summary_empty_amount),
-                    context.getString(R.string.wallet_summary_empty_value));
+                    context.getString(R.string.wallet_summary_empty_value),
+                    context.getString(R.string.wallet_summary_status_open_phone),
+                    false,
+                    readUpdatedAt(context));
         }
 
         String amountText = GenericUtils.formatCoinValue(
@@ -94,7 +114,53 @@ public final class WalletSummaryData {
             }
         }
 
-        return new Snapshot(true, account.getId(), amountText, fiatText);
+        WalletApplication application = getApplication(context);
+        StatusSnapshot status = getStatusSnapshot(context, application, account);
+        return new Snapshot(true, account.getId(), amountText, fiatText,
+                status.text, status.connected, readUpdatedAt(context));
+    }
+
+    @NonNull
+    private static StatusSnapshot getStatusSnapshot(@NonNull Context context,
+                                                    @Nullable WalletApplication application,
+                                                    @NonNull WalletAccount account) {
+        if (application == null || !application.isConnected()) {
+            return new StatusSnapshot(
+                    context.getString(R.string.connection_status_network_waiting), false);
+        }
+
+        String torStatus = application.getTorStatus();
+        if (Constants.TOR_STATUS_FAILED.equals(torStatus)) {
+            return new StatusSnapshot(
+                    context.getString(R.string.connection_status_tor_failed), false);
+        }
+        if (Constants.TOR_STATUS_STOPPED.equals(torStatus)) {
+            return new StatusSnapshot(
+                    context.getString(R.string.connection_status_tor_stopped), false);
+        }
+        if (!Constants.TOR_STATUS_READY.equals(torStatus)) {
+            return new StatusSnapshot(
+                    context.getString(R.string.connection_status_tor_starting), false);
+        }
+
+        WalletConnectivityStatus connectivity = account.getConnectivityStatus();
+        switch (connectivity) {
+            case CONNECTED:
+                return new StatusSnapshot(
+                        context.getString(R.string.connection_status_connected_over_tor), true);
+            case LOADING:
+                return new StatusSnapshot(
+                        context.getString(R.string.connection_status_syncing_over_tor), false);
+            case DISCONNECTED:
+            default:
+                if (!account.isNew() || account.getBalance().signum() > 0) {
+                    return new StatusSnapshot(
+                            context.getString(R.string.connection_status_reconnecting_over_tor),
+                            false);
+                }
+                return new StatusSnapshot(
+                        context.getString(R.string.connection_status_connecting_over_tor), false);
+        }
     }
 
     @Nullable
@@ -129,13 +195,30 @@ public final class WalletSummaryData {
         @Nullable public final String accountId;
         public final String amountText;
         public final String fiatText;
+        public final String statusText;
+        public final boolean connected;
+        public final long updatedAtMs;
 
         private Snapshot(boolean hasAccount, @Nullable String accountId,
-                         String amountText, String fiatText) {
+                         String amountText, String fiatText,
+                         String statusText, boolean connected, long updatedAtMs) {
             this.hasAccount = hasAccount;
             this.accountId = accountId;
             this.amountText = amountText;
             this.fiatText = fiatText;
+            this.statusText = statusText;
+            this.connected = connected;
+            this.updatedAtMs = updatedAtMs;
+        }
+    }
+
+    private static final class StatusSnapshot {
+        private final String text;
+        private final boolean connected;
+
+        private StatusSnapshot(@NonNull String text, boolean connected) {
+            this.text = text;
+            this.connected = connected;
         }
     }
 }

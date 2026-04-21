@@ -3,6 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:installLocation="internalOnly">
 
+    <permission
+        android:name="com.vergepay.wallet.permission.READ_WALLET_SUMMARY"
+        android:protectionLevel="signature" />
+
     <uses-sdk tools:overrideLibrary="org.torproject.jni" />
 
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -230,6 +234,11 @@
             android:name=".ExchangeHistoryProvider"
             android:authorities="com.vergepay.wallet.exchange_history"
             android:exported="false"/>
+        <provider
+            android:name="com.vergepay.wallet.ui.summary.WalletSummaryProvider"
+            android:authorities="com.vergepay.wallet.wallet_summary"
+            android:exported="true"
+            android:readPermission="com.vergepay.wallet.permission.READ_WALLET_SUMMARY" />
 
         <service
             android:name="com.vergepay.wallet.service.CoinServiceImpl"

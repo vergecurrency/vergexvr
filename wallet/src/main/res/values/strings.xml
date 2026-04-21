@@ -134,6 +134,7 @@
     <string name="wallet_summary_empty_amount">No wallet loaded</string>
     <string name="wallet_summary_empty_value">Open Verge</string>
     <string name="wallet_summary_value_unavailable">Value unavailable</string>
+    <string name="wallet_summary_status_open_phone">Open Verge on your phone</string>
     <string name="no_wallet_pocket_selected">No wallet account selected</string>
     <string name="get_tx_broadcast_error">Transaction broadcast error</string>
     <!-- Receive fragment -->

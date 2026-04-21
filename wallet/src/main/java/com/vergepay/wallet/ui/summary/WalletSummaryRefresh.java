@@ -11,7 +11,9 @@ public final class WalletSummaryRefresh {
 
     public static void refreshAll(Context context) {
         Context appContext = context.getApplicationContext();
+        WalletSummaryData.touchUpdatedAt(appContext);
         WalletSummaryWidgetProvider.refreshWidgets(appContext);
+        appContext.getContentResolver().notifyChange(WalletSummaryProvider.contentUri(), null);
         Intent intent = new Intent(ACTION_SUMMARY_CHANGED).setPackage(appContext.getPackageName());
         appContext.sendBroadcast(intent);
     }

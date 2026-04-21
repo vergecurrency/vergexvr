@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Verge Wearables</string>
-    <string name="wearables_title">Meta Wearables Module</string>
-    <string name="wearables_subtitle">Separate app target for Ray-Ban Meta and Oakley Meta companion integrations.</string>
-    <string name="wearables_panel_title">Scaffold Ready</string>
-    <string name="wearables_panel_body">This module is intentionally separate from the Quest headset app. Shared wallet logic should live in :core, while glasses-specific session, camera, and voice flows belong here.</string>
+    <string name="wearables_title">Ray-Ban Display Glance</string>
+    <string name="wearables_open_wallet">Open Verge on phone</string>
+    <string name="wearables_waiting_amount">Open Verge</string>
+    <string name="wearables_waiting_value">Waiting for wallet summary</string>
+    <string name="wearables_wallet_missing_status">Install Verge Android</string>
+    <string name="wearables_wallet_permission_error">Wearables app must match Verge signing key</string>
+    <string name="wearables_wallet_unavailable_status">Launch Verge to sync over Tor</string>
+    <string name="wearables_wallet_not_installed">Verge Android is not installed</string>
+    <string name="wearables_hint_install_wallet">This companion reads the live summary from the Verge Android app.</string>
+    <string name="wearables_hint_signing_required">This companion only reads wallets signed with the same Verge key.</string>
+    <string name="wearables_hint_open_wallet">Open Verge on the phone to start Tor and refresh the wallet feed.</string>
+    <string name="wearables_hint_phone_wallet">Live summary sourced from the Verge phone wallet.</string>
+    <string name="wearables_hint_live_now">Live summary from the phone wallet just updated.</string>
+    <string name="wearables_hint_live_recent">Live summary from the phone wallet updated within the last minute.</string>
+    <string name="wearables_hint_cached_minutes">Cached phone-wallet summary from %1$d min ago.</string>
 </resources>
