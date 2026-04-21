@@ -67,6 +67,7 @@ import javax.annotation.Nullable;
 abstract public class TransactionWatcherWallet extends AbstractWallet<BitTransaction, BitAddress>
         implements TransactionBag, BitTransactionEventListener {
     private static final Logger log = LoggerFactory.getLogger(TransactionWatcherWallet.class);
+    private static final int MAX_PENDING_SUBSCRIPTIONS = 2;
 
     private final static int TX_DEPTH_SAVE_THRESHOLD = 4;
     @VisibleForTesting
@@ -694,11 +695,20 @@ abstract public class TransactionWatcherWallet extends AbstractWallet<BitTransac
     List<AbstractAddress> getAddressesToWatch() {
         lock.lock();
         try {
+            int availableSlots = MAX_PENDING_SUBSCRIPTIONS - addressesPendingSubscription.size();
+            if (availableSlots <= 0) {
+                return ImmutableList.of();
+            }
+
             ImmutableList.Builder<AbstractAddress> addressesToWatch = ImmutableList.builder();
             for (AbstractAddress address : getActiveAddresses()) {
                 // If address not already subscribed or pending subscription
                 if (!addressesSubscribed.contains(address) && !addressesPendingSubscription.contains(address)) {
                     addressesToWatch.add(address);
+                    availableSlots--;
+                    if (availableSlots == 0) {
+                        break;
+                    }
                 }
             }
             return addressesToWatch.build();
@@ -794,6 +804,8 @@ abstract public class TransactionWatcherWallet extends AbstractWallet<BitTransac
         lock.lock();
         try {
             confirmAddressSubscription(status.getAddress());
+            // Keep the initial sync pressure low enough that slower servers stay connected.
+            subscribeToAddressesIfNeeded();
             if (status.getStatus() != null) {
                 markAddressAsUsed(status.getAddress());
                 subscribeToAddressesIfNeeded();

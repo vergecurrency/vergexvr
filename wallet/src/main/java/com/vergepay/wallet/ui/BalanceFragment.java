@@ -1,16 +1,24 @@
 package com.vergepay.wallet.ui;
 
+import android.animation.ValueAnimator;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.ContentObserver;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Message;
+import androidx.core.content.ContextCompat;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.app.LoaderManager.LoaderCallbacks;
 import androidx.loader.content.AsyncTaskLoader;
 import androidx.loader.content.Loader;
+import android.graphics.LinearGradient;
+import android.graphics.Matrix;
+import android.graphics.Shader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,6 +65,9 @@ import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import android.view.animation.LinearInterpolator;
 
 /**
  * Use the {@link BalanceFragment#newInstance} factory method to
@@ -81,6 +92,7 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
     private static final String PREF_BALANCE_CACHE = "balance_fragment_cache";
     private static final String PREF_XVG_USD_RATE = "xvg_usd_rate";
     private static final String FALLBACK_XVG_USD_RATE = "0.0038";
+    private static final long STATUS_GRADIENT_DURATION_MS = 2600L;
 
     private String accountId;
     private WalletAccount pocket;
@@ -106,6 +118,10 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
     private TransactionsListAdapter adapter;
     private Listener listener;
     private ContentResolver resolver;
+    @Nullable private BroadcastReceiver torStatusReceiver;
+    @Nullable private ValueAnimator connectionLabelAnimator;
+    @Nullable private LinearGradient connectionLabelGradient;
+    private final Matrix connectionLabelGradientMatrix = new Matrix();
 
     /**
      * Use this factory method to create a new instance of
@@ -236,9 +252,7 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
     }
 
     private void setupConnectivityStatus() {
-        // Set connected for now...
-        setConnectivityStatus(WalletConnectivityStatus.CONNECTED);
-        // ... but check the status in some seconds
+        updateConnectivityStatus();
         handler.sendMessageDelayed(handler.obtainMessage(WALLET_CHANGED), 2000);
     }
 
@@ -310,29 +324,149 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
     }
 
     private void setConnectivityStatus(final WalletConnectivityStatus connectivity) {
+        if (!application.isConnected()) {
+            applyConnectivityStatus(R.string.connection_status_network_waiting, false);
+            return;
+        }
+
+        String torStatus = application.getTorStatus();
+        if (Constants.TOR_STATUS_FAILED.equals(torStatus)) {
+            applyConnectivityStatus(R.string.connection_status_tor_failed, false);
+            return;
+        }
+        if (Constants.TOR_STATUS_STOPPED.equals(torStatus)) {
+            applyConnectivityStatus(R.string.connection_status_tor_stopped, false);
+            return;
+        }
+        if (!Constants.TOR_STATUS_READY.equals(torStatus)) {
+            applyConnectivityStatus(R.string.connection_status_tor_starting, false);
+            return;
+        }
+
         switch (connectivity) {
             case CONNECTED:
-                connectionLabel.setVisibility(View.VISIBLE);
-                connectionLabel.setText("Connected");
-                connectedDot.setVisibility(View.VISIBLE);
-                disconnectedDot.setVisibility(View.GONE);
+                applyConnectivityStatus(R.string.connection_status_connected_over_tor, true);
                 break;
             case LOADING:
-                connectionLabel.setVisibility(View.VISIBLE);
-                connectionLabel.setText("Connecting");
-                connectedDot.setVisibility(View.INVISIBLE);
-                disconnectedDot.setVisibility(View.VISIBLE);
+                applyConnectivityStatus(R.string.connection_status_syncing_over_tor, false);
                 break;
             case DISCONNECTED:
-                connectionLabel.setVisibility(View.VISIBLE);
-                connectionLabel.setText(getString(R.string.disconnected_label));
-                connectedDot.setVisibility(View.INVISIBLE);
-                disconnectedDot.setVisibility(View.VISIBLE);
+                if (hasLoadedWalletData()) {
+                    applyConnectivityStatus(R.string.connection_status_reconnecting_over_tor, false);
+                } else {
+                    applyConnectivityStatus(R.string.connection_status_connecting_over_tor, false);
+                }
                 break;
             default:
                 connectedDot.setVisibility(View.INVISIBLE);
                 throw new RuntimeException("Unknown connectivity status: " + connectivity);
         }
+    }
+
+    private boolean hasLoadedWalletData() {
+        return pocket != null && (!pocket.isNew() || (currentBalance != null && currentBalance.signum() > 0));
+    }
+
+    private void applyConnectivityStatus(int labelResId, boolean connected) {
+        connectionLabel.setVisibility(View.VISIBLE);
+        connectionLabel.setText(labelResId);
+        connectedDot.setVisibility(connected ? View.VISIBLE : View.INVISIBLE);
+        disconnectedDot.setVisibility(connected ? View.GONE : View.VISIBLE);
+        startConnectionLabelAnimation();
+    }
+
+    private void startConnectionLabelAnimation() {
+        if (connectionLabel == null) {
+            return;
+        }
+
+        stopConnectionLabelAnimation(false);
+        connectionLabel.post(new Runnable() {
+            @Override
+            public void run() {
+                if (!isAdded() || connectionLabel == null) {
+                    return;
+                }
+
+                final float textWidth = Math.max(connectionLabel.getWidth(),
+                        connectionLabel.getPaint().measureText(connectionLabel.getText().toString()));
+                if (textWidth <= 0f) {
+                    return;
+                }
+
+                int[] colors = new int[] {
+                        ContextCompat.getColor(requireContext(), R.color.progress_bar_color_2),
+                        ContextCompat.getColor(requireContext(), R.color.text_primary),
+                        ContextCompat.getColor(requireContext(), R.color.progress_bar_color_3),
+                        ContextCompat.getColor(requireContext(), R.color.progress_bar_color_4),
+                        ContextCompat.getColor(requireContext(), R.color.progress_bar_color_2)
+                };
+                float[] positions = new float[] {0f, 0.28f, 0.55f, 0.8f, 1f};
+                connectionLabelGradient = new LinearGradient(
+                        -textWidth, 0f, 0f, 0f, colors, positions, Shader.TileMode.CLAMP);
+                connectionLabel.getPaint().setShader(connectionLabelGradient);
+
+                ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
+                animator.setDuration(STATUS_GRADIENT_DURATION_MS);
+                animator.setRepeatCount(ValueAnimator.INFINITE);
+                animator.setInterpolator(new LinearInterpolator());
+                animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animation) {
+                        if (connectionLabelGradient == null || connectionLabel == null) {
+                            return;
+                        }
+                        float progress = (Float) animation.getAnimatedValue();
+                        connectionLabelGradientMatrix.setTranslate(textWidth * 2f * progress, 0f);
+                        connectionLabelGradient.setLocalMatrix(connectionLabelGradientMatrix);
+                        connectionLabel.invalidate();
+                    }
+                });
+                connectionLabelAnimator = animator;
+                animator.start();
+            }
+        });
+    }
+
+    private void stopConnectionLabelAnimation(boolean clearShader) {
+        if (connectionLabelAnimator != null) {
+            connectionLabelAnimator.cancel();
+            connectionLabelAnimator = null;
+        }
+        if (clearShader && connectionLabel != null) {
+            connectionLabel.getPaint().setShader(null);
+            connectionLabel.invalidate();
+        }
+        connectionLabelGradient = null;
+    }
+
+    private void registerTorStatusReceiver() {
+        if (torStatusReceiver != null) {
+            return;
+        }
+
+        torStatusReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                handler.sendEmptyMessage(WALLET_CHANGED);
+            }
+        };
+
+        IntentFilter filter = new IntentFilter(Constants.ACTION_TOR_STATUS);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requireContext().registerReceiver(torStatusReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            requireContext().registerReceiver(torStatusReceiver, filter);
+        }
+    }
+
+    private void unregisterTorStatusReceiver() {
+        if (torStatusReceiver == null) {
+            return;
+        }
+
+        requireContext().unregisterReceiver(torStatusReceiver);
+        torStatusReceiver = null;
     }
 
     private final ThrottlingWalletChangeListener walletChangeListener = new ThrottlingWalletChangeListener() {
@@ -381,15 +515,19 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
                 getActivity().getPackageName(), type), true, addressBookObserver);
 
         pocket.addEventListener(walletChangeListener, Threading.SAME_THREAD);
+        registerTorStatusReceiver();
 
         checkEmptyPocketMessage();
         hydrateCachedRate();
 
+        updateConnectivityStatus();
         updateView();
     }
 
     @Override
     public void onPause() {
+        stopConnectionLabelAnimation(true);
+        unregisterTorStatusReceiver();
         pocket.removeEventListener(walletChangeListener);
         walletChangeListener.removeCallbacks();
 

@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 35
+    compileSdkVersion 36
 
     def unstoppableApiToken = project.findProperty("UNSTOPPABLE_DOMAINS_API_TOKEN") ?: ""
 
@@ -59,6 +59,7 @@ android {
     dependencies {
         implementation fileTree(dir: 'libs', include: ['*.jar'])
         implementation fileTree(dir: '../core/libs', include: ['*.jar'])
+        implementation(name: 'tor-android', ext: 'aar')
         implementation project(':core')
         implementation 'androidx.appcompat:appcompat:1.7.1'
         implementation 'androidx.core:core:1.16.0'
@@ -66,6 +67,7 @@ android {
         implementation 'androidx.drawerlayout:drawerlayout:1.2.0'
         implementation 'androidx.viewpager:viewpager:1.1.0'
         implementation 'androidx.loader:loader:1.1.0'
+        implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
         implementation 'androidx.cursoradapter:cursoradapter:1.0.0'
         implementation 'androidx.gridlayout:gridlayout:1.1.0'
         implementation 'androidx.preference:preference:1.2.1'

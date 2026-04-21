@@ -24,6 +24,7 @@ import com.vergepay.core.wallet.WalletAccount;
 import com.vergepay.core.wallet.WalletProtobufSerializer;
 import com.vergepay.wallet.service.CoinService;
 import com.vergepay.wallet.service.CoinServiceImpl;
+import com.vergepay.wallet.tor.TorManager;
 import com.vergepay.wallet.util.Fonts;
 import com.vergepay.wallet.util.LinuxSecureRandom;
 import com.vergepay.wallet.util.NetworkUtils;
@@ -78,6 +79,7 @@ public class WalletApplication extends Application {
     private ShapeShift shapeShift;
     private File txCachePath;
 	private boolean isLocked;
+    private TorManager torManager;
 
     @Override
     public void onCreate() {
@@ -131,6 +133,8 @@ public class WalletApplication extends Application {
         afterLoadWallet();
 
         Fonts.initFonts(this.getAssets());
+        torManager = new TorManager(this);
+        torManager.start();
     }
 
     private void createTxCache() {
@@ -437,6 +441,20 @@ public class WalletApplication extends Application {
             coinServiceConnectIntent.putExtra(Constants.ARG_ACCOUNT_ID, account.getId());
             startService(coinServiceConnectIntent);
         }
+    }
+
+    public void startTor() {
+        if (torManager != null) {
+            torManager.start();
+        }
+    }
+
+    public boolean isTorReady() {
+        return torManager != null && torManager.isReady();
+    }
+
+    public String getTorStatus() {
+        return torManager != null ? torManager.getStatus() : Constants.TOR_STATUS_STOPPED;
     }
 	
 	public boolean isLocked() {

@@ -90,7 +90,7 @@
     <string name="ambiguous_address_title">Endereço ambíguo</string>
     <string name="ambiguous_address_message">Por favor seleciona o tipo de moeda correto</string>
     <string name="wallet_transactions_coinbase">Minerado</string>
-    <string name="history_empty">Nenhuma Verge (XVG) recebida ainda!  Deslize para baixo para atualizar o saldo. Certifica-te de que o Orbot esteja em execução ou reinicia-o.  \\Se não possuis nenhuma Verge (XVG), podes obter alguma através de uma troca, ou trocando/vendendo bens ou serviços.</string>
+    <string name="history_empty">Nenhuma Verge (XVG) recebida ainda! Deslize para baixo para atualizar o saldo. Se não possuis nenhuma Verge (XVG), podes obter alguma através de uma troca, ou trocando/vendendo bens ou serviços.</string>
     <string name="sent_to">enviado a</string>
     <string name="received_with">recebido com</string>
     <string name="received_from">recebido de</string>

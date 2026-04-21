@@ -75,7 +75,7 @@
     <string name="receive">Receive</string>
     <!-- Welcome fragment -->
     <string name="welcome_title">VergeXVR</string>
-    <string name="welcome_subtitle">(requires Orbot/Tor running)</string>
+    <string name="welcome_subtitle">(built-in Tor networking)</string>
     <string name="welcome_text">Welcome to TORdroid</string>
     <string name="create_wallet">Create a new wallet</string>
     <string name="restore_wallet">Restore a wallet</string>
@@ -104,9 +104,6 @@
     <!-- Wallet activity -->
     <string name="wallet_update_title">New version available</string>
     <string name="wallet_update_message">A new version of TORdroid is available, it contains new features and fixes.</string>
-    <string name="orbot_required_title">Orbot Required</string>
-    <string name="orbot_required_message">In order to use this application Orbot must be installed.</string>
-    <string name="orbot_required_running">Tor is running</string>
     <string name="pay_with">Send with</string>
     <string name="exchange_and_pay_title">Exchange and send</string>
     <string name="page_label_receive_xvg">Receive $XVG</string>
@@ -118,13 +115,21 @@
     <string name="ambiguous_address_message">Please select the correct coin type</string>
     <!-- Balance fragment -->
     <string name="wallet_transactions_coinbase">Mined</string>
-    <string name="history_empty">No Verge (XVG) received yet!\n\nSwipe down to refresh the balance.\n\nEnsure Orbot is running or restart it.\n\n\Swipe left or right for your receiving address, swipe right to send $XVG!</string>
+    <string name="history_empty">No Verge (XVG) received yet!\n\nSwipe down to refresh the balance.\n\nSwipe left or right for your receiving address, swipe right to send $XVG!</string>
 <!--    <string name="history_empty">No coins received so far!\n\nYou can get some through an exchange, or trading/selling goods or services.</string>-->
     <string name="sent_to">sent to</string>
     <string name="received_with">received with</string>
     <string name="received_from">received from</string>
     <string name="get_tx_info_error">Could not get transaction information</string>
     <string name="disconnected_label">No connection</string>
+    <string name="connection_status_network_waiting">Waiting for network</string>
+    <string name="connection_status_tor_starting">Starting Tor</string>
+    <string name="connection_status_tor_stopped">Tor stopped</string>
+    <string name="connection_status_tor_failed">Tor failed to start</string>
+    <string name="connection_status_connecting_over_tor">Tor ready, connecting to Verge</string>
+    <string name="connection_status_syncing_over_tor">Syncing wallet over Tor</string>
+    <string name="connection_status_connected_over_tor">Connected to Verge over Tor</string>
+    <string name="connection_status_reconnecting_over_tor">Wallet loaded, reconnecting</string>
     <string name="no_wallet_pocket_selected">No wallet account selected</string>
     <string name="get_tx_broadcast_error">Transaction broadcast error</string>
     <!-- Receive fragment -->

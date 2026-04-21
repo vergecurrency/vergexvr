@@ -6,16 +6,11 @@ import static com.vergepay.wallet.ui.NavDrawerItemType.ITEM_SECTION_TITLE;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -39,7 +34,6 @@ import com.vergepay.core.wallet.SerializedKey;
 import com.vergepay.core.wallet.WalletAccount;
 import com.vergepay.wallet.Constants;
 import com.vergepay.wallet.R;
-import com.vergepay.wallet.receiver.OrbotStatusReceiver;
 import com.vergepay.wallet.service.CoinService;
 import com.vergepay.wallet.service.CoinServiceImpl;
 import com.vergepay.wallet.tasks.CheckUpdateTask;
@@ -106,7 +100,6 @@ final public class WalletActivity extends BaseWalletActivity implements
     private final Handler handler = new MyHandler(this);
     private boolean isOverviewVisible;
     private OverviewFragment overviewFragment;
-    private OrbotStatusReceiver orbotStatusReceiver;
     @Nullable private AccountFragment accountFragment;
 
     public WalletActivity() {}
@@ -118,11 +111,6 @@ final public class WalletActivity extends BaseWalletActivity implements
         WindowInsetsHelper.applyPaddingInsets(findViewById(R.id.contents), false, false);
 		
 		new Lock();
-
-        orbotStatusReceiver = new OrbotStatusReceiver(this);
-
-        IntentFilter intentFilter = new IntentFilter("org.torproject.android.intent.action.STATUS");
-        registerReceiver(orbotStatusReceiver, intentFilter, Context.RECEIVER_EXPORTED);
 
         if (getWalletApplication().getWallet() == null) {
             startIntro();
@@ -201,7 +189,6 @@ final public class WalletActivity extends BaseWalletActivity implements
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(orbotStatusReceiver);
     }
 
     private void setAccountTitle(@Nullable WalletAccount account) {
@@ -256,23 +243,18 @@ final public class WalletActivity extends BaseWalletActivity implements
     @Override
     protected void onResume() {
         super.onResume();
+        restoreActionBarShadow();
+    }
 
-        try {
-            ApplicationInfo applicationInfo = getPackageManager().getApplicationInfo("org.torproject.android", 0);
-            Intent intent = new Intent("org.torproject.android.intent.action.START");
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
-                intent.setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-            }
-            sendBroadcast(intent);
-        } catch (PackageManager.NameNotFoundException e) {
-            showOrbotRequiredDialog();
-            e.printStackTrace();
-        }
-
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        getWalletApplication().startTor();
         getWalletApplication().startBlockchainService(CoinService.ServiceMode.CANCEL_COINS_RECEIVED);
         connectAllCoinService();
+    }
 
-        // Restore the correct action bar shadow
+    private void restoreActionBarShadow() {
         if (getSupportActionBar() != null) {
             if (isOverviewVisible) {
                 getSupportActionBar().show();
@@ -283,7 +265,6 @@ final public class WalletActivity extends BaseWalletActivity implements
             }
         }
     }
-
 
     @Override
     public void onLocalAmountClick() {
@@ -480,47 +461,6 @@ final public class WalletActivity extends BaseWalletActivity implements
 
         builder.setNegativeButton(R.string.button_dismiss, null);
         builder.create().show();
-    }
-
-    private void showOrbotRequiredDialog() {
-        final View view = getLayoutInflater().inflate(R.layout.dialog_orbot_required, null);
-        final AlertDialog dialog = new AlertDialog.Builder(this)
-                .setView(view)
-                .setCancelable(true)
-                .create();
-
-        view.findViewById(R.id.orbot_required_install).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-                try {
-                    startActivity(new Intent(Intent.ACTION_VIEW,
-                            Uri.parse("market://details?id=org.torproject.android")));
-                } catch (ActivityNotFoundException anfe) {
-                    startActivity(new Intent(Intent.ACTION_VIEW,
-                            Uri.parse("https://play.google.com/store/apps/details?id=org.torproject.android")));
-                }
-            }
-        });
-        view.findViewById(R.id.orbot_required_running).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
-        view.findViewById(R.id.orbot_required_exit).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-                finish();
-            }
-        });
-
-        dialog.show();
-        Window window = dialog.getWindow();
-        if (window != null) {
-            window.setBackgroundDrawableResource(android.R.color.transparent);
-        }
     }
 
     @Override

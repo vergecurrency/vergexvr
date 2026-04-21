@@ -44,6 +44,7 @@ public class CoinServiceImpl extends Service implements CoinService {
     private Configuration config;
     private ConnectivityHelper connHelper;
     private BroadcastReceiver connectivityReceiver;
+    private BroadcastReceiver torStatusReceiver;
 
     @CheckForNull
     private ServerClients clients;
@@ -213,7 +214,8 @@ public class CoinServiceImpl extends Service implements CoinService {
         //        @SuppressLint("Wakelock")
         private void check(boolean isNetworkChanged) {
             Wallet wallet = application.getWallet();
-            final boolean hasEverything = hasConnectivity && hasStorage && (wallet != null);
+            final boolean hasEverything = hasConnectivity && hasStorage && (wallet != null)
+                    && application.isTorReady();
 
             if (hasEverything && clients == null) {
 //                log.debug("acquiring wakelock");
@@ -247,10 +249,8 @@ public class CoinServiceImpl extends Service implements CoinService {
         @Override
         public void onReceive(final Context context, final Intent intent) {
             log.debug("Received a tick {}", intent);
-
-            if (clients != null) {
-                clients.ping(application.getVersionString());
-            }
+            // The wallet keeps an active subscription stream, so extra minute-based pings are
+            // unnecessary and have been observed to destabilize the onion Electrum connection.
 
             long lastStop = application.getLastStop();
             if (lastStop > 0) {
@@ -311,6 +311,49 @@ public class CoinServiceImpl extends Service implements CoinService {
         intentFilter.addAction(Intent.ACTION_DEVICE_STORAGE_OK);
         registerReceiver(connectivityReceiver, intentFilter);
         registerReceiver(tickReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
+        torStatusReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String status = intent.getStringExtra(Constants.EXTRA_TOR_STATUS);
+                if (Constants.TOR_STATUS_READY.equals(status)) {
+                    connectAccountsAfterTorReady();
+                } else if (Constants.TOR_STATUS_STOPPED.equals(status)
+                        || Constants.TOR_STATUS_FAILED.equals(status)) {
+                    disconnectClients();
+                }
+            }
+        };
+        registerReceiver(torStatusReceiver, new IntentFilter(Constants.ACTION_TOR_STATUS),
+                Context.RECEIVER_NOT_EXPORTED);
+        application.startTor();
+    }
+
+    private void connectAccountsAfterTorReady() {
+        Wallet wallet = application.getWallet();
+        if (wallet == null || !connHelper.isConnected()) {
+            log.info("Skipping account connect after Tor ready. walletPresent={} networkConnected={}",
+                    wallet != null, connHelper.isConnected());
+            return;
+        }
+
+        if (clients == null) {
+            log.info("Creating coins clients after Tor ready");
+            clients = getServerClients(wallet);
+        }
+
+        if (lastAccount != null) {
+            WalletAccount account = wallet.getAccount(lastAccount);
+            if (account != null) {
+                log.info("Starting last selected account {} after Tor ready", lastAccount);
+                clients.startAsync(account);
+                return;
+            }
+        }
+
+        for (WalletAccount account : wallet.getAllAccounts()) {
+            log.info("Starting account {} after Tor ready", account.getId());
+            clients.startAsync(account);
+        }
     }
 
     private ConnectivityHelper getConnectivityHelper(final ConnectivityManager manager) {
@@ -349,11 +392,13 @@ public class CoinServiceImpl extends Service implements CoinService {
                         account.refresh();
 
                         if (clients == null) {
-                            if (connHelper.isConnected()) {
+                            if (connHelper.isConnected() && application.isTorReady()) {
+                                log.info("Creating coins clients for reset account {}", account.getId());
                                 clients = getServerClients(wallet);
                                 clients.startAsync(account);
                             }
                         } else {
+                            log.info("Resetting account {}", account.getId());
                             clients.resetAccount(account);
                         }
                     } else {
@@ -372,7 +417,7 @@ public class CoinServiceImpl extends Service implements CoinService {
                 Wallet wallet = application.getWallet();
 
                 if (clients == null) {
-                    if (connHelper.isConnected()) {
+                    if (connHelper.isConnected() && application.isTorReady()) {
                         clients = getServerClients(wallet);
                     }
                 }
@@ -394,11 +439,15 @@ public class CoinServiceImpl extends Service implements CoinService {
                     lastAccount = intent.getStringExtra(Constants.ARG_ACCOUNT_ID);
                     WalletAccount account = wallet.getAccount(lastAccount);
                     if (account != null) {
-                        if (clients == null && connHelper.isConnected()) {
+                        if (clients == null && connHelper.isConnected() && application.isTorReady()) {
+                            log.info("Creating coins clients for connect coin {}", account.getId());
                             clients = getServerClients(wallet);
                         }
 
-                        if (clients != null) clients.startAsync(account);
+                        if (clients != null) {
+                            log.info("Starting account {} from connect coin", account.getId());
+                            clients.startAsync(account);
+                        }
                     } else {
                         log.warn("Tried to start a service for account id {} but no account found.",
                                 lastAccount);
@@ -412,7 +461,7 @@ public class CoinServiceImpl extends Service implements CoinService {
         } else if (CoinService.ACTION_CONNECT_ALL_COIN.equals(action)) {
             if (application.getWallet() != null) {
                 Wallet wallet = application.getWallet();
-                if (clients == null && connHelper.isConnected()) {
+                if (clients == null && connHelper.isConnected() && application.isTorReady()) {
                     clients = getServerClients(wallet);
                 }
 
@@ -449,6 +498,7 @@ public class CoinServiceImpl extends Service implements CoinService {
 
         unregisterReceiver(tickReceiver);
         unregisterReceiver(connectivityReceiver);
+        unregisterReceiver(torStatusReceiver);
 
         disconnectClients();
 

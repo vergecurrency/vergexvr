@@ -357,8 +357,6 @@ public class ServerClient implements BitBlockchainConnection {
     public void subscribeToAddresses(List<AbstractAddress> addresses, final TransactionEventListener<BitTransaction> listener) {
         checkNotNull(stratumClient);
 
-        final CallMessage callMessage = new CallMessage("blockchain.address.subscribe", (List) null);
-
         // TODO use TransactionEventListener directly because the current solution leaks memory
         StratumClient.SubscribeResultHandler addressHandler = new StratumClient.SubscribeResultHandler() {
             @Override
@@ -382,8 +380,8 @@ public class ServerClient implements BitBlockchainConnection {
 
         for (final AbstractAddress address : addresses) {
             log.debug("Going to subscribe to {}", address);
-            callMessage.setParam(address.toString());
-
+            final CallMessage callMessage = new CallMessage("blockchain.address.subscribe",
+                    Collections.singletonList(address.toString()));
             ListenableFuture<ResultMessage> reply = stratumClient.subscribe(callMessage, addressHandler);
 
             Futures.addCallback(reply, new FutureCallback<ResultMessage>() {
@@ -408,7 +406,7 @@ public class ServerClient implements BitBlockchainConnection {
                     if (t instanceof CancellationException) {
                         log.info("Canceling {} call", callMessage.getMethod());
                     } else {
-                        log.error("Could not get reply for {} address subscribe {}: ",
+                        log.error("Could not get reply for {} address subscribe {}: {}",
                                 type.getName(), address, t.getMessage());
                     }
                 }
@@ -421,7 +419,7 @@ public class ServerClient implements BitBlockchainConnection {
                              final BitTransactionEventListener listener) {
         checkNotNull(stratumClient);
 
-        CallMessage message = new CallMessage("blockchain.address.listunspent",
+        final CallMessage message = new CallMessage("blockchain.address.listunspent",
                 Collections.singletonList(status.getAddress().toString()));
         final ListenableFuture<ResultMessage> result = stratumClient.call(message);
 
