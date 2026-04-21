@@ -41,6 +41,7 @@ public class WalletGlanceActivity extends BaseWalletActivity {
 
         amountView = findViewById(R.id.wallet_glance_amount);
         valueView = findViewById(R.id.wallet_glance_value);
+        findViewById(R.id.glance_panel).setOnClickListener(v -> openWallet());
 
         WindowInsetsHelper.applyPaddingInsets(findViewById(R.id.glance_root), true, true);
         refreshSummary();
@@ -131,5 +132,11 @@ public class WalletGlanceActivity extends BaseWalletActivity {
 
         unregisterReceiver(summaryReceiver);
         summaryReceiver = null;
+    }
+
+    private void openWallet() {
+        Intent intent = new Intent(this, WalletActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
     }
 }

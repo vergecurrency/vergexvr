@@ -14,7 +14,11 @@
     <uses-permission
         android:name="android.permission.USE_FINGERPRINT"
         tools:node="remove" />
+    <uses-permission android:name="horizonos.permission.HEADSET_CAMERA" />
 
+    <uses-feature
+        android:name="android.hardware.camera.front"
+        tools:node="remove" />
     <uses-feature
         android:name="android.hardware.nfc"
         tools:node="remove" />
@@ -32,7 +36,9 @@
         <activity
             android:name="com.vergepay.wallet.ui.WalletActivity"
             android:screenOrientation="landscape"
-            tools:replace="android:screenOrientation" />
+            tools:replace="android:screenOrientation">
+            <intent-filter tools:node="removeAll" />
+        </activity>
         <activity
             android:name="com.vergepay.wallet.ui.SendActivity"
             android:screenOrientation="landscape"

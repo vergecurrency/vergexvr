@@ -11,10 +11,13 @@
     android:paddingBottom="20dp">
 
     <LinearLayout
+        android:id="@+id/glance_panel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|end"
         android:background="@drawable/panel_bg"
+        android:clickable="true"
+        android:focusable="true"
         android:gravity="end"
         android:orientation="vertical"
         android:paddingLeft="24dp"

@@ -1,12 +1,14 @@
 .gradle
 .codex-gradle/
 .codex-gradle-home/
+.gradle-codex/
 .codex-android/
 .codex-android-home/
 .codex-torandroid/
 .codex-*.apk
 .codex-*.apk.idsig
 .codex-*.png
+.codex-*.xml
 /local.properties
 /.idea
 *.iml

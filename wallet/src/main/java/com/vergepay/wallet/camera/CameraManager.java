@@ -67,26 +67,66 @@ public final class CameraManager
 
     public Camera open(final SurfaceHolder holder, final boolean continuousAutoFocus) throws IOException
     {
-        // try back-facing camera
-        camera = Camera.open();
+        final int cameraCount = Camera.getNumberOfCameras();
+        final CameraInfo cameraInfo = new CameraInfo();
+
+        // Prefer a rear camera for QR scanning. On some XR devices the API1 default
+        // camera is a front/avatar feed, which makes scanning unusable.
+        for (int i = 0; i < cameraCount; i++)
+        {
+            Camera.getCameraInfo(i, cameraInfo);
+            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK)
+            {
+                try
+                {
+                    camera = Camera.open(i);
+                    log.info("opened back-facing camera {}", i);
+                    break;
+                }
+                catch (final RuntimeException x)
+                {
+                    log.info("problem opening back-facing camera {}", i, x);
+                }
+            }
+        }
+
+        if (camera == null)
+        {
+            try
+            {
+                camera = Camera.open();
+                log.info("opened default camera");
+            }
+            catch (final RuntimeException x)
+            {
+                log.info("problem opening default camera", x);
+            }
+        }
 
         // fall back to using front-facing camera
         if (camera == null)
         {
-            final int cameraCount = Camera.getNumberOfCameras();
-            final CameraInfo cameraInfo = new CameraInfo();
-
-            // search for front-facing camera
             for (int i = 0; i < cameraCount; i++)
             {
                 Camera.getCameraInfo(i, cameraInfo);
                 if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
                 {
-                    camera = Camera.open(i);
-                    break;
+                    try
+                    {
+                        camera = Camera.open(i);
+                        log.info("opened front-facing camera {}", i);
+                        break;
+                    }
+                    catch (final RuntimeException x)
+                    {
+                        log.info("problem opening front-facing camera {}", i, x);
+                    }
                 }
             }
         }
+
+        if (camera == null)
+            throw new IOException("No camera available");
 
         camera.setPreviewDisplay(holder);
 
