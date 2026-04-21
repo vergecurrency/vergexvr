@@ -113,6 +113,18 @@
             android:name="com.vergepay.wallet.ui.DebuggingActivity"
             android:screenOrientation="landscape"
             tools:replace="android:screenOrientation" />
+        <activity
+            android:name="com.vergepay.wallet.ui.WalletGlanceActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:label="@string/meta_glance_name"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppThemeMetaGlance">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

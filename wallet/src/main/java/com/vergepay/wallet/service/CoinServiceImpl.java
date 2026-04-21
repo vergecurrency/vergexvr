@@ -21,9 +21,12 @@ import com.vergepay.core.wallet.WalletAccount;
 import com.vergepay.wallet.Configuration;
 import com.vergepay.wallet.Constants;
 import com.vergepay.wallet.WalletApplication;
+import com.vergepay.wallet.ui.summary.WalletSummaryRefresh;
+import com.vergepay.wallet.util.ThrottlingWalletChangeListener;
 
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
+import org.bitcoinj.utils.Threading;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +73,14 @@ public class CoinServiceImpl extends Service implements CoinService {
     private static final long APPWIDGET_THROTTLE_MS = DateUtils.SECOND_IN_MILLIS;
 
     private static final Logger log = LoggerFactory.getLogger(CoinService.class);
+
+    private final ThrottlingWalletChangeListener walletSummaryListener =
+            new ThrottlingWalletChangeListener(APPWIDGET_THROTTLE_MS) {
+                @Override
+                public void onThrottledWalletChanged() {
+                    WalletSummaryRefresh.refreshAll(application);
+                }
+            };
 
 //    private final WalletEventListener walletEventListener = new ThrottlingWalletChangeListener(APPWIDGET_THROTTLE_MS)
 //    {
@@ -325,7 +336,30 @@ public class CoinServiceImpl extends Service implements CoinService {
         };
         registerReceiver(torStatusReceiver, new IntentFilter(Constants.ACTION_TOR_STATUS),
                 Context.RECEIVER_NOT_EXPORTED);
+        registerWalletSummaryListener();
+        WalletSummaryRefresh.refreshAll(application);
         application.startTor();
+    }
+
+    private void registerWalletSummaryListener() {
+        Wallet wallet = application.getWallet();
+        if (wallet == null) {
+            return;
+        }
+
+        for (WalletAccount account : wallet.getAllAccounts()) {
+            account.addEventListener(walletSummaryListener, Threading.SAME_THREAD);
+        }
+    }
+
+    private void unregisterWalletSummaryListener() {
+        Wallet wallet = application.getWallet();
+        if (wallet != null) {
+            for (WalletAccount account : wallet.getAllAccounts()) {
+                account.removeEventListener(walletSummaryListener);
+            }
+        }
+        walletSummaryListener.removeCallbacks();
     }
 
     private void connectAccountsAfterTorReady() {
@@ -499,6 +533,7 @@ public class CoinServiceImpl extends Service implements CoinService {
         unregisterReceiver(tickReceiver);
         unregisterReceiver(connectivityReceiver);
         unregisterReceiver(torStatusReceiver);
+        unregisterWalletSummaryListener();
 
         disconnectClients();
 

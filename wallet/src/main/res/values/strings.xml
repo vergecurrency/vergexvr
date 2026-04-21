@@ -130,6 +130,10 @@
     <string name="connection_status_syncing_over_tor">Syncing wallet over Tor</string>
     <string name="connection_status_connected_over_tor">Connected to Verge over Tor</string>
     <string name="connection_status_reconnecting_over_tor">Wallet loaded, reconnecting</string>
+    <string name="wallet_summary_widget_description">Current wallet amount and USD value</string>
+    <string name="wallet_summary_empty_amount">No wallet loaded</string>
+    <string name="wallet_summary_empty_value">Open Verge</string>
+    <string name="wallet_summary_value_unavailable">Value unavailable</string>
     <string name="no_wallet_pocket_selected">No wallet account selected</string>
     <string name="get_tx_broadcast_error">Transaction broadcast error</string>
     <!-- Receive fragment -->

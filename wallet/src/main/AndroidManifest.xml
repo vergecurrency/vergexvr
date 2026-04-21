@@ -235,6 +235,18 @@
             android:name="com.vergepay.wallet.service.CoinServiceImpl"
             android:exported="false"/>
 
+        <receiver
+            android:name="com.vergepay.wallet.ui.summary.WalletSummaryWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/wallet_summary_widget_info" />
+        </receiver>
+
     </application>
 
 </manifest>

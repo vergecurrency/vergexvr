@@ -37,6 +37,7 @@ import com.vergepay.wallet.R;
 import com.vergepay.wallet.service.CoinService;
 import com.vergepay.wallet.service.CoinServiceImpl;
 import com.vergepay.wallet.tasks.CheckUpdateTask;
+import com.vergepay.wallet.ui.summary.WalletSummaryRefresh;
 import com.vergepay.wallet.ui.dialogs.TermsOfUseDialog;
 import com.vergepay.wallet.util.Lock;
 import com.vergepay.wallet.util.SystemUtils;
@@ -364,6 +365,7 @@ final public class WalletActivity extends BaseWalletActivity implements
                 accountFragment = AccountFragment.getInstance(lastAccountId);
                 ft.add(R.id.contents, accountFragment, ACCOUNT_TAG);
                 getWalletApplication().getConfiguration().touchLastAccountId(lastAccountId);
+                WalletSummaryRefresh.refreshAll(getApplicationContext());
             }
             ft.commit();
 
