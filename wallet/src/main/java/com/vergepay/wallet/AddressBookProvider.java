@@ -32,6 +32,7 @@ import com.vergepay.core.wallet.AbstractAddress;
 import java.util.List;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author Andreas Schildbach
@@ -62,18 +63,25 @@ public class AddressBookProvider extends ContentProvider {
     }
 
     public static String resolveLabel(final Context context, final AbstractAddress address) {
+        if (context == null || address == null) return null;
+        return resolveLabel(context, address.getType(), address.toString());
+    }
+
+    @Nullable
+    public static String resolveLabel(final Context context, @Nonnull final CoinType type,
+                                      @Nullable final String addressValue) {
+        if (context == null || addressValue == null || addressValue.trim().isEmpty()) return null;
+
         String label = null;
+        final Cursor cursor = context.getContentResolver().query(
+                entryUri(context, type, addressValue.trim()), null, null, null, null);
 
-        if (context != null) {
-            final Uri uri = contentUri(context.getPackageName(), address.getType())
-                    .buildUpon().appendPath(address.toString()).build();
-            final Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
-
-            if (cursor != null) {
+        if (cursor != null) {
+            try {
                 if (cursor.moveToFirst()) {
                     label = cursor.getString(cursor.getColumnIndexOrThrow(AddressBookProvider.KEY_LABEL));
                 }
-
+            } finally {
                 cursor.close();
             }
         }
@@ -83,9 +91,14 @@ public class AddressBookProvider extends ContentProvider {
 
     public static void setLabel(final Context context, final AbstractAddress address, final String label) {
         if (context == null || address == null) return;
+        setLabel(context, address.getType(), address.toString(), label);
+    }
 
-        final Uri uri = contentUri(context.getPackageName(), address.getType())
-                .buildUpon().appendPath(address.toString()).build();
+    public static void setLabel(final Context context, @Nonnull final CoinType type,
+                                @Nullable final String addressValue, final String label) {
+        if (context == null || addressValue == null || addressValue.trim().isEmpty()) return;
+
+        final Uri uri = entryUri(context, type, addressValue.trim());
         final ContentValues values = new ContentValues();
         values.put(KEY_LABEL, label);
 
@@ -100,6 +113,11 @@ public class AddressBookProvider extends ContentProvider {
         } else {
             context.getContentResolver().insert(uri, values);
         }
+    }
+
+    private static Uri entryUri(@Nonnull final Context context, @Nonnull final CoinType type,
+                                @Nonnull final String addressValue) {
+        return contentUri(context.getPackageName(), type).buildUpon().appendPath(addressValue).build();
     }
 
     private Helper helper;

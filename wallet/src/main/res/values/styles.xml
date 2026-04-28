@@ -69,6 +69,58 @@
         <item name="android:textColor">@color/accent_alt</item>
     </style>
 
+    <style name="SendSecondaryActionButton" parent="Widget.AppCompat.Button">
+        <item name="android:layout_height">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:background">@drawable/intro_action_button_alt_bg</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:paddingLeft">14dp</item>
+        <item name="android:paddingRight">14dp</item>
+    </style>
+
+    <style name="SendResolvedDomainText" parent="SmallHelpText">
+        <item name="android:textColor">@color/accent_alt</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="SendResolvedDomainValueText" parent="SmallHelpText">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="SendResolvedDomainCheckText" parent="SmallHelpText">
+        <item name="android:textColor">@color/fg_ok</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="SendContactRowEditButton" parent="Widget.AppCompat.Button">
+        <item name="android:minHeight">40dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:background">@drawable/intro_action_button_ghost_bg</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/accent_alt</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:paddingLeft">12dp</item>
+        <item name="android:paddingRight">12dp</item>
+    </style>
+
+    <style name="SendContactUseButton" parent="Widget.AppCompat.Button">
+        <item name="android:minHeight">40dp</item>
+        <item name="android:minWidth">40dp</item>
+        <item name="android:background">@drawable/send_button_bg</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:paddingLeft">0dp</item>
+        <item name="android:paddingRight">0dp</item>
+    </style>
+
     <!-- Font icons -->
     <style name="FontIconBig" parent="NormalText">
         <item name="android:textSize">@dimen/font_icon_text_size</item>

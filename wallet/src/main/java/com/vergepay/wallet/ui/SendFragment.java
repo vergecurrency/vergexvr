@@ -2,6 +2,7 @@ package com.vergepay.wallet.ui;
 
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.DialogInterface;
 import android.content.Context;
 import android.content.Intent;
 import android.database.ContentObserver;
@@ -15,6 +16,7 @@ import androidx.loader.app.LoaderManager.LoaderCallbacks;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 import androidx.cursoradapter.widget.CursorAdapter;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.view.ActionMode;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -26,10 +28,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FilterQueryProvider;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -75,12 +79,15 @@ import org.bitcoinj.utils.Threading;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import static android.view.View.GONE;
@@ -125,6 +132,7 @@ public class SendFragment extends WalletFragment {
     private static final String STATE_ADDRESS_CAN_CHANGE_TYPE = "address_can_change_type";
     private static final String STATE_AMOUNT = "amount";
     private static final String STATE_AMOUNT_TYPE = "amount_type";
+    private static final String STATE_RESOLVED_DOMAIN_LABEL = "resolved_domain_label";
 
     @Nullable private Value lastBalance; // TODO setup wallet watcher for the latest balance
     private State state = State.INPUT;
@@ -147,6 +155,7 @@ public class SendFragment extends WalletFragment {
     @Nullable private String resolvingDomain;
     @Nullable private String resolvedDomainLabel;
     private boolean sendAfterDomainResolve;
+    private boolean promptToSaveScannedRecipient;
 
     private AutoCompleteTextView sendToAddressView;
     private AddressView sendToStaticAddressView;
@@ -156,9 +165,13 @@ public class SendFragment extends WalletFragment {
     private TextView amountError;
     private TextView amountWarning;
     private Button scanQrCodeButton;
+    private Button contactsButton;
+    private Button editContactButton;
     private ImageButton eraseAddressButton;
     private Button txMessageButton;
     private TextView txMessageLabel;
+    private View resolvedDomainView;
+    private TextView resolvedDomainValueView;
     private EditText txMessageView;
     private TextView txMessageCounter;
     private Button sendConfirmButton;
@@ -258,6 +271,7 @@ public class SendFragment extends WalletFragment {
             addressTypeCanChange = savedInstanceState.getBoolean(STATE_ADDRESS_CAN_CHANGE_TYPE);
             sendAmount = (Value) savedInstanceState.getSerializable(STATE_AMOUNT);
             sendAmountType = (CoinType) savedInstanceState.getSerializable(STATE_AMOUNT_TYPE);
+            resolvedDomainLabel = savedInstanceState.getString(STATE_RESOLVED_DOMAIN_LABEL);
         }
 
         updateBalance();
@@ -315,9 +329,13 @@ public class SendFragment extends WalletFragment {
         amountError = view.findViewById(R.id.amount_error_message);
         amountWarning = view.findViewById(R.id.amount_warning_message);
         scanQrCodeButton = view.findViewById(R.id.scan_qr_code);
+        contactsButton = view.findViewById(R.id.open_contacts);
+        editContactButton = view.findViewById(R.id.edit_contact);
         eraseAddressButton = view.findViewById(R.id.erase_address);
         txMessageButton = view.findViewById(R.id.tx_message_add_remove);
         txMessageLabel = view.findViewById(R.id.tx_message_label);
+        resolvedDomainView = view.findViewById(R.id.send_to_resolved_domain);
+        resolvedDomainValueView = view.findViewById(R.id.send_to_resolved_domain_value);
         txMessageView = view.findViewById(R.id.tx_message);
         txMessageCounter = view.findViewById(R.id.tx_message_counter);
         sendConfirmButton = view.findViewById(R.id.send_confirm);
@@ -336,6 +354,18 @@ public class SendFragment extends WalletFragment {
             @Override
             public void onClick(View v) {
                 handleScan();
+            }
+        });
+        contactsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onContactsClick();
+            }
+        });
+        editContactButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onEditContactClick();
             }
         });
         sendConfirmButton.setOnClickListener(new View.OnClickListener() {
@@ -533,6 +563,7 @@ public class SendFragment extends WalletFragment {
         outState.putBoolean(STATE_ADDRESS_CAN_CHANGE_TYPE, addressTypeCanChange);
         outState.putSerializable(STATE_AMOUNT, sendAmount);
         outState.putSerializable(STATE_AMOUNT_TYPE, sendAmountType);
+        outState.putString(STATE_RESOLVED_DOMAIN_LABEL, resolvedDomainLabel);
     }
 
     private void startOrStopMarketRatePolling() {
@@ -576,6 +607,124 @@ public class SendFragment extends WalletFragment {
 
     private void handleScan() {
         startActivityForResult(new Intent(getActivity(), ScanActivity.class), REQUEST_CODE_SCAN);
+    }
+
+    private void onContactsClick() {
+        if (getActivity() == null) return;
+
+        final List<ContactEntry> contacts = getSavedContacts();
+        if (contacts.isEmpty()) {
+            new DialogBuilder(getActivity())
+                    .setTitle(R.string.send_contacts_title)
+                    .setMessage(R.string.send_contacts_empty)
+                    .singleDismissButton(null)
+                    .create()
+                    .show();
+            return;
+        }
+
+        final View dialogView = LayoutInflater.from(getActivity())
+                .inflate(R.layout.dialog_send_contacts, null);
+        final ListView listView = dialogView.findViewById(R.id.send_contacts_list);
+
+        final AlertDialog dialog = new DialogBuilder(getActivity())
+                .setTitle(R.string.send_contacts_title)
+                .setView(dialogView)
+                .setNegativeButton(R.string.button_cancel, null)
+                .create();
+
+        listView.setAdapter(new SendContactsAdapter(getActivity(), contacts,
+                new ContactActionListener() {
+                    @Override
+                    public void onUse(ContactEntry contact) {
+                        dialog.dismiss();
+                        populateAddressFromContact(contact.address);
+                    }
+
+                    @Override
+                    public void onEdit(ContactEntry contact) {
+                        dialog.dismiss();
+                        openContactEditor(contact);
+                    }
+                }));
+
+        dialog.show();
+    }
+
+    private void onEditContactClick() {
+        openContactEditorForCurrentRecipient();
+    }
+
+    private List<ContactEntry> getSavedContacts() {
+        final ArrayList<ContactEntry> contacts = new ArrayList<>();
+        final Uri uri = AddressBookProvider.contentUri(application.getPackageName(), getContactCoinType());
+        final Cursor cursor = resolver.query(uri, null, null, null,
+                AddressBookProvider.KEY_LABEL + " COLLATE NOCASE ASC, "
+                        + AddressBookProvider.KEY_ADDRESS + " COLLATE NOCASE ASC");
+
+        if (cursor == null) {
+            return contacts;
+        }
+
+        try {
+            while (cursor.moveToNext()) {
+                final String label = cursor.getString(cursor.getColumnIndexOrThrow(AddressBookProvider.KEY_LABEL));
+                final String coinId = cursor.getString(cursor.getColumnIndexOrThrow(AddressBookProvider.KEY_COIN_ID));
+                final String contactAddress = cursor.getString(cursor.getColumnIndexOrThrow(AddressBookProvider.KEY_ADDRESS));
+                contacts.add(new ContactEntry(label, contactAddress, CoinID.typeFromId(coinId)));
+            }
+        } finally {
+            cursor.close();
+        }
+
+        return contacts;
+    }
+
+    private CoinType getContactCoinType() {
+        if (address != null) return address.getType();
+        if (sendAmountType != null) return sendAmountType;
+        return account.getCoinType();
+    }
+
+    private void populateAddressFromContact(String contactAddress) {
+        clearAddress(false);
+        setSendToAddressText(contactAddress);
+        validateAddress();
+        requestFocusFirst();
+    }
+
+    @Nullable
+    private String getCurrentContactAddressText() {
+        if (resolvedDomainLabel != null &&
+                UnstoppableDomainsResolver.looksLikeDomain(resolvedDomainLabel)) {
+            return resolvedDomainLabel.toLowerCase(Locale.US);
+        }
+        if (address != null) return address.toString();
+
+        final String input = sendToAddressView.getText().toString().trim();
+        if (input.isEmpty()) return null;
+        if (UnstoppableDomainsResolver.looksLikeDomain(input)) {
+            return input.toLowerCase(Locale.US);
+        }
+        return input;
+    }
+
+    private void openContactEditorForCurrentRecipient() {
+        if (getFragmentManager() == null) return;
+
+        final CoinType contactType = getContactCoinType();
+        final String addressText = getCurrentContactAddressText();
+        final String suggestedLabel = resolvedDomainLabel;
+
+        EditAddressBookEntryFragment.edit(getFragmentManager(), contactType,
+                addressText, suggestedLabel);
+    }
+
+    private void openContactEditor(@Nonnull final ContactEntry contact) {
+        if (getFragmentManager() == null) return;
+
+        EditAddressBookEntryFragment.edit(getFragmentManager(), contact.type,
+                contact.address, contact.label);
     }
 
     public void onSendClick() {
@@ -659,9 +808,13 @@ public class SendFragment extends WalletFragment {
         if (requestCode == REQUEST_CODE_SCAN) {
             if (resultCode == Activity.RESULT_OK) {
                 String input = intent.getStringExtra(ScanActivity.INTENT_EXTRA_RESULT);
+                promptToSaveScannedRecipient = false;
                 if (!processInput(input)) {
                     String error = getResources().getString(R.string.scan_error, input);
                     Toast.makeText(getActivity(), error, Toast.LENGTH_LONG).show();
+                } else {
+                    promptToSaveScannedRecipient = true;
+                    maybePromptToSaveScannedRecipient();
                 }
             }
         } else if (requestCode == SIGN_TRANSACTION) {
@@ -669,6 +822,7 @@ public class SendFragment extends WalletFragment {
                 Exception error = (Exception) intent.getSerializableExtra(Constants.ARG_ERROR);
 
                 if (error == null) {
+                    persistResolvedDomainContact();
                     Toast.makeText(getActivity(), R.string.sending_msg, Toast.LENGTH_SHORT).show();
                     if (listener != null) listener.onTransactionBroadcastSuccess(account, null);
                 } else {
@@ -768,6 +922,8 @@ public class SendFragment extends WalletFragment {
             setVisible(eraseAddressButton);
         }
 
+        updateResolvedDomainView();
+
         if (sendCoinAmountView.resetType(sendAmountType)) {
             amountCalculatorLink.setExchangeRate(getCurrentRate());
         }
@@ -776,7 +932,9 @@ public class SendFragment extends WalletFragment {
 
         // enable actions
         scanQrCodeButton.setEnabled(state == State.INPUT);
+        contactsButton.setEnabled(state == State.INPUT);
         eraseAddressButton.setEnabled(state == State.INPUT);
+        updateContactButtons();
     }
 
     private void updateSendButtonState() {
@@ -876,6 +1034,48 @@ public class SendFragment extends WalletFragment {
             sendConfirmButton.requestFocus();
         } else {
             log.warn("unclear focus");
+        }
+    }
+
+    private void updateContactButtons() {
+        boolean canUseContacts = state == State.INPUT;
+        boolean canEditContact = canUseContacts;
+
+        contactsButton.setAlpha(canUseContacts ? 1f : 0.72f);
+        editContactButton.setEnabled(canEditContact);
+        editContactButton.setAlpha(canEditContact ? 1f : 0.72f);
+
+        if (getCurrentContactLabel() != null) {
+            editContactButton.setText(R.string.send_edit_contact);
+        } else {
+            editContactButton.setText(R.string.send_add_contact);
+        }
+    }
+
+    @Nullable
+    private String getCurrentContactLabel() {
+        if (getActivity() == null) return null;
+
+        final String addressText = getCurrentContactAddressText();
+        if (addressText == null) {
+            if (address != null) {
+                return AddressBookProvider.resolveLabel(getActivity(), address);
+            }
+            return null;
+        }
+
+        return AddressBookProvider.resolveLabel(getActivity(), getContactCoinType(), addressText);
+    }
+
+    private void updateResolvedDomainView() {
+        if (resolvedDomainView == null || resolvedDomainValueView == null) return;
+
+        if (address != null && resolvedDomainLabel != null
+                && UnstoppableDomainsResolver.looksLikeDomain(resolvedDomainLabel)) {
+            resolvedDomainValueView.setText(resolvedDomainLabel);
+            setVisible(resolvedDomainView);
+        } else {
+            setGone(resolvedDomainView);
         }
     }
 
@@ -1051,12 +1251,10 @@ public class SendFragment extends WalletFragment {
             AbstractAddress resolved = account.getCoinType().newAddress(resolvedAddress);
             setAddress(resolved, false);
             sendAmountType = resolved.getType();
-            if (resolvedDomainLabel != null) {
-                AddressBookProvider.setLabel(getActivity(), resolved, resolvedDomainLabel);
-            }
             addressError.setVisibility(View.GONE);
             updateView();
             validateAmount();
+            maybePromptToSaveScannedRecipient();
             if (sendAfterDomainResolve && everythingValid()) {
                 handleSendConfirm();
             }
@@ -1076,6 +1274,7 @@ public class SendFragment extends WalletFragment {
         resolvingDomain = null;
         resolvedDomainLabel = null;
         sendAfterDomainResolve = false;
+        promptToSaveScannedRecipient = false;
         clearAddress(false);
 
         if (error instanceof UnstoppableDomainsResolver.ResolutionException) {
@@ -1093,6 +1292,35 @@ public class SendFragment extends WalletFragment {
 
         addressError.setVisibility(View.VISIBLE);
         updateView();
+    }
+
+    private void persistResolvedDomainContact() {
+        if (resolvedDomainLabel != null && address != null && getActivity() != null) {
+            if (UnstoppableDomainsResolver.looksLikeDomain(resolvedDomainLabel) &&
+                    AddressBookProvider.resolveLabel(getActivity(), account.getCoinType(),
+                            resolvedDomainLabel) != null) {
+                return;
+            }
+            AddressBookProvider.setLabel(getActivity(), address, resolvedDomainLabel);
+        }
+    }
+
+    private void maybePromptToSaveScannedRecipient() {
+        if (!promptToSaveScannedRecipient || address == null || getActivity() == null) return;
+
+        promptToSaveScannedRecipient = false;
+        new DialogBuilder(getActivity())
+                .setTitle(R.string.save_scanned_address_title)
+                .setMessage(R.string.save_scanned_address_message)
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        openContactEditorForCurrentRecipient();
+                    }
+                })
+                .setNegativeButton(R.string.no, null)
+                .create()
+                .show();
     }
 
     private void setSendToAddressText(String addressStr) {
@@ -1145,6 +1373,7 @@ public class SendFragment extends WalletFragment {
         setAddress(selectedAddress, true);
         sendAmountType = selectedAddress.getType();
         updateView();
+        maybePromptToSaveScannedRecipient();
     }
 
     private void setAmountForEmptyWallet() {
@@ -1447,12 +1676,7 @@ public class SendFragment extends WalletFragment {
             final TextView labelView = viewGroup.findViewById(R.id.address_book_row_label);
             labelView.setText(label);
             final TextView addressView = viewGroup.findViewById(R.id.address_book_row_address);
-            try {
-                addressView.setText(GenericUtils.addressSplitToGroupsMultiline(type.newAddress(addressStr)));
-            } catch (AddressMalformedException e) {
-                ACRA.getErrorReporter().handleSilentException(e);
-                addressView.setText(addressStr);
-            }
+            addressView.setText(formatContactAddressForDisplay(type, addressStr));
         }
 
         @Override
@@ -1495,6 +1719,108 @@ public class SendFragment extends WalletFragment {
         @Override
         public void onChange(final boolean selfChange) {
             handler.sendEmptyMessage(UPDATE_VIEW);
+        }
+    }
+
+    private static final class ContactEntry {
+        private final String label;
+        private final String address;
+        private final CoinType type;
+
+        private ContactEntry(String label, String address, CoinType type) {
+            this.label = label;
+            this.address = address;
+            this.type = type;
+        }
+    }
+
+    private interface ContactActionListener {
+        void onUse(ContactEntry contact);
+        void onEdit(ContactEntry contact);
+    }
+
+    private final class SendContactsAdapter extends BaseAdapter {
+        private final LayoutInflater inflater;
+        private final List<ContactEntry> contacts;
+        private final ContactActionListener actionListener;
+
+        private SendContactsAdapter(Context context, List<ContactEntry> contacts,
+                                    ContactActionListener actionListener) {
+            this.inflater = LayoutInflater.from(context);
+            this.contacts = contacts;
+            this.actionListener = actionListener;
+        }
+
+        @Override
+        public int getCount() {
+            return contacts.size();
+        }
+
+        @Override
+        public ContactEntry getItem(int position) {
+            return contacts.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View row = convertView;
+            if (row == null) {
+                row = inflater.inflate(R.layout.address_book_contact_row, parent, false);
+            }
+
+            final ContactEntry contact = getItem(position);
+            final TextView labelView = row.findViewById(R.id.address_book_row_label);
+            final TextView addressView = row.findViewById(R.id.address_book_row_address);
+            final View editButton = row.findViewById(R.id.address_book_row_edit);
+            final View useButton = row.findViewById(R.id.address_book_row_use);
+
+            if (contact.label != null && !contact.label.trim().isEmpty()) {
+                labelView.setText(contact.label);
+                addressView.setVisibility(View.VISIBLE);
+            } else {
+                labelView.setText(contact.address);
+                addressView.setVisibility(View.GONE);
+            }
+
+            addressView.setText(formatContactAddressForDisplay(contact.type, contact.address));
+            editButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    actionListener.onEdit(contact);
+                }
+            });
+            useButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    actionListener.onUse(contact);
+                }
+            });
+
+            return row;
+        }
+    }
+
+    @Nonnull
+    private CharSequence formatContactAddressForDisplay(@Nullable final CoinType type,
+                                                        @Nullable final String addressValue) {
+        if (addressValue == null) return "";
+
+        final String trimmedAddress = addressValue.trim();
+        if (trimmedAddress.isEmpty()) return "";
+        if (type == null || UnstoppableDomainsResolver.looksLikeDomain(trimmedAddress)) {
+            return trimmedAddress;
+        }
+
+        try {
+            return GenericUtils.addressSplitToGroupsMultiline(type.newAddress(trimmedAddress));
+        } catch (AddressMalformedException e) {
+            log.warn("Unable to format saved contact address for display: {}", trimmedAddress, e);
+            return trimmedAddress;
         }
     }
 }

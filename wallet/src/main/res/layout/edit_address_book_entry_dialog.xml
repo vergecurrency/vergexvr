@@ -26,11 +26,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             style="@style/NormalText"
-            android:enabled="false"
-            android:focusable="false"
             android:imeOptions="flagNoExtractUi"
-            android:inputType="none"
-            android:textColor="@color/fg_less_significant" />
+            android:inputType="textNoSuggestions"
+            android:singleLine="true" />
 
         <TextView
             android:layout_width="match_parent"

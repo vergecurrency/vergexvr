@@ -42,6 +42,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.core.content.ContextCompat;
 import android.view.KeyEvent;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
@@ -306,7 +307,8 @@ public final class ScanActivity extends FragmentActivity
         {
             try
             {
-                final Camera camera = cameraManager.open(surfaceHolder, !DISABLE_CONTINUOUS_AUTOFOCUS);
+                final Camera camera = cameraManager.open(surfaceHolder,
+                        !DISABLE_CONTINUOUS_AUTOFOCUS, getWindowManager().getDefaultDisplay().getRotation());
 
                 final Rect framingRect = cameraManager.getFrame();
                 final Rect framingRectInPreview = cameraManager.getFramePreview();

@@ -179,6 +179,19 @@
     <string name="send_coins_error">Could not send coins: %1$s</string>
     <string name="pay_to_label">Pay to</string>
     <string name="amount_to_send_label">Amount</string>
+    <string name="send_contacts">Address Book</string>
+    <string name="send_contacts_title">Address Book</string>
+    <string name="send_contacts_empty">No saved contacts in your address book yet.</string>
+    <string name="send_add_contact">Add contact</string>
+    <string name="send_edit_contact">Edit contact</string>
+    <string name="send_use_contact">Use contact</string>
+    <string name="send_contact_use_arrow">→</string>
+    <string name="send_resolved_domain_label">Sending to web3 address:</string>
+    <string name="send_resolved_domain_check">✓</string>
+    <string name="contact_name_required">Enter a contact name.</string>
+    <string name="contact_address_required">Enter a contact address.</string>
+    <string name="save_scanned_address_title">Save scanned address?</string>
+    <string name="save_scanned_address_message">Do you want to add this scanned address to your address book?</string>
     <string name="scan_error">There was a problem scanning: %1$s</string>
     <!-- Here the \"%1$s\" is the "coin name"-->
     <string name="unsupported_coin">Coin \"%1$s\" is not supported.</string>

@@ -78,6 +78,40 @@
                             android:layout_marginTop="@dimen/quarter_standard_margin"
                             coinomi:show_coin_icon="true"
                             android:visibility="gone"/>
+
+                        <LinearLayout
+                            android:id="@+id/send_to_resolved_domain"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/quarter_standard_margin"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:id="@+id/send_to_resolved_domain_label"
+                                style="@style/SendResolvedDomainText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/send_resolved_domain_label" />
+
+                            <TextView
+                                android:id="@+id/send_to_resolved_domain_value"
+                                style="@style/SendResolvedDomainValueText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="6dp"
+                                tools:text="sunerok.wallet" />
+
+                            <TextView
+                                android:id="@+id/send_to_resolved_domain_check"
+                                style="@style/SendResolvedDomainCheckText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="4dp"
+                                android:text="@string/send_resolved_domain_check"
+                                tools:text="✓" />
+                        </LinearLayout>
                     </LinearLayout>
 
                 </RelativeLayout>
@@ -117,6 +151,31 @@
                         android:scaleType="centerInside"
                         android:src="@drawable/erase"
                         android:visibility="gone"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/contact_button_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/open_contacts"
+                        style="@style/SendSecondaryActionButton"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/send_contacts" />
+
+                    <Button
+                        android:id="@+id/edit_contact"
+                        style="@style/SendSecondaryActionButton"
+                        android:layout_width="0dp"
+                        android:layout_marginLeft="12dp"
+                        android:layout_weight="1"
+                        android:enabled="false"
+                        android:text="@string/send_add_contact" />
                 </LinearLayout>
 
                 <TextView

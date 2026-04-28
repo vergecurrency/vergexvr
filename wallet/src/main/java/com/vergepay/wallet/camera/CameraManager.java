@@ -34,6 +34,7 @@ import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.PreviewCallback;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import com.google.zxing.PlanarYUVLuminanceSource;
@@ -52,6 +53,7 @@ public final class CameraManager
     private Camera.Size cameraResolution;
     private Rect frame;
     private Rect framePreview;
+    private int cameraId = -1;
 
     private static final Logger log = LoggerFactory.getLogger(CameraManager.class);
 
@@ -65,7 +67,8 @@ public final class CameraManager
         return framePreview;
     }
 
-    public Camera open(final SurfaceHolder holder, final boolean continuousAutoFocus) throws IOException
+    public Camera open(final SurfaceHolder holder, final boolean continuousAutoFocus,
+            final int displayRotation) throws IOException
     {
         final int cameraCount = Camera.getNumberOfCameras();
         final CameraInfo cameraInfo = new CameraInfo();
@@ -80,6 +83,7 @@ public final class CameraManager
                 try
                 {
                     camera = Camera.open(i);
+                    cameraId = i;
                     log.info("opened back-facing camera {}", i);
                     break;
                 }
@@ -95,6 +99,7 @@ public final class CameraManager
             try
             {
                 camera = Camera.open();
+                cameraId = 0;
                 log.info("opened default camera");
             }
             catch (final RuntimeException x)
@@ -114,6 +119,7 @@ public final class CameraManager
                     try
                     {
                         camera = Camera.open(i);
+                        cameraId = i;
                         log.info("opened front-facing camera {}", i);
                         break;
                     }
@@ -129,6 +135,7 @@ public final class CameraManager
             throw new IOException("No camera available");
 
         camera.setPreviewDisplay(holder);
+        setDisplayOrientation(displayRotation);
 
         final Camera.Parameters parameters = camera.getParameters();
 
@@ -182,7 +189,44 @@ public final class CameraManager
         {
             camera.stopPreview();
             camera.release();
+            camera = null;
+            cameraId = -1;
         }
+    }
+
+    private void setDisplayOrientation(final int displayRotation)
+    {
+        if (camera == null || cameraId < 0)
+            return;
+
+        final CameraInfo cameraInfo = new CameraInfo();
+        Camera.getCameraInfo(cameraId, cameraInfo);
+
+        final int degrees;
+        switch (displayRotation)
+        {
+            case Surface.ROTATION_90:
+                degrees = 90;
+                break;
+            case Surface.ROTATION_180:
+                degrees = 180;
+                break;
+            case Surface.ROTATION_270:
+                degrees = 270;
+                break;
+            case Surface.ROTATION_0:
+            default:
+                degrees = 0;
+                break;
+        }
+
+        final int result;
+        if (cameraInfo.facing == CameraInfo.CAMERA_FACING_FRONT)
+            result = (360 - ((cameraInfo.orientation + degrees) % 360)) % 360;
+        else
+            result = (cameraInfo.orientation - degrees + 360) % 360;
+
+        camera.setDisplayOrientation(result);
     }
 
     private static final Comparator<Camera.Size> numPixelComparator = new Comparator<Camera.Size>()
