@@ -64,7 +64,9 @@ public class Configuration {
     public static final String PREFS_KEY_VERGE_CUSTOM_CONNECTIONS = "verge_custom_connections";
     public static final String PREFS_VALUE_VERGE_CONNECTION_LEGACY_ONION = "legacy_onion";
     public static final String PREFS_VALUE_VERGE_CONNECTION_ELECTRUM_CLOUD = "electrum_cloud";
+    public static final String PREFS_VALUE_VERGE_CONNECTION_ELECTRUM_CLOUD_SSL = "electrum_cloud_ssl";
     public static final String PREFS_VALUE_VERGE_CONNECTION_ELECTRUMX_CLOUD = "electrumx_cloud";
+    public static final String PREFS_VALUE_VERGE_CONNECTION_ELECTRUMX_CLOUD_SSL = "electrumx_cloud_ssl";
     public static final String PREFS_VALUE_VERGE_CONNECTION_ELECTRUMX_TOR = "electrumx_tor";
     public static final String PREFS_KEY_META_STARTUP_TARGET = "meta_startup_target";
     public static final String PREFS_VALUE_META_STARTUP_DISABLED = "disabled";
@@ -263,6 +265,14 @@ public class Configuration {
         return storedValue;
     }
 
+    public void setVergeConnectionProfile(@NonNull String connectionProfile) {
+        String normalizedProfile = connectionProfile;
+        if (PREFS_VALUE_VERGE_CONNECTION_ELECTRUMX_TOR.equals(normalizedProfile)) {
+            normalizedProfile = PREFS_VALUE_VERGE_CONNECTION_ELECTRUMX_CLOUD;
+        }
+        prefs.edit().putString(PREFS_KEY_VERGE_CONNECTION_PROFILE, normalizedProfile).apply();
+    }
+
     @NonNull
     public Set<String> getVergeCustomConnectionIds() {
         Set<String> customConnections = prefs.getStringSet(PREFS_KEY_VERGE_CUSTOM_CONNECTIONS, null);
@@ -286,9 +296,10 @@ public class Configuration {
 
     @NonNull
     public static String buildCustomVergeConnectionId(String host, int port,
-                                                      @NonNull ServerAddress.Protocol protocol) {
+                                                      @NonNull ServerAddress.Protocol protocol,
+                                                      @NonNull ServerAddress.Transport transport) {
         return "custom|" + host.trim().toLowerCase() + "|" + port + "|"
-                + protocol.name().toLowerCase();
+                + protocol.name().toLowerCase() + "|" + transport.name().toLowerCase();
     }
 
     @Nullable
@@ -297,13 +308,15 @@ public class Configuration {
             return null;
         }
 
-        String[] parts = connectionId.split("\\|", 4);
-        if (parts.length < 3 || parts.length > 4) {
+        String[] parts = connectionId.split("\\|", 5);
+        if (parts.length < 3 || parts.length > 5) {
             return null;
         }
         String protocol = parts.length == 4 ? parts[3]
-                : ServerAddress.Protocol.AUTO.name().toLowerCase();
-        return new String[] { parts[1], parts[2], protocol };
+                : parts.length == 5 ? parts[3] : ServerAddress.Protocol.AUTO.name().toLowerCase();
+        String transport = parts.length == 5 ? parts[4]
+                : ServerAddress.Transport.PLAIN_TCP.name().toLowerCase();
+        return new String[] { parts[1], parts[2], protocol, transport };
     }
 
     @NonNull
@@ -317,6 +330,21 @@ public class Configuration {
             return ServerAddress.Protocol.valueOf(normalized);
         } catch (IllegalArgumentException e) {
             return ServerAddress.Protocol.AUTO;
+        }
+    }
+
+    @NonNull
+    public static ServerAddress.Transport parseCustomVergeConnectionTransport(
+            @Nullable String transportValue) {
+        if (transportValue == null) {
+            return ServerAddress.Transport.PLAIN_TCP;
+        }
+
+        String normalized = transportValue.trim().toUpperCase();
+        try {
+            return ServerAddress.Transport.valueOf(normalized);
+        } catch (IllegalArgumentException e) {
+            return ServerAddress.Transport.PLAIN_TCP;
         }
     }
 

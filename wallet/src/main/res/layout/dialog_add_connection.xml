@@ -57,6 +57,42 @@
                 android:text="@string/connection_protocol_electrumx" />
         </RadioGroup>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/connection_transport_hint"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/connection_transport_summary"
+            android:textSize="12sp" />
+
+        <RadioGroup
+            android:id="@+id/connection_transport_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/connection_transport_tcp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/connection_transport_tcp" />
+
+            <RadioButton
+                android:id="@+id/connection_transport_ssl"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:checked="true"
+                android:text="@string/connection_transport_ssl" />
+        </RadioGroup>
+
         <EditText
             android:id="@+id/connection_port_input"
             android:layout_width="match_parent"

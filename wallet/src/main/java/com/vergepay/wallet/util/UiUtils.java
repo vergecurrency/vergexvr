@@ -7,6 +7,8 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.Build;
 import androidx.fragment.app.FragmentManager;
 import androidx.core.app.ShareCompat;
@@ -34,11 +36,21 @@ import org.acra.ACRA;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+
 /**
  * @author John L. Jegutanis
  */
 public class UiUtils {
     private static final Logger log = LoggerFactory.getLogger(UiUtils.class);
+    private static final List<String> NEARBY_SHARE_PACKAGE_HINTS = Arrays.asList(
+            "com.google.android.gms",
+            "com.samsung.android.app.sharelive",
+            "com.samsung.android.aware.service",
+            "com.google.android.apps.nbu.files"
+    );
 
     static public void toastGenericError(Context context) {
         Toast.makeText(context, R.string.error_generic, Toast.LENGTH_LONG).show();
@@ -64,6 +76,56 @@ public class UiUtils {
         activity.startActivity(Intent.createChooser(
                 builder.getIntent(),
                 activity.getString(R.string.action_share)));
+    }
+
+    static public void shareNearby(Activity activity, String text) {
+        Intent nearbyIntent = buildNearbyShareIntent(activity, text);
+        if (nearbyIntent != null) {
+            activity.startActivity(nearbyIntent);
+        } else {
+            share(activity, text);
+        }
+    }
+
+    private static Intent buildNearbyShareIntent(Activity activity, String text) {
+        Intent sendIntent = new Intent(Intent.ACTION_SEND);
+        sendIntent.setType("text/plain");
+        sendIntent.putExtra(Intent.EXTRA_TEXT, text);
+
+        PackageManager packageManager = activity.getPackageManager();
+        List<ResolveInfo> candidates = packageManager.queryIntentActivities(sendIntent,
+                PackageManager.MATCH_DEFAULT_ONLY);
+
+        ResolveInfo bestCandidate = null;
+        for (ResolveInfo candidate : candidates) {
+            String packageName = candidate.activityInfo != null ? candidate.activityInfo.packageName : "";
+            CharSequence labelSequence = candidate.loadLabel(packageManager);
+            String label = labelSequence != null
+                    ? labelSequence.toString().toLowerCase(Locale.US) : "";
+            String packageLower = packageName.toLowerCase(Locale.US);
+
+            if (label.contains("nearby share") || label.contains("quick share")) {
+                bestCandidate = candidate;
+                break;
+            }
+
+            for (String packageHint : NEARBY_SHARE_PACKAGE_HINTS) {
+                if (packageLower.contains(packageHint.toLowerCase(Locale.US))) {
+                    bestCandidate = candidate;
+                    break;
+                }
+            }
+            if (bestCandidate != null) break;
+        }
+
+        if (bestCandidate == null || bestCandidate.activityInfo == null) {
+            return null;
+        }
+
+        Intent targetedIntent = new Intent(sendIntent);
+        targetedIntent.setClassName(bestCandidate.activityInfo.packageName,
+                bestCandidate.activityInfo.name);
+        return targetedIntent;
     }
 
     public static void copy(Context context, String string) {

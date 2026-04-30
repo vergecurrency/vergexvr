@@ -30,6 +30,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.HttpsURLConnection;
+
 
 /**
  * @author John L. Jegutanis
@@ -67,7 +73,8 @@ public class StratumClient extends AbstractExecutionThreadService {
 
     protected Socket createSocket() throws IOException {
         ServerAddress address = serverAddress;
-        log.debug("Opening a socket to " + address.getHost() + ":" + address.getPort());
+        log.debug("Opening {} socket to {}:{}",
+                address.getTransport(), address.getHost(), address.getPort());
 
         Socket socket = address.getProxy() == null ? new Socket() : new Socket(address.getProxy());
         InetSocketAddress endpoint = address.getProxy() == null
@@ -75,7 +82,30 @@ public class StratumClient extends AbstractExecutionThreadService {
                 : InetSocketAddress.createUnresolved(address.getHost(), address.getPort());
         socket.connect(endpoint, SOCKET_CONNECT_TIMEOUT_MS);
 
+        if (address.getTransport() == ServerAddress.Transport.SSL_TLS) {
+            return upgradeToTls(socket, address);
+        }
+
         return socket;
+    }
+
+    private Socket upgradeToTls(Socket socket, ServerAddress address) throws IOException {
+        SSLSocketFactory sslSocketFactory =
+                (SSLSocketFactory) SSLSocketFactory.getDefault();
+        SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(
+                socket, address.getHost(), address.getPort(), true);
+        SSLParameters sslParameters = sslSocket.getSSLParameters();
+        sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
+        sslSocket.setSSLParameters(sslParameters);
+        sslSocket.startHandshake();
+
+        SSLSession session = sslSocket.getSession();
+        if (!HttpsURLConnection.getDefaultHostnameVerifier()
+                .verify(address.getHost(), session)) {
+            throw new IOException("TLS hostname verification failed for " + address.getHost());
+        }
+
+        return sslSocket;
     }
 
     @Override

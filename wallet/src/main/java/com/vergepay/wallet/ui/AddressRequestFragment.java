@@ -248,6 +248,9 @@ public class AddressRequestFragment extends WalletFragment {
             case R.id.action_share:
                 UiUtils.share(getActivity(), getUri());
                 return true;
+            case R.id.action_nearby_share:
+                UiUtils.shareNearby(getActivity(), getUri());
+                return true;
             case R.id.action_copy:
                 UiUtils.copy(getActivity(), getUri());
                 return true;

@@ -1,6 +1,7 @@
 .gradle
 .codex-gradle/
 .codex-gradle-home/
+.codex-gradle-home-local/
 .codex-gradle-home-contacts/
 .gradle-codex/
 .codex-android/

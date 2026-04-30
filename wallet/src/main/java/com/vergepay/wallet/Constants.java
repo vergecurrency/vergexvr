@@ -110,7 +110,8 @@ public class Constants {
 
     private static final String VERGE_LEGACY_ONION_HOST =
             "7eagtn6nsmlyjhjv647ejj4j4orgb2cotoc5dl73qpamhvbvioao4zad.onion";
-    private static final int VERGE_DEFAULT_PORT = 50001;
+    private static final int VERGE_TCP_PORT = 50001;
+    private static final int VERGE_SSL_PORT = 50002;
     private static final String VERGE_ELECTRUM_CLOUD_HOST = "electrum-verge.cloud";
     private static final String VERGE_ELECTRUMX_CLOUD_HOST = "electrumx-verge.cloud";
 
@@ -143,13 +144,28 @@ public class Constants {
 
     private static List<ServerAddress> buildVergeServerPool(Configuration config) {
         LinkedHashMap<String, ServerAddress> pool = new LinkedHashMap<>();
+        String selectedProfile = config != null ? config.getVergeConnectionProfile() : null;
 
-        addVergeServer(pool, VERGE_LEGACY_ONION_HOST, VERGE_DEFAULT_PORT,
-                ServerAddress.Protocol.LEGACY_ELECTRUM);
-        addVergeServer(pool, VERGE_ELECTRUM_CLOUD_HOST, VERGE_DEFAULT_PORT,
-                ServerAddress.Protocol.ELECTRUMX);
-        addVergeServer(pool, VERGE_ELECTRUMX_CLOUD_HOST, VERGE_DEFAULT_PORT,
-                ServerAddress.Protocol.ELECTRUMX);
+        addVergeServer(pool, VERGE_LEGACY_ONION_HOST, VERGE_TCP_PORT,
+                ServerAddress.Protocol.LEGACY_ELECTRUM,
+                ServerAddress.Transport.PLAIN_TCP,
+                Configuration.PREFS_VALUE_VERGE_CONNECTION_LEGACY_ONION.equals(selectedProfile));
+        addVergeServer(pool, VERGE_ELECTRUM_CLOUD_HOST, VERGE_TCP_PORT,
+                ServerAddress.Protocol.ELECTRUMX,
+                ServerAddress.Transport.PLAIN_TCP,
+                Configuration.PREFS_VALUE_VERGE_CONNECTION_ELECTRUM_CLOUD.equals(selectedProfile));
+        addVergeServer(pool, VERGE_ELECTRUM_CLOUD_HOST, VERGE_SSL_PORT,
+                ServerAddress.Protocol.ELECTRUMX,
+                ServerAddress.Transport.SSL_TLS,
+                Configuration.PREFS_VALUE_VERGE_CONNECTION_ELECTRUM_CLOUD_SSL.equals(selectedProfile));
+        addVergeServer(pool, VERGE_ELECTRUMX_CLOUD_HOST, VERGE_TCP_PORT,
+                ServerAddress.Protocol.ELECTRUMX,
+                ServerAddress.Transport.PLAIN_TCP,
+                Configuration.PREFS_VALUE_VERGE_CONNECTION_ELECTRUMX_CLOUD.equals(selectedProfile));
+        addVergeServer(pool, VERGE_ELECTRUMX_CLOUD_HOST, VERGE_SSL_PORT,
+                ServerAddress.Protocol.ELECTRUMX,
+                ServerAddress.Transport.SSL_TLS,
+                Configuration.PREFS_VALUE_VERGE_CONNECTION_ELECTRUMX_CLOUD_SSL.equals(selectedProfile));
 
         if (config != null) {
             List<String> customIds = new ArrayList<>(config.getVergeCustomConnectionIds());
@@ -164,27 +180,52 @@ public class Constants {
                     int port = Integer.parseInt(customConnection[1]);
                     ServerAddress.Protocol protocol =
                             Configuration.parseCustomVergeConnectionProtocol(customConnection[2]);
-                    addVergeServer(pool, customConnection[0], port, protocol);
+                    ServerAddress.Transport transport =
+                            Configuration.parseCustomVergeConnectionTransport(customConnection[3]);
+                    addVergeServer(pool, customConnection[0], port, protocol, transport,
+                            customId.equals(selectedProfile));
                 } catch (NumberFormatException e) {
                     // Ignore malformed custom entries.
                 }
             }
         }
 
-        ArrayList<ServerAddress> shuffledPool = new ArrayList<>(pool.values());
-        Collections.shuffle(shuffledPool);
-        return shuffledPool;
+        ArrayList<ServerAddress> orderedPool = new ArrayList<>(pool.values());
+        if (orderedPool.size() <= 1) {
+            return orderedPool;
+        }
+
+        if (selectedProfile == null) {
+            Collections.shuffle(orderedPool);
+            return orderedPool;
+        }
+
+        ServerAddress preferredServer = orderedPool.remove(0);
+        Collections.shuffle(orderedPool);
+        orderedPool.add(0, preferredServer);
+        return orderedPool;
     }
 
     private static void addVergeServer(LinkedHashMap<String, ServerAddress> pool,
-                                       String host, int port, ServerAddress.Protocol protocol) {
+                                       String host, int port, ServerAddress.Protocol protocol,
+                                       ServerAddress.Transport transport, boolean prioritize) {
         String normalizedHost = host.trim().toLowerCase();
-        String endpoint = normalizedHost + ":" + port;
+        String endpoint = normalizedHost + ":" + port + "|" + transport.name();
         if (pool.containsKey(endpoint)) {
             return;
         }
 
-        pool.put(endpoint, new ServerAddress(normalizedHost, port, TOR_LOCAL_PROXY, protocol));
+        ServerAddress serverAddress = new ServerAddress(normalizedHost, port, TOR_LOCAL_PROXY,
+                protocol, transport);
+        if (prioritize) {
+            LinkedHashMap<String, ServerAddress> reorderedPool = new LinkedHashMap<>();
+            reorderedPool.put(endpoint, serverAddress);
+            reorderedPool.putAll(pool);
+            pool.clear();
+            pool.putAll(reorderedPool);
+        } else {
+            pool.put(endpoint, serverAddress);
+        }
     }
 
     public static final HashMap<CoinType, Integer> COINS_ICONS;

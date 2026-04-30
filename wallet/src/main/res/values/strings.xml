@@ -5,6 +5,7 @@
     <string name="almost_equal_to" translatable="false">≈</string>
     <string name="action_scan_qr_code">Scan</string>
     <string name="action_share">Share</string>
+    <string name="action_nearby_share">Nearby share</string>
     <string name="action_copy">Copy</string>
     <string name="action_edit_label">Edit label</string>
     <string name="action_empty_wallet">Use all funds</string>
@@ -38,6 +39,7 @@
     <string name="button_add">Add</string>
     <string name="button_save">Save</string>
     <string name="button_send">Send</string>
+    <string name="button_connect">Connect</string>
     <string name="button_sign">Sign</string>
     <string name="button_verify">Verify</string>
     <string name="button_skip">Skip</string>
@@ -142,14 +144,20 @@
     <string name="title_activity_connections">Connections</string>
     <string name="pref_summary_connections">Choose which Verge server the wallet uses and reconnect immediately.</string>
     <string name="connections_status_server_label">Server</string>
+    <string name="connections_status_endpoint_state">%1$s - %2$s</string>
     <string name="pref_title_saved_connections">Saved servers</string>
     <string name="pref_summary_saved_connections">Verge randomizes across this saved server pool on startup and falls through the rest immediately if one fails.</string>
     <string name="pref_title_verge_connection_profile">Verge server</string>
     <string name="pref_summary_verge_connection_profile">Pick a specific Verge server. All connections are routed through Tor.</string>
     <string name="pref_connection_option_legacy_onion">7eagtn6nsmlyjhjv647ejj4j4orgb2cotoc5dl73qpamhvbvioao4zad.onion:50001</string>
     <string name="pref_connection_option_electrum_cloud">electrum-verge.cloud:50001</string>
+    <string name="pref_connection_option_electrum_cloud_ssl">electrum-verge.cloud:50002</string>
     <string name="pref_connection_option_electrumx_cloud">electrumx-verge.cloud:50001</string>
+    <string name="pref_connection_option_electrumx_cloud_ssl">electrumx-verge.cloud:50002</string>
+    <string name="pref_connection_selected">Selected</string>
     <string name="pref_connection_connected">Connected now</string>
+    <string name="pref_connection_connecting">Connecting now</string>
+    <string name="pref_connection_fallback_active">Preferred server unavailable, fallback active</string>
     <string name="connections_status_trying_saved_servers">Trying saved servers</string>
     <string name="pref_title_add_custom_connection_dialog">Add custom server</string>
     <string name="pref_title_add_custom_connection_button">+ Custom Server</string>
@@ -161,6 +169,10 @@
     <string name="connection_protocol_electrum">Electrum</string>
     <string name="connection_protocol_electrumx">ElectrumX</string>
     <string name="connection_protocol_auto">Auto</string>
+    <string name="connection_transport_hint">Transport</string>
+    <string name="connection_transport_summary">Choose TCP for plain Electrum over Tor or SSL for TLS over Tor.</string>
+    <string name="connection_transport_tcp">TCP</string>
+    <string name="connection_transport_ssl">SSL</string>
     <string name="connection_error_host_required">Enter a server host.</string>
     <string name="connection_error_port_invalid">Enter a valid port between 1 and 65535.</string>
     <!-- Receive fragment -->
