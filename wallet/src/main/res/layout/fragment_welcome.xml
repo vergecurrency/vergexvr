@@ -54,15 +54,6 @@
                 android:textColor="@color/white"
                 android:textSize="34sp"
                 android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/quarter_standard_margin"
-                android:gravity="center"
-                android:text="@string/welcome_subtitle"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
         </LinearLayout>
 
         <LinearLayout

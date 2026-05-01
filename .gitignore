@@ -19,3 +19,4 @@
 *.iml
 .DS_Store
 build/
+gradle/gradle-daemon-jvm.properties

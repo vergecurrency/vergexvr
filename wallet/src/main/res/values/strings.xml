@@ -78,7 +78,6 @@
     <string name="receive">Receive</string>
     <!-- Welcome fragment -->
     <string name="welcome_title">VergeXVR</string>
-    <string name="welcome_subtitle">(built-in Tor networking)</string>
     <string name="welcome_text">Welcome to TORdroid</string>
     <string name="create_wallet">Create a new wallet</string>
     <string name="restore_wallet">Restore a wallet</string>
