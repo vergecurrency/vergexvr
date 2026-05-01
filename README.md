@@ -1,7 +1,8 @@
-Verge Tor Wallet for Android
+Verge XVR, a Verge Android/Meta/Meta Wearables wallet app!
 ============================
 
 - Requires Orbot to be running in the background: https://gitlab.com/guardianproject/orbot
+- Connects to Electrum or ElectrumX servers over Tor, yay decentralized!
 - App starts with a SOCKS5 proxy on `127.0.0.1:9050`
 - Current Android API level in use: 36
 - Unstoppable Domains resolution is supported for XVG sends via `crypto.XVG.address`
