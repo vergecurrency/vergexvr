@@ -51,7 +51,7 @@ The send screen can resolve supported web3 names such as `sunerok.wallet` to Ver
 Install Android Studio:
 https://developer.android.com/sdk/installing/studio.html
 
-Import `tordroid` by selecting `settings.gradle`.
+Import `vergexvr` by selecting `settings.gradle`.
 After import finishes, open the SDK Manager.
 
 Install Android 16 / API 36 build tools, while compiling this project with SDK 35 as currently configured.
@@ -133,8 +133,8 @@ Example command line build:
 
 The Android workflow now publishes two unsigned APK artifacts on CI:
 
-- `tordroid` for the normal Android release APK
-- `tordroid-meta` for the `metaRelease` APK
+- `vergexvr` for the normal Android release APK
+- `vergexvr-meta` for the `metaRelease` APK
 
 Note:
 If you are attempting to build on a Lollipop emulator, use `Android 5.x armeabi-v7a`.
