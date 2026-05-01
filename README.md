@@ -77,6 +77,8 @@ Command line builds:
   `./gradlew :wallet:assembleRelease`
 - Meta unsigned APK:
   `./gradlew :wallet:assembleMetaRelease`
+- Wearables Meta unsigned APK:
+  `./gradlew :wearablesMeta:assembleRelease`
 
 Generated APKs:
 
@@ -84,6 +86,33 @@ Generated APKs:
   `wallet/build/outputs/apk/release/wallet-release-unsigned.apk`
 - Meta:
   `wallet/build/outputs/apk/metaRelease/wallet-metaRelease-unsigned.apk`
+- Wearables Meta:
+  `wearablesMeta/build/outputs/apk/release/`
+
+## Install from GitHub Releases
+
+If you want to use the apps without the Play Store or Meta Store, open the project's GitHub Releases page and download the APK files you want.
+
+Install order:
+
+- Install `vergexvr` first for the main phone wallet
+- Install `vergexvr-meta` only if you want the Meta headset version
+- Install `vergexvr-wearables-meta` only if you want the separate Meta wearables companion
+
+Device notes:
+
+- `vergexvr` is the main phone wallet app
+- `vergexvr-meta` is the Meta build variant of the wallet app
+- `vergexvr-wearables-meta` is a separate companion app, not the home-screen widget
+- the wearables companion reads wallet summary data from the phone wallet and must be signed with the same key as the phone wallet build
+
+Simple install steps:
+
+- On Android phones, download the APK, open it, and allow `Install unknown apps` if Android asks
+- On Meta devices, first try downloading the APK and opening it directly on the device
+- If direct install on a Meta device does not work, install Android `SDK Platform Tools` on a computer from https://developer.android.com/tools/releases/platform-tools and use `adb install -r <apk>`
+- Launch the phone wallet at least once after install so it can initialize and start syncing
+- If you install the wearables companion, keep the matching phone wallet installed on the same signing key
 
 ## Meta
 
@@ -126,14 +155,15 @@ Current module path:
 
 Example command line build:
 
-- `./gradlew :wearablesMeta:assembleDebug`
+- `./gradlew :wearablesMeta:assembleRelease`
 
 ## GitHub Actions
 
-The Android workflow now publishes two unsigned APK artifacts on CI:
+The Android workflow now publishes three unsigned APK artifacts on CI:
 
-- `tordroid` for the normal Android release APK
-- `tordroid-meta` for the `metaRelease` APK
+- `vergexvr` for the normal Android release APK
+- `vergexvr-meta` for the `metaRelease` APK
+- `vergexvr-wearables-meta` for the separate `wearablesMeta` release APK
 
 Note:
 If you are attempting to build on a Lollipop emulator, use `Android 5.x armeabi-v7a`.
