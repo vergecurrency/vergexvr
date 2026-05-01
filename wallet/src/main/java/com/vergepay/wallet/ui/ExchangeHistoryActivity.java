@@ -19,8 +19,6 @@ public class ExchangeHistoryActivity extends BaseWalletActivity {
                     .add(R.id.container, fragment)
                     .commit();
         }
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(false);
+        setupWrapperHeader();
     }
 }

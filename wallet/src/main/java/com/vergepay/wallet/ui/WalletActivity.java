@@ -6,25 +6,22 @@ import static com.vergepay.wallet.ui.NavDrawerItemType.ITEM_SECTION_TITLE;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.view.ActionMode;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
 import android.widget.Toast;
 
 import com.vergepay.core.coins.CoinType;
@@ -37,10 +34,10 @@ import com.vergepay.core.wallet.SerializedKey;
 import com.vergepay.core.wallet.WalletAccount;
 import com.vergepay.wallet.Constants;
 import com.vergepay.wallet.R;
-import com.vergepay.wallet.receiver.OrbotStatusReceiver;
 import com.vergepay.wallet.service.CoinService;
 import com.vergepay.wallet.service.CoinServiceImpl;
 import com.vergepay.wallet.tasks.CheckUpdateTask;
+import com.vergepay.wallet.ui.summary.WalletSummaryRefresh;
 import com.vergepay.wallet.ui.dialogs.TermsOfUseDialog;
 import com.vergepay.wallet.util.Lock;
 import com.vergepay.wallet.util.SystemUtils;
@@ -104,7 +101,6 @@ final public class WalletActivity extends BaseWalletActivity implements
     private final Handler handler = new MyHandler(this);
     private boolean isOverviewVisible;
     private OverviewFragment overviewFragment;
-    private OrbotStatusReceiver orbotStatusReceiver;
     @Nullable private AccountFragment accountFragment;
 
     public WalletActivity() {}
@@ -113,13 +109,9 @@ final public class WalletActivity extends BaseWalletActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wallet);
+        WindowInsetsHelper.applyPaddingInsets(findViewById(R.id.contents), false, false);
 		
 		new Lock();
-
-        orbotStatusReceiver = new OrbotStatusReceiver(this);
-
-        IntentFilter intentFilter = new IntentFilter("org.torproject.android.intent.action.STATUS");
-        registerReceiver(orbotStatusReceiver, intentFilter, Context.RECEIVER_EXPORTED);
 
         if (getWalletApplication().getWallet() == null) {
             startIntro();
@@ -166,6 +158,14 @@ final public class WalletActivity extends BaseWalletActivity implements
         }
         tr.commit();
 
+        if (getSupportActionBar() != null) {
+            if (isOverviewVisible) {
+                getSupportActionBar().show();
+            } else {
+                getSupportActionBar().hide();
+            }
+        }
+
         // Setup navigation bar
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFM().findFragmentById(R.id.navigation_drawer);
@@ -190,7 +190,6 @@ final public class WalletActivity extends BaseWalletActivity implements
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(orbotStatusReceiver);
     }
 
     private void setAccountTitle(@Nullable WalletAccount account) {
@@ -245,51 +244,28 @@ final public class WalletActivity extends BaseWalletActivity implements
     @Override
     protected void onResume() {
         super.onResume();
+        restoreActionBarShadow();
+    }
 
-        try {
-            ApplicationInfo applicationInfo = getPackageManager().getApplicationInfo("org.torproject.android", 0);
-            Intent intent = new Intent("org.torproject.android.intent.action.START");
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
-                intent.setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-            }
-            sendBroadcast(intent);
-        } catch (PackageManager.NameNotFoundException e) {
-            new android.support.v7.app.AlertDialog.Builder(this)
-                    .setMessage("In order to use this application Orbot must be installed")
-                    .setPositiveButton("Install", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            try {
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=org.torproject.android")));
-                            } catch (ActivityNotFoundException anfe) {
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=org.torproject.android")));
-                            }
-                        }
-                    })
-                    .setNeutralButton("Tor is running", null)
-                    .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            finish();
-                        }
-                    }).show();
-            e.printStackTrace();
-        }
-
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        getWalletApplication().startTor();
         getWalletApplication().startBlockchainService(CoinService.ServiceMode.CANCEL_COINS_RECEIVED);
         connectAllCoinService();
+    }
 
-        // Restore the correct action bar shadow
+    private void restoreActionBarShadow() {
         if (getSupportActionBar() != null) {
             if (isOverviewVisible) {
+                getSupportActionBar().show();
                 getSupportActionBar().setElevation(
                         getResources().getDimensionPixelSize(R.dimen.active_elevation));
             } else {
-                getSupportActionBar().setElevation(0);
+                getSupportActionBar().hide();
             }
         }
     }
-
 
     @Override
     public void onLocalAmountClick() {
@@ -357,6 +333,7 @@ final public class WalletActivity extends BaseWalletActivity implements
             }
             // Restore the default action bar shadow
             if (getSupportActionBar() != null) {
+                getSupportActionBar().show();
                 getSupportActionBar().setElevation(
                         getResources().getDimensionPixelSize(R.dimen.active_elevation));
             }
@@ -388,6 +365,7 @@ final public class WalletActivity extends BaseWalletActivity implements
                 accountFragment = AccountFragment.getInstance(lastAccountId);
                 ft.add(R.id.contents, accountFragment, ACCOUNT_TAG);
                 getWalletApplication().getConfiguration().touchLastAccountId(lastAccountId);
+                WalletSummaryRefresh.refreshAll(getApplicationContext());
             }
             ft.commit();
 
@@ -398,9 +376,8 @@ final public class WalletActivity extends BaseWalletActivity implements
             if (selectInNavDrawer) {
                 navDrawerSelectAccount(account, true);
             }
-            // Hide the shadow of the action bar because the PagerTabStrip of the AccountFragment is visible
             if (getSupportActionBar() != null) {
-                getSupportActionBar().setElevation(0);
+                getSupportActionBar().hide();
             }
         }
     }
@@ -662,10 +639,6 @@ final public class WalletActivity extends BaseWalletActivity implements
         } else if (id == R.id.action_about) {
             startActivity(new Intent(WalletActivity.this, AboutActivity.class));
             return true;
-        } else if (id == R.id.action_get_verge) {
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://vergecurrency.com/get-verge/"));
-            startActivity(browserIntent);
-            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -806,6 +779,40 @@ final public class WalletActivity extends BaseWalletActivity implements
     @Override
     public void onSendSelected() {
         finishActionMode();
+    }
+
+    @Override
+    public void onSwapSelected() {
+        finishActionMode();
+    }
+
+    @Override
+    public void onGamesSelected() {
+        finishActionMode();
+    }
+
+    @Override
+    public boolean onAccountMenuItemSelected(int itemId) {
+        if (itemId == R.id.action_settings) {
+            startActivity(new Intent(WalletActivity.this, SettingsActivity.class));
+            return true;
+        } else if (itemId == R.id.action_refresh_wallet) {
+            refreshWallet();
+            return true;
+        } else if (itemId == R.id.action_sign_verify_message) {
+            signVerifyMessage();
+            return true;
+        } else if (itemId == R.id.action_account_details) {
+            accountDetails();
+            return true;
+        } else if (itemId == R.id.action_sweep_wallet) {
+            sweepWallet(null);
+            return true;
+        } else if (itemId == R.id.action_about) {
+            startActivity(new Intent(WalletActivity.this, AboutActivity.class));
+            return true;
+        }
+        return false;
     }
 
 

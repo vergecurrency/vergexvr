@@ -15,7 +15,6 @@ public class FeesSettingsActivity extends BaseWalletActivity {
                     .add(R.id.container, new FeesSettingsFragment())
                     .commit();
         }
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(false);
+        setupWrapperHeader();
     }
 }

@@ -2,18 +2,26 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/intro_screen_bg"
     android:orientation="vertical">
 
     <Button
         android:id="@+id/remove_app_lock"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="220dp"
+        android:layout_height="54dp"
         android:layout_gravity="center"
-        android:text="@string/remove_app_lock" />
+        android:background="@drawable/send_button_bg"
+        android:elevation="6dp"
+        android:fontFamily="sans-serif-condensed"
+        android:letterSpacing="0.08"
+        android:text="@string/remove_app_lock"
+        android:textAllCaps="true"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
 
     <FrameLayout
         android:id="@+id/placeholder"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"></FrameLayout>
+        android:layout_height="match_parent" />
 
 </FrameLayout>

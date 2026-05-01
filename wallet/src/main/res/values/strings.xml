@@ -5,6 +5,7 @@
     <string name="almost_equal_to" translatable="false">≈</string>
     <string name="action_scan_qr_code">Scan</string>
     <string name="action_share">Share</string>
+    <string name="action_nearby_share">Nearby share</string>
     <string name="action_copy">Copy</string>
     <string name="action_edit_label">Edit label</string>
     <string name="action_empty_wallet">Use all funds</string>
@@ -27,6 +28,7 @@
     <!-- Generic items -->
     <string name="button_ok">OK</string>
     <string name="button_next">Next</string>
+    <string name="button_back">Back</string>
     <string name="button_finish">Finish</string>
     <string name="button_return">Return</string>
     <string name="button_confirm">Confirm</string>
@@ -37,6 +39,7 @@
     <string name="button_add">Add</string>
     <string name="button_save">Save</string>
     <string name="button_send">Send</string>
+    <string name="button_connect">Connect</string>
     <string name="button_sign">Sign</string>
     <string name="button_verify">Verify</string>
     <string name="button_skip">Skip</string>
@@ -45,6 +48,8 @@
     <string name="button_agree">Agree</string>
     <string name="button_disagree">Disagree</string>
     <string name="button_execute">Execute</string>
+    <string name="button_install">Install</string>
+    <string name="button_exit">Exit</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="scan_qr_code">Scan QR code</string>
@@ -53,6 +58,8 @@
     <string name="wallet_title_request">receive</string>
     <string name="wallet_title_balance">balance</string>
     <string name="wallet_title_send">send</string>
+    <string name="wallet_title_swap">swap</string>
+    <string name="wallet_title_games">games</string>
     <string name="wallet_locked_message">Your wallet is locked</string>
     <string name="wallet_is_not_locked_message">Your wallet is not locked</string>
     <string name="unlock_wallet_title">Unlock your wallet</string>
@@ -70,8 +77,9 @@
     <string name="trade">Exchange</string>
     <string name="receive">Receive</string>
     <!-- Welcome fragment -->
-    <string name="welcome_title">Verge Tor Wallet</string>
-    <string name="welcome_subtitle">(requires Orbot/Tor running)</string>
+    <string name="welcome_title">VergeXVR</string>
+    <string name="welcome_subtitle">(built-in Tor networking)</string>
+    <string name="welcome_text">Welcome to TORdroid</string>
     <string name="create_wallet">Create a new wallet</string>
     <string name="restore_wallet">Restore a wallet</string>
     <!-- Intro -->
@@ -86,7 +94,7 @@
     <string name="seed_regenerate_title">Touch to generate a new recovery phrase</string>
     <string name="backed_up_seed">I have safely stored my recovery phrase</string>
     <!-- Restore fragment -->
-    <string name="restore_info">Please enter your recovery phrase:</string>
+    <string name="restore_info">Please enter your recovery seedphrase words, or scan a private key QR code using the QR icon.</string>
     <string name="restore_seed_protected">Use a BIP39 passphrase</string>
     <string name="restore_skip_title">Skipping verification</string>
     <string name="restore_skip_info1">Please make sure that your recovery phrase matches the following:</string>
@@ -103,21 +111,70 @@
     <string name="exchange_and_pay_title">Exchange and send</string>
     <string name="page_label_receive_xvg">Receive $XVG</string>
     <string name="page_label_send_xvg">Send $XVG</string>
+    <string name="page_label_swap">Swap</string>
+    <string name="page_label_games">Games</string>
     <!-- PayToDialog-->
     <!-- Ambiguous address means that the wallet cannot deduce the correct address coin type -->
     <string name="ambiguous_address_title">Ambiguous address</string>
     <string name="ambiguous_address_message">Please select the correct coin type</string>
     <!-- Balance fragment -->
     <string name="wallet_transactions_coinbase">Mined</string>
-    <string name="history_empty">No Verge (XVG) received yet!\n\nSwipe down to refresh the balance.\n\nEnsure Orbot is running or restart it.\n\n\Swipe left or right for your receiving address, swipe right to send $XVG!</string>
+    <string name="history_empty">No Verge (XVG) received yet!\n\nSwipe down to refresh the balance.\n\nSwipe left or right for your receiving address, swipe right to send $XVG!</string>
 <!--    <string name="history_empty">No coins received so far!\n\nYou can get some through an exchange, or trading/selling goods or services.</string>-->
     <string name="sent_to">sent to</string>
     <string name="received_with">received with</string>
     <string name="received_from">received from</string>
     <string name="get_tx_info_error">Could not get transaction information</string>
     <string name="disconnected_label">No connection</string>
+    <string name="connection_status_network_waiting">Waiting for network</string>
+    <string name="connection_status_tor_starting">Starting Tor</string>
+    <string name="connection_status_tor_stopped">Tor stopped</string>
+    <string name="connection_status_tor_failed">Tor failed to start</string>
+    <string name="connection_status_connecting_over_tor">Tor ready, connecting to Verge</string>
+    <string name="connection_status_syncing_over_tor">Syncing wallet over Tor</string>
+    <string name="connection_status_connected_over_tor">Connected to Verge over Tor</string>
+    <string name="connection_status_reconnecting_over_tor">Wallet loaded, reconnecting</string>
+    <string name="wallet_summary_widget_description">Current wallet amount and USD value</string>
+    <string name="wallet_summary_empty_amount">No wallet loaded</string>
+    <string name="wallet_summary_empty_value">Open Verge</string>
+    <string name="wallet_summary_value_unavailable">Value unavailable</string>
+    <string name="wallet_summary_status_open_phone">Open Verge on your phone</string>
     <string name="no_wallet_pocket_selected">No wallet account selected</string>
     <string name="get_tx_broadcast_error">Transaction broadcast error</string>
+    <string name="title_activity_connections">Connections</string>
+    <string name="pref_summary_connections">Choose which Verge server the wallet uses and reconnect immediately.</string>
+    <string name="connections_status_server_label">Server</string>
+    <string name="connections_status_endpoint_state">%1$s - %2$s</string>
+    <string name="pref_title_saved_connections">Saved servers</string>
+    <string name="pref_summary_saved_connections">Verge randomizes across this saved server pool on startup and falls through the rest immediately if one fails.</string>
+    <string name="pref_title_verge_connection_profile">Verge server</string>
+    <string name="pref_summary_verge_connection_profile">Pick a specific Verge server. All connections are routed through Tor.</string>
+    <string name="pref_connection_option_legacy_onion">7eagtn6nsmlyjhjv647ejj4j4orgb2cotoc5dl73qpamhvbvioao4zad.onion:50001</string>
+    <string name="pref_connection_option_electrum_cloud">electrum-verge.cloud:50001</string>
+    <string name="pref_connection_option_electrum_cloud_ssl">electrum-verge.cloud:50002</string>
+    <string name="pref_connection_option_electrumx_cloud">electrumx-verge.cloud:50001</string>
+    <string name="pref_connection_option_electrumx_cloud_ssl">electrumx-verge.cloud:50002</string>
+    <string name="pref_connection_selected">Selected</string>
+    <string name="pref_connection_connected">Connected now</string>
+    <string name="pref_connection_connecting">Connecting now</string>
+    <string name="pref_connection_fallback_active">Preferred server unavailable, fallback active</string>
+    <string name="connections_status_trying_saved_servers">Trying saved servers</string>
+    <string name="pref_title_add_custom_connection_dialog">Add custom server</string>
+    <string name="pref_title_add_custom_connection_button">+ Custom Server</string>
+    <string name="pref_summary_add_custom_connection">Enter a host and port to add another Verge server to the list.</string>
+    <string name="connection_host_hint">Server host</string>
+    <string name="connection_port_hint">Port</string>
+    <string name="connection_protocol_hint">Server type</string>
+    <string name="connection_protocol_summary">Choose Electrum for legacy servers and ElectrumX for modern ElectrumX backends.</string>
+    <string name="connection_protocol_electrum">Electrum</string>
+    <string name="connection_protocol_electrumx">ElectrumX</string>
+    <string name="connection_protocol_auto">Auto</string>
+    <string name="connection_transport_hint">Transport</string>
+    <string name="connection_transport_summary">Choose TCP for plain Electrum over Tor or SSL for TLS over Tor.</string>
+    <string name="connection_transport_tcp">TCP</string>
+    <string name="connection_transport_ssl">SSL</string>
+    <string name="connection_error_host_required">Enter a server host.</string>
+    <string name="connection_error_port_invalid">Enter a valid port between 1 and 65535.</string>
     <!-- Receive fragment -->
     <string name="receive_address_label">My address</string>
     <string name="create_new_address">Create a new address?</string>
@@ -127,17 +184,34 @@
     <!-- Send Activity -->
     <string name="send_coins_activity_title">Send coins</string>
     <!-- Send fragment -->
-    <string name="send_coins_fragment_receiving_address_tip">name or address</string>
+    <string name="send_coins_fragment_receiving_address_tip">Enter an XVG address or a web3 name, ex: DQuGAFQy6R47Nj1UNYjKpYZvTS9QvAsyQN or sunerok.wallet</string>
     <string name="send_coins_error_network">Could not connect to the coin network</string>
     <string name="send_coins_error_dust">The sending amount is too small and will be rejected by the network</string>
     <!-- Here the %1$s is a detailed error message -->
     <string name="send_coins_error">Could not send coins: %1$s</string>
     <string name="pay_to_label">Pay to</string>
     <string name="amount_to_send_label">Amount</string>
+    <string name="send_contacts">Address Book</string>
+    <string name="send_contacts_title">Address Book</string>
+    <string name="send_contacts_empty">No saved contacts in your address book yet.</string>
+    <string name="send_add_contact">Add contact</string>
+    <string name="send_edit_contact">Edit contact</string>
+    <string name="send_use_contact">Use contact</string>
+    <string name="send_contact_use_arrow">→</string>
+    <string name="send_resolved_domain_label">Sending to web3 address:</string>
+    <string name="send_resolved_domain_check">✓</string>
+    <string name="contact_name_required">Enter a contact name.</string>
+    <string name="contact_address_required">Enter a contact address.</string>
+    <string name="save_scanned_address_title">Save scanned address?</string>
+    <string name="save_scanned_address_message">Do you want to add this scanned address to your address book?</string>
     <string name="scan_error">There was a problem scanning: %1$s</string>
     <!-- Here the \"%1$s\" is the "coin name"-->
     <string name="unsupported_coin">Coin \"%1$s\" is not supported.</string>
     <string name="address_error">The provided address is not valid.</string>
+    <string name="address_resolving_domain">Resolving domain…</string>
+    <string name="address_error_domain_not_found">This domain does not have an XVG address record.</string>
+    <string name="address_error_domain_resolution">Could not resolve this domain.</string>
+    <string name="address_error_domain_token_missing">Unstoppable Domains API token is not configured.</string>
     <string name="amount_error">The provided amount is not valid</string>
     <string name="amount_error_empty">Please enter an amount</string>
     <string name="amount_error_negative">Cannot send a negative amount</string>
@@ -148,7 +222,7 @@
     <string name="amount_error_not_enough_money">Not enough money, current balance is %1$s</string>
     <string name="amount_warn_fees_apply">Slightly less will be sent because of fees</string>
     <!-- Set Password fragment -->
-    <string name="set_password_info">Set a password to protect your wallet in everyday use.</string>
+    <string name="set_password_info">Set a password to protect your wallet:</string>
     <string name="set_bip39_passphrase">Type your BIP39 passphrase</string>
     <string name="set_password1">Type your password</string>
     <string name="set_password2">Re-type your password</string>
@@ -158,7 +232,7 @@
     <string name="password_too_short_error">Password is too short, minimum %1$d characters.</string>
     <string name="passwords_mismatch">Passwords don\'t match</string>
     <string name="password_error">Could not proceed, password errors detected.</string>
-    <string name="password_skip_warn">By not setting a password, your wallet can be accessed without authorization.</string>
+    <string name="password_skip_warn">Are you sure you want to Skip making a password?</string>
     <string name="password_wallet_recovery">To restore your wallet, please provide the same BIP39 passphrase you used when created the protected recovery phrase.\nIf you enter a different passphrase, a new empty wallet will be created.</string>
     <!-- FinalizeWalletRestorationFragment -->
     <string name="wallet_restoration">Please wait while your wallet is being restored</string>
@@ -191,8 +265,8 @@
         <item quantity="other">%d seconds</item>
     </plurals>
     <!-- About Activity -->
-    <string name="title_activity_about">About TORdroid</string>
-    <string name="app_name_long">Verge Tordroid</string>
+    <string name="title_activity_about">About Verge Android</string>
+    <string name="app_name_long">Verge Android</string>
     <string name="about_licence">based on Coinomi and Mycellium with added security and privacy measures.</string>
     <string name="about_credits_translations">Translations provided by:</string>
     <string name="about_credits_translations_credits" translatable="false">Tamara Castellano (Italian)\nJorge Nicolas Karmis (Spanish)\nGeorge Kimionis (Greek)\n@visvirial (Japanese)\nДенис Рейн (Russian, Ukrainian)</string>
@@ -204,7 +278,7 @@
     <string name="about_credits_crypto_icons">Crypto-icons by Chris Shepherd\nhttps://github.com/shphrd/crypto-icons</string>
     <string name="about_credits_font_icons">Font-icons by Daniel Bruce\nhttp://www.entypo.com</string>
     <string name="about_credits_exchange_rates">Exchange rates provided by\nhttp://www.cryptocoincharts.info/\nhttps://bitcoinaverage.com/</string>
-    <string name="about_verge_copyright" translatable="false">\u00A9 2022 Verge</string>
+    <string name="about_verge_copyright" translatable="false">\u00A9 2026 Verge</string>
     <!-- Add Coins -->
     <string name="title_activity_add_coins">Add coins</string>
     <!-- %1$s is the coin name e.g. ... create a Bitcoin account ... -->
@@ -237,13 +311,14 @@
     <string name="status_unknown">Transaction status unknown</string>
     <!-- Exchange Rates -->
     <string name="title_activity_exchange_rates">Exchange rates</string>
+    <string name="title_activity_tetris">Tetris</string>
     <!-- %1$s is the symbol of a fiat currency e.g. Set EUR as a ... -->
     <string name="set_local_currency">Set %1$s as a local currency</string>
     <string name="exchange_rates_loading">Loading exchange rates</string>
     <string name="exchange_rates_load_error">Could not load exchange rates</string>
     <string name="exchange_rates_empty_search">Could not find exchange rate</string>
     <!-- Select Coins -->
-    <string name="select_coins">If you are ready to open your wallet now, click "Verge" below, then click FINISH</string>
+    <string name="select_coins">If you are ready to open this wallet now, click the Verge icon below, and then click FINISH!</string>
     <!-- Previous Addresses -->
     <string name="title_activity_previous_addresses">My previous addresses</string>
     <string name="previous_addresses_used">Used address</string>
@@ -422,6 +497,7 @@ This disclaimer was amended for the last time on January 1st, 2016.</string>
 
 	<string name="use_pincode_only">Use pincode only</string>
     <string name="use_fingerprint_pincode">Use fingerprint + pincode</string>
+    <string name="skip_button_label">Skip</string>
     <string name="app_lock_description">App lock allows you to secure your wallet using PIN-code or fingerprint (if it\'s present on your phone). You can add app lock later in Settings menu</string>
     <string name="error_no_fingerprints">In order to use fingerprint app lock, please add atleast one fingerprint at Android Security settings</string>
     <string name="add_fingerprint_label">Touch your fingerprint sensor to add fingerprint app lock</string>
@@ -431,5 +507,34 @@ This disclaimer was amended for the last time on January 1st, 2016.</string>
 	<string name="touch_fingerprint_label">Scan your finger to unlock app</string>
     <string name="remove_app_lock">Remove app lock</string>
     <string name="https_vergecurrency_com_get_verge" translatable="false">https://vergecurrency.com/get-verge/</string>
+
+    <string name="games_hero_title">Games</string>
+    <string name="games_hero_subtitle">Take a break without leaving the wallet. Tetris is the first built-in game option.</string>
+    <string name="games_tetris_title">Tetris</string>
+    <string name="games_tetris_description">Classic block stacking with score, lines, levels, next-piece preview, and fast-drop controls.</string>
+    <string name="games_tetris_button">Play Tetris</string>
+    <string name="games_reference_note">Reference inspiration: LyapunovJingci/Tetris on GitHub.</string>
+
+    <string name="tetris_score_label">Score</string>
+    <string name="tetris_lines_label">Lines</string>
+    <string name="tetris_level_label">Level</string>
+    <string name="tetris_next_label">Next</string>
+    <string name="tetris_status_live">Game in progress</string>
+    <string name="tetris_status_game_over">Game over</string>
+    <string name="tetris_control_hint">Controls follow the referenced Android Tetris layout: drop, rotate, move, and soft drop.</string>
+    <string name="tetris_restart_button">Restart</string>
+    <string name="tetris_hard_drop_button">Drop</string>
+    <string name="tetris_rotate_button">Rotate</string>
+    <string name="tetris_left_button">Left</string>
+    <string name="tetris_down_button">Down</string>
+    <string name="tetris_right_button">Right</string>
+    <string name="tetris_game_over_title">Game over</string>
+    <string name="tetris_game_over_message">Final score: %1$d</string>
+    <string name="pref_title_meta_category">Meta</string>
+    <string name="pref_title_meta_startup_target">Start On Device Boot</string>
+    <string name="pref_summary_meta_startup_target">Choose what opens automatically on supported Meta devices after startup.</string>
+    <string name="pref_meta_startup_option_off">Off</string>
+    <string name="pref_meta_startup_option_glance">Glance</string>
+    <string name="pref_meta_startup_option_wallet">Wallet</string>
 
 </resources>

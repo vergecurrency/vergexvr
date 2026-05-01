@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Quest build uses larger sizing for readability in a floating 2D panel. -->
+    <dimen name="standard_margin">24dp</dimen>
+    <dimen name="half_standard_margin">12dp</dimen>
+    <dimen name="quarter_standard_margin">6dp</dimen>
+    <dimen name="activity_horizontal_margin">24dp</dimen>
+    <dimen name="activity_vertical_margin">20dp</dimen>
+    <dimen name="navigation_drawer_width">320dp</dimen>
+    <dimen name="caption">16sp</dimen>
+    <dimen name="font_icon_bg_size">58dp</dimen>
+    <dimen name="font_icon_text_size">28sp</dimen>
+    <dimen name="amount_text_size_big">64sp</dimen>
+    <dimen name="amount_text_size_small">15sp</dimen>
+    <dimen name="amount_symbol_text_size">28sp</dimen>
+    <dimen name="send_output_amount_text_size">28sp</dimen>
+    <dimen name="seed_text_size">30sp</dimen>
+    <dimen name="receive_address">24sp</dimen>
+    <dimen name="history_empty">24sp</dimen>
+    <dimen name="row_font_icon_margin">12dp</dimen>
+    <dimen name="row_font_icon_size">24sp</dimen>
+    <dimen name="row_font_icon_bg_size">48dp</dimen>
+    <dimen name="row_text_size_header_text">16sp</dimen>
+    <dimen name="row_text_size_amount">26sp</dimen>
+    <dimen name="row_text_size_label">19sp</dimen>
+    <dimen name="row_text_size_date">16sp</dimen>
+    <dimen name="row_padding_vertical">16dp</dimen>
+    <dimen name="app_name_long">38sp</dimen>
+    <dimen name="exchange_row_symbol_text_size">19sp</dimen>
+</resources>

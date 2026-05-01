@@ -7,8 +7,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -152,6 +152,7 @@ public class RestoreFragment extends Fragment {
 
         // Next button
         view.findViewById(R.id.button_next).setOnClickListener(getOnNextListener());
+        view.findViewById(R.id.button_back).setOnClickListener(getOnBackListener());
 
         return view;
     }
@@ -190,6 +191,19 @@ public class RestoreFragment extends Fragment {
                 mnemonicTextView.setText("");
                 SkipDialogFragment skipDialog = SkipDialogFragment.newInstance(seed);
                 skipDialog.show(getFragmentManager(), null);
+            }
+        };
+    }
+
+    private View.OnClickListener getOnBackListener() {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (getFragmentManager() != null && getFragmentManager().getBackStackEntryCount() > 0) {
+                    getFragmentManager().popBackStack();
+                } else if (getActivity() != null) {
+                    getActivity().onBackPressed();
+                }
             }
         };
     }

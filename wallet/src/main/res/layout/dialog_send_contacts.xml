@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="@dimen/quarter_standard_margin">
+
+    <ListView
+        android:id="@+id/send_contacts_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="8dp"
+        android:paddingLeft="@dimen/quarter_standard_margin"
+        android:paddingRight="@dimen/quarter_standard_margin"
+        android:scrollbars="vertical" />
+</FrameLayout>

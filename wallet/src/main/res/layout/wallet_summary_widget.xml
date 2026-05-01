@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/wallet_summary_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/panel_bg"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:paddingLeft="18dp"
+    android:paddingTop="16dp"
+    android:paddingRight="18dp"
+    android:paddingBottom="16dp">
+
+    <TextView
+        android:id="@+id/wallet_summary_amount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="@string/wallet_summary_empty_amount"
+        android:textColor="@color/text_primary"
+        android:textSize="24sp"
+        android:typeface="monospace" />
+
+    <TextView
+        android:id="@+id/wallet_summary_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="@string/wallet_summary_empty_value"
+        android:textColor="@color/accent_alt"
+        android:textSize="15sp" />
+
+</LinearLayout>

@@ -2,9 +2,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/wallet_screen_bg"
     tools:context=".ui.AddressRequestFragment">
 
     <ScrollView
+        android:id="@+id/request_scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true">
@@ -21,37 +23,15 @@
             android:paddingRight="@dimen/activity_horizontal_margin"
             android:paddingTop="@dimen/activity_vertical_margin">
 
-            <TextView
-                style="@style/NormalText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/half_standard_margin"
-                android:layout_marginBottom="@dimen/activity_vertical_margin"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:text="@string/page_label_receive_xvg"
-                android:textSize="20sp" />
-
             <RelativeLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal" >
-
-                <TextView
-                    android:id="@+id/request_address_info"
-                    style="@style/SecondaryText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true"
-                    android:layout_alignParentTop="true"
-                    android:text="@string/receive_address_label" />
                 
                 <LinearLayout
                     android:id="@+id/request_address_view"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/request_address_info"
                     android:orientation="vertical">
 
                     <TextView
@@ -59,16 +39,48 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         style="@style/NormalText"
+                        android:textIsSelectable="true"
                         android:textSize="@dimen/receive_address"
                         tools:text="Fancy address label" />
 
-                    <TextView
-                        android:id="@+id/request_address"
-                        style="@style/SmallHelpText"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:typeface="monospace"
-                        tools:text="nUdHX BSBY QPJR EXZM BUdu 8ARn WM2m z3XQp" />
+                        android:layout_marginTop="6dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/request_address"
+                            style="@style/SmallHelpText"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:clickable="true"
+                            android:ellipsize="end"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:maxLines="1"
+                            android:paddingTop="6dp"
+                            android:paddingBottom="6dp"
+                            android:scrollHorizontally="true"
+                            android:singleLine="true"
+                            android:textColor="@color/text_primary"
+                            android:textSize="18sp"
+                            android:typeface="monospace"
+                            tools:text="nUdHXBSBYQPJREXZMBUdu8ARnWM2mz3XQp" />
+
+                        <ImageView
+                            android:id="@+id/request_address_copy"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:layout_marginLeft="8dp"
+                            android:background="@drawable/account_nav_overflow_bg"
+                            android:contentDescription="@string/action_copy"
+                            android:padding="8dp"
+                            android:src="@drawable/abc_ic_menu_copy_mtrl_am_alpha"
+                            android:tint="@color/text_primary" />
+                    </LinearLayout>
                 </LinearLayout>
             </RelativeLayout>
 
@@ -101,48 +113,53 @@
             </RelativeLayout>
 
             <LinearLayout
+                android:id="@+id/request_qr_amount_section"
                 android:orientation="vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:minWidth="500dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_weight="1"
-                android:gravity="center">
+                android:gravity="center"
+                android:layout_marginTop="12dp">
 
                 <ImageView
                     android:id="@+id/qr_code"
-                    android:layout_width="@dimen/qr_code_size"
-                    android:layout_height="@dimen/qr_code_size"
+                    android:layout_width="@dimen/receive_qr_code_size"
+                    android:layout_height="@dimen/receive_qr_code_size"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="14dp"
+                    android:padding="12dp"
                     tools:background="@color/gray_87_text"
-                    android:background="@color/qr_code_normal_bg"
-                    android:layout_margin="@dimen/qr_code_margin" />
+                    android:background="@drawable/qr_surface_bg"
+                    android:layout_marginLeft="@dimen/qr_code_margin"
+                    android:layout_marginRight="@dimen/qr_code_margin" />
 
                 <LinearLayout
-                    android:orientation="horizontal"
+                    android:id="@+id/request_amount_row"
+                    android:orientation="vertical"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
                     <com.vergepay.wallet.ui.widget.AmountEditView
                         android:id="@+id/request_coin_amount"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.5" />
-
-                    <com.vergepay.wallet.ui.widget.AmountEditView
-                        android:id="@+id/request_local_amount"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.5" />
+                        android:layout_marginTop="8dp" />
                 </LinearLayout>
             </LinearLayout>
 
             <Button
                 android:id="@+id/view_previous_addresses"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="220dp"
+                android:layout_height="54dp"
                 android:layout_gravity="center_horizontal"
-                style="@style/BorderlessButtonLink"
-                android:text="@string/view_previous_addresses" />
+                android:layout_marginTop="20dp"
+                android:background="@drawable/intro_action_button_alt_bg"
+                android:elevation="6dp"
+                android:fontFamily="sans-serif-condensed"
+                android:text="@string/view_previous_addresses"
+                android:textAllCaps="true"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
 
         </LinearLayout>
     </ScrollView>

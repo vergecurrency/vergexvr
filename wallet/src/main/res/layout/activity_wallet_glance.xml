@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/glance_root"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@android:color/transparent"
+    android:paddingLeft="8dp"
+    android:paddingTop="8dp"
+    android:paddingRight="8dp"
+    android:paddingBottom="8dp">
+
+    <LinearLayout
+        android:id="@+id/glance_panel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:background="@drawable/panel_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="end"
+        android:orientation="vertical"
+        android:paddingLeft="24dp"
+        android:paddingTop="18dp"
+        android:paddingRight="24dp"
+        android:paddingBottom="18dp">
+
+        <TextView
+            android:id="@+id/wallet_glance_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/orbitron_medium"
+            android:gravity="end"
+            android:includeFontPadding="false"
+            android:letterSpacing="-0.04"
+            android:shadowColor="#CC000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="6"
+            android:textColor="@color/text_primary"
+            android:textSize="40sp"
+            tools:text="108.2210 XVG" />
+
+        <TextView
+            android:id="@+id/wallet_glance_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="end"
+            android:shadowColor="#CC000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="6"
+            android:textColor="@color/accent_alt"
+            android:textSize="20sp"
+            tools:text="$0.41 USD" />
+
+    </LinearLayout>
+
+</FrameLayout>

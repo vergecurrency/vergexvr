@@ -1,7 +1,7 @@
 package com.vergepay.wallet.ui;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 
 import com.vergepay.wallet.R;
 
@@ -20,6 +20,8 @@ public class AccountDetailsActivity extends BaseWalletActivity implements TradeS
                     .add(R.id.container, fragment)
                     .commit();
         }
+
+        setupWrapperHeader();
     }
 
     @Override

@@ -48,7 +48,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -85,8 +84,13 @@ public class ExchangeRatesProvider extends ContentProvider {
     private static final String KEY_RATE_COIN_CODE = "rate_coin_code";
     private static final String KEY_RATE_FIAT_CODE = "rate_fiat_code";
     private static final String KEY_SOURCE = "source";
+    private static final String LOCAL_SYMBOL = "USD";
+    private static final String COIN_SYMBOL = "XVG";
+    private static final String COINGECKO_COIN_ID = "verge";
 
     private static final String QUERY_PARAM_OFFLINE = "offline";
+    private static final String COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price?ids=verge&vs_currencies=usd";
+    private static final String CRYPTOCOMPARE_URL = "https://min-api.cryptocompare.com/data/price?fsym=XVG&tsyms=USD";
 
     private ConnectivityManager connManager;
     private Configuration config;
@@ -99,9 +103,8 @@ public class ExchangeRatesProvider extends ContentProvider {
     private long cryptoToLocalLastUpdated = 0;
     private String lastCryptoCurrency = null;
 
-    private static final String BASE_URL = "https://www.binance.com/api/v3/ticker/price?symbol=XVGUSDT";
-    private static final String TO_LOCAL_URL = BASE_URL; // "/to-local/%s";
-    private static final String TO_CRYPTO_URL = BASE_URL; //"/to-crypto/%s";
+    private static final String TO_LOCAL_URL = COINGECKO_URL;
+    private static final String TO_CRYPTO_URL = COINGECKO_URL;
     private static final String COINOMI_SOURCE = "http://dvzs4zoxkg6z43dd.onion";
 
     private static final Logger log = LoggerFactory.getLogger(ExchangeRatesProvider.class);
@@ -326,22 +329,24 @@ public class ExchangeRatesProvider extends ContentProvider {
         final long start = System.currentTimeMillis();
 
         OkHttpClient client = NetworkUtils.getHttpClient(getContext().getApplicationContext());
-        Request request = new Request.Builder().url(url).build();
-
-        try {
-            Response response = client.newCall(request).execute();
-            if (response.isSuccessful()) {
-                log.info("fetched exchange rates from {}, took {} ms", url,
-                        System.currentTimeMillis() - start);
-                return new JSONObject(response.body().string());
-            } else {
-                log.warn("Error HTTP code '{}' when fetching exchange rates from {}",
-                        response.code(), url);
+        String[] urls = new String[] { url.toString(), CRYPTOCOMPARE_URL };
+        for (String candidate : urls) {
+            try {
+                Request request = NetworkUtils.getBrowserRequestBuilder(candidate).build();
+                Response response = client.newCall(request).execute();
+                if (response.isSuccessful()) {
+                    log.info("fetched exchange rates from {}, took {} ms", candidate,
+                            System.currentTimeMillis() - start);
+                    return new JSONObject(response.body().string());
+                } else {
+                    log.warn("Error HTTP code '{}' when fetching exchange rates from {}",
+                            response.code(), candidate);
+                }
+            } catch (IOException e) {
+                log.warn("Error '{}' when fetching exchange rates from {}", e.getMessage(), candidate);
+            } catch (JSONException e) {
+                log.warn("Could not parse exchange rates JSON: {}", e.getMessage());
             }
-        } catch (IOException e) {
-            log.warn("Error '{}' when fetching exchange rates from {}", e.getMessage(), url);
-        } catch (JSONException e) {
-            log.warn("Could not parse exchange rates JSON: {}", e.getMessage());
         }
         return null;
     }
@@ -351,25 +356,26 @@ public class ExchangeRatesProvider extends ContentProvider {
 
         final Map<String, ExchangeRate> rates = new TreeMap<String, ExchangeRate>();
         try {
-            CoinType type = isLocalToCrypto ? null : CoinID.typeFromSymbol(fromSymbol);
-            for (final Iterator<String> i = json.keys(); i.hasNext(); ) {
-                final String toSymbol = i.next();
-                // Skip extras field
-                if (!"extras".equals(toSymbol)) {
-                    final String rateStr = json.optString(toSymbol, null);
-                    if (rateStr != null) {
-                        try {
-                            if (isLocalToCrypto) type = CoinID.typeFromSymbol(toSymbol);
-                            String localSymbol = isLocalToCrypto ? fromSymbol : toSymbol;
-                            final Value rateCoin = type.oneCoin();
-                            final Value rateLocal = FiatValue.parse(localSymbol, rateStr);
+            double cryptoCompareUsd = json.optDouble("USD", -1d);
+            if (cryptoCompareUsd >= 0d) {
+                final CoinType type = CoinID.typeFromSymbol(COIN_SYMBOL);
+                final Value rateCoin = type.oneCoin();
+                final Value rateLocal = FiatValue.parse(LOCAL_SYMBOL, String.valueOf(cryptoCompareUsd));
+                final ExchangeRateBase rate = new ExchangeRateBase(rateCoin, rateLocal);
+                final String key = isLocalToCrypto ? COIN_SYMBOL : LOCAL_SYMBOL;
+                rates.put(key, new ExchangeRate(rate, key, COINOMI_SOURCE));
+            }
 
-                            ExchangeRateBase rate = new ExchangeRateBase(rateCoin, rateLocal);
-                            rates.put(toSymbol, new ExchangeRate(rate, toSymbol, COINOMI_SOURCE));
-                        } catch (final Exception x) {
-                            log.debug("ignoring {}/{}: {}", toSymbol, fromSymbol, x.getMessage());
-                        }
-                    }
+            JSONObject verge = json.optJSONObject(COINGECKO_COIN_ID);
+            if (verge != null) {
+                double usd = verge.optDouble("usd", -1d);
+                if (usd >= 0d) {
+                    final CoinType type = CoinID.typeFromSymbol(COIN_SYMBOL);
+                    final Value rateCoin = type.oneCoin();
+                    final Value rateLocal = FiatValue.parse(LOCAL_SYMBOL, String.valueOf(usd));
+                    final ExchangeRateBase rate = new ExchangeRateBase(rateCoin, rateLocal);
+                    final String key = isLocalToCrypto ? COIN_SYMBOL : LOCAL_SYMBOL;
+                    rates.put(key, new ExchangeRate(rate, key, COINOMI_SOURCE));
                 }
             }
         } catch (Exception e) {

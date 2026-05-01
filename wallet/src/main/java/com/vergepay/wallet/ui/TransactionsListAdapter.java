@@ -71,6 +71,7 @@ public class TransactionsListAdapter extends BaseAdapter {
     private final int colorLessSignificant;
     private final int colorInsignificant;
     private final int colorError;
+    private final int colorOk;
     private final int colorCircularBuilding = Color.parseColor("#44ff44");
     private final String minedTitle;
     private final String fontIconMined;
@@ -100,6 +101,7 @@ public class TransactionsListAdapter extends BaseAdapter {
         colorLessSignificant = res.getColor(R.color.gray_54_sec_text_icons);
         colorInsignificant = res.getColor(R.color.gray_26_hint_text);
         colorError = res.getColor(R.color.fg_error);
+        colorOk = res.getColor(R.color.fg_ok);
         minedTitle = res.getString(R.string.wallet_transactions_coinbase);
         fontIconMined = res.getString(R.string.font_icon_mining);
         sentToTitle = res.getString(R.string.sent_to);
@@ -239,10 +241,12 @@ public class TransactionsListAdapter extends BaseAdapter {
             rowDirectionFontIcon.setTextColor(colorLessSignificant);
             if (value.isNegative()) {
                 rowDirectionFontIcon.setBackgroundResource(R.drawable.transaction_row_circle_bg_send);
-                rowValue.setTextColor(res.getColor(R.color.send_color_fg));
+                rowDirectionText.setTextColor(colorError);
+                rowValue.setTextColor(colorError);
             } else {
                 rowDirectionFontIcon.setBackgroundResource(R.drawable.transaction_row_circle_bg_receive);
-                rowValue.setTextColor(res.getColor(R.color.receive_color_fg));
+                rowDirectionText.setTextColor(colorOk);
+                rowValue.setTextColor(colorOk);
             }
         } else if (confidenceType == ConfidenceType.DEAD) {
             rowLabel.setTextColor(colorSignificant);
@@ -335,20 +339,13 @@ public class TransactionsListAdapter extends BaseAdapter {
 
         if (label != null) {
             rowLabel.setText(label);
-            if (address != null) {
-                rowAddress.setText(GenericUtils.addressSplitToGroups(address));
-                rowAddress.setVisibility(View.VISIBLE);
-            } else {
-                rowAddress.setVisibility(View.GONE);
-            }
         } else if (address != null) {
             rowLabel.setText(GenericUtils.addressSplitToGroups(address));
-            rowAddress.setVisibility(View.GONE);
         } else {
             rowLabel.setText("???"); // should not happen
         }
         rowAddress.setVisibility(View.GONE);
-        rowLabel.setTypeface(label != null ? Typeface.DEFAULT : Typeface.MONOSPACE);
+        rowLabel.setTypeface(address != null ? Typeface.MONOSPACE : Typeface.DEFAULT);
 
         // value
         rowValue.setAlwaysSigned(true);

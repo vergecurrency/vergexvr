@@ -1,7 +1,7 @@
 package com.vergepay.wallet.ui;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 
 import com.vergepay.wallet.R;
 
@@ -22,9 +22,7 @@ public class DebuggingActivity extends BaseWalletActivity implements UnlockWalle
                     .add(R.id.container, new DebuggingFragment(), DEBUGGING_TAG)
                     .commit();
         }
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(false);
+        setupWrapperHeader();
     }
 
     @Override

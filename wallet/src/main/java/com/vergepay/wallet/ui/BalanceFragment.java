@@ -1,16 +1,23 @@
 package com.vergepay.wallet.ui;
 
+import android.animation.ValueAnimator;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.ContentObserver;
-import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Message;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.Loader;
+import androidx.core.content.ContextCompat;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.app.LoaderManager.LoaderCallbacks;
+import androidx.loader.content.AsyncTaskLoader;
+import androidx.loader.content.Loader;
+import android.graphics.LinearGradient;
+import android.graphics.Matrix;
+import android.graphics.Shader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +28,7 @@ import android.widget.Toast;
 
 import com.vergepay.core.coins.CoinType;
 import com.vergepay.core.coins.Value;
+import com.vergepay.core.util.ExchangeRateBase;
 import com.vergepay.core.util.GenericUtils;
 import com.vergepay.core.wallet.AbstractTransaction;
 import com.vergepay.core.wallet.AbstractWallet;
@@ -29,19 +37,23 @@ import com.vergepay.core.wallet.WalletConnectivityStatus;
 import com.vergepay.wallet.AddressBookProvider;
 import com.vergepay.wallet.Configuration;
 import com.vergepay.wallet.Constants;
-import com.vergepay.wallet.ExchangeRatesProvider;
-import com.vergepay.wallet.ExchangeRatesProvider.ExchangeRate;
 import com.vergepay.wallet.R;
 import com.vergepay.wallet.WalletApplication;
-import com.vergepay.wallet.ui.widget.Amount;
+import com.vergepay.wallet.ui.summary.WalletSummaryData;
+import com.vergepay.wallet.ui.summary.WalletSummaryRefresh;
 import com.vergepay.wallet.ui.widget.SwipeRefreshLayout;
+import com.vergepay.wallet.util.NetworkUtils;
 import com.vergepay.wallet.util.ThrottlingWalletChangeListener;
 import com.vergepay.wallet.util.WeakHandler;
 import com.google.common.collect.Lists;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.TransactionConfidence;
 import org.bitcoinj.utils.Threading;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,11 +65,9 @@ import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.OnItemClick;
+import android.view.animation.LinearInterpolator;
 
 /**
  * Use the {@link BalanceFragment#newInstance} factory method to
@@ -77,12 +87,15 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
 
     private static final int ID_TRANSACTION_LOADER = 0;
     private static final int ID_RATE_LOADER = 1;
+    private static final String COINGECKO_XVG_TICKER_URL = "https://api.coingecko.com/api/v3/simple/price?ids=verge&vs_currencies=usd";
+    private static final String CRYPTOCOMPARE_XVG_TICKER_URL = "https://min-api.cryptocompare.com/data/price?fsym=XVG&tsyms=USD";
+    private static final long STATUS_GRADIENT_DURATION_MS = 2600L;
 
     private String accountId;
     private WalletAccount pocket;
     private CoinType type;
     private Coin currentBalance;
-    private ExchangeRate exchangeRate;
+    private Value xvgUsdRate;
 
     private boolean isFullAmount = false;
     private WalletApplication application;
@@ -90,18 +103,22 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
     private final MyHandler handler = new MyHandler(this);
     private final ContentObserver addressBookObserver = new AddressBookObserver(handler);
 
-    @BindView(R.id.transaction_rows) ListView transactionRows;
-    @BindView(R.id.swipeContainer) SwipeRefreshLayout swipeContainer;
-    @BindView(R.id.history_empty) View emptyPocketMessage;
-    @BindView(R.id.get_verge) View getVergeMessage;
-    @BindView(R.id.account_balance) Amount accountBalance;
-    @BindView(R.id.account_exchanged_balance) Amount accountExchangedBalance;
-    @BindView(R.id.connection_label) TextView connectionLabel;
-    @BindView(R.id.connected_dot) ImageView connectedDot;
-    @BindView(R.id.disconnected_dot) ImageView disconnectedDot;
+    private ListView transactionRows;
+    private SwipeRefreshLayout swipeContainer;
+    private View emptyPocketMessage;
+    private View getVergeMessage;
+    private TextView accountBalance;
+    private TextView accountExchangedBalance;
+    private TextView connectionLabel;
+    private ImageView connectedDot;
+    private ImageView disconnectedDot;
     private TransactionsListAdapter adapter;
     private Listener listener;
     private ContentResolver resolver;
+    @Nullable private BroadcastReceiver torStatusReceiver;
+    @Nullable private ValueAnimator connectionLabelAnimator;
+    @Nullable private LinearGradient connectionLabelGradient;
+    private final Matrix connectionLabelGradientMatrix = new Matrix();
 
     /**
      * Use this factory method to create a new instance of
@@ -147,7 +164,33 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_balance, container, false);
         addHeaderAndFooterToList(inflater, container, view);
-        ButterKnife.bind(this, view);
+        transactionRows = view.findViewById(R.id.transaction_rows);
+        swipeContainer = view.findViewById(R.id.swipeContainer);
+        emptyPocketMessage = view.findViewById(R.id.history_empty);
+        getVergeMessage = view.findViewById(R.id.get_verge);
+        accountBalance = view.findViewById(R.id.account_balance);
+        accountExchangedBalance = view.findViewById(R.id.account_exchanged_balance);
+        connectionLabel = view.findViewById(R.id.connection_label);
+        connectedDot = view.findViewById(R.id.connected_dot);
+        disconnectedDot = view.findViewById(R.id.disconnected_dot);
+        transactionRows.setOnItemClickListener(new android.widget.AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(android.widget.AdapterView<?> parent, View itemView, int position, long id) {
+                BalanceFragment.this.onItemClick(position);
+            }
+        });
+        accountBalance.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onMainAmountClick();
+            }
+        });
+        accountExchangedBalance.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onLocalAmountClick();
+            }
+        });
 
         setupSwipeContainer();
 
@@ -159,9 +202,7 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         }
 
         setupAdapter(inflater);
-        accountBalance.setSymbol(type.getSymbol());
-        exchangeRate = ExchangeRatesProvider.getRate(
-                application.getApplicationContext(), type.getSymbol(), config.getExchangeCurrencyCode());
+        hydrateCachedRate();
         // Update the amount
         updateBalance(pocket.getBalance());
 
@@ -194,7 +235,7 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
     }
 
     private void addHeaderAndFooterToList(LayoutInflater inflater, ViewGroup container, View view) {
-        ListView list = ButterKnife.findById(view, R.id.transaction_rows);
+        ListView list = view.findViewById(R.id.transaction_rows);
 
         // Initialize header
         View header = inflater.inflate(R.layout.fragment_balance_header, null);
@@ -208,13 +249,10 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
     }
 
     private void setupConnectivityStatus() {
-        // Set connected for now...
-        setConnectivityStatus(WalletConnectivityStatus.CONNECTED);
-        // ... but check the status in some seconds
+        updateConnectivityStatus();
         handler.sendMessageDelayed(handler.obtainMessage(WALLET_CHANGED), 2000);
     }
 
-    @OnItemClick(R.id.transaction_rows)
     public void onItemClick(int position) {
         if (position >= transactionRows.getHeaderViewsCount()) {
             // Note the usage of getItemAtPosition() instead of adapter's getItem() because
@@ -232,13 +270,11 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         }
     }
 
-    @OnClick(R.id.account_balance)
     public void onMainAmountClick() {
         isFullAmount = !isFullAmount;
         updateView();
     }
 
-    @OnClick(R.id.account_exchanged_balance)
     public void onLocalAmountClick() {
         if (listener != null) listener.onLocalAmountClick();
     }
@@ -285,25 +321,155 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
     }
 
     private void setConnectivityStatus(final WalletConnectivityStatus connectivity) {
+        if (!application.isConnected()) {
+            applyConnectivityStatus(R.string.connection_status_network_waiting, false);
+            return;
+        }
+
+        String torStatus = application.getTorStatus();
+        if (Constants.TOR_STATUS_FAILED.equals(torStatus)) {
+            applyConnectivityStatus(R.string.connection_status_tor_failed, false);
+            return;
+        }
+        if (Constants.TOR_STATUS_STOPPED.equals(torStatus)) {
+            applyConnectivityStatus(R.string.connection_status_tor_stopped, false);
+            return;
+        }
+        if (!Constants.TOR_STATUS_READY.equals(torStatus)) {
+            applyConnectivityStatus(R.string.connection_status_tor_starting, false);
+            return;
+        }
+
         switch (connectivity) {
             case CONNECTED:
-                connectedDot.setVisibility(View.VISIBLE);
-                disconnectedDot.setVisibility(View.GONE);
+                applyConnectivityStatus(R.string.connection_status_connected_over_tor, true);
                 break;
             case LOADING:
-                connectionLabel.setVisibility(View.GONE);
-                connectedDot.setVisibility(View.INVISIBLE);
-                disconnectedDot.setVisibility(View.VISIBLE);
+                applyConnectivityStatus(R.string.connection_status_syncing_over_tor, false);
                 break;
             case DISCONNECTED:
-                connectionLabel.setVisibility(View.VISIBLE);
-                connectedDot.setVisibility(View.INVISIBLE);
-                disconnectedDot.setVisibility(View.VISIBLE);
+                if (hasLoadedWalletData()) {
+                    applyConnectivityStatus(R.string.connection_status_reconnecting_over_tor, false);
+                } else {
+                    applyConnectivityStatus(R.string.connection_status_connecting_over_tor, false);
+                }
                 break;
             default:
                 connectedDot.setVisibility(View.INVISIBLE);
                 throw new RuntimeException("Unknown connectivity status: " + connectivity);
         }
+    }
+
+    private boolean hasLoadedWalletData() {
+        return pocket != null && (!pocket.isNew() || (currentBalance != null && currentBalance.signum() > 0));
+    }
+
+    private void applyConnectivityStatus(int labelResId, boolean connected) {
+        connectionLabel.setVisibility(View.VISIBLE);
+        connectionLabel.setText(labelResId);
+        connectedDot.setVisibility(connected ? View.VISIBLE : View.INVISIBLE);
+        disconnectedDot.setVisibility(connected ? View.GONE : View.VISIBLE);
+        if (connected) {
+            stopConnectionLabelAnimation(true);
+            connectionLabel.setTextColor(ContextCompat.getColor(requireContext(), R.color.fg_ok));
+        } else {
+            connectionLabel.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary));
+            startConnectionLabelAnimation();
+        }
+    }
+
+    private void startConnectionLabelAnimation() {
+        if (connectionLabel == null) {
+            return;
+        }
+
+        stopConnectionLabelAnimation(false);
+        connectionLabel.post(new Runnable() {
+            @Override
+            public void run() {
+                if (!isAdded() || connectionLabel == null) {
+                    return;
+                }
+
+                final float textWidth = Math.max(connectionLabel.getWidth(),
+                        connectionLabel.getPaint().measureText(connectionLabel.getText().toString()));
+                if (textWidth <= 0f) {
+                    return;
+                }
+
+                int[] colors = new int[] {
+                        ContextCompat.getColor(requireContext(), R.color.progress_bar_color_2),
+                        ContextCompat.getColor(requireContext(), R.color.text_primary),
+                        ContextCompat.getColor(requireContext(), R.color.progress_bar_color_3),
+                        ContextCompat.getColor(requireContext(), R.color.progress_bar_color_4),
+                        ContextCompat.getColor(requireContext(), R.color.progress_bar_color_2)
+                };
+                float[] positions = new float[] {0f, 0.28f, 0.55f, 0.8f, 1f};
+                connectionLabelGradient = new LinearGradient(
+                        -textWidth, 0f, 0f, 0f, colors, positions, Shader.TileMode.CLAMP);
+                connectionLabel.getPaint().setShader(connectionLabelGradient);
+
+                ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
+                animator.setDuration(STATUS_GRADIENT_DURATION_MS);
+                animator.setRepeatCount(ValueAnimator.INFINITE);
+                animator.setInterpolator(new LinearInterpolator());
+                animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animation) {
+                        if (connectionLabelGradient == null || connectionLabel == null) {
+                            return;
+                        }
+                        float progress = (Float) animation.getAnimatedValue();
+                        connectionLabelGradientMatrix.setTranslate(textWidth * 2f * progress, 0f);
+                        connectionLabelGradient.setLocalMatrix(connectionLabelGradientMatrix);
+                        connectionLabel.invalidate();
+                    }
+                });
+                connectionLabelAnimator = animator;
+                animator.start();
+            }
+        });
+    }
+
+    private void stopConnectionLabelAnimation(boolean clearShader) {
+        if (connectionLabelAnimator != null) {
+            connectionLabelAnimator.cancel();
+            connectionLabelAnimator = null;
+        }
+        if (clearShader && connectionLabel != null) {
+            connectionLabel.getPaint().setShader(null);
+            connectionLabel.invalidate();
+        }
+        connectionLabelGradient = null;
+    }
+
+    private void registerTorStatusReceiver() {
+        if (torStatusReceiver != null) {
+            return;
+        }
+
+        torStatusReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                handler.sendEmptyMessage(WALLET_CHANGED);
+            }
+        };
+
+        IntentFilter filter = new IntentFilter(Constants.ACTION_TOR_STATUS);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requireContext().registerReceiver(torStatusReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            requireContext().registerReceiver(torStatusReceiver, filter);
+        }
+    }
+
+    private void unregisterTorStatusReceiver() {
+        if (torStatusReceiver == null) {
+            return;
+        }
+
+        requireContext().unregisterReceiver(torStatusReceiver);
+        torStatusReceiver = null;
     }
 
     private final ThrottlingWalletChangeListener walletChangeListener = new ThrottlingWalletChangeListener() {
@@ -352,14 +518,19 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
                 getActivity().getPackageName(), type), true, addressBookObserver);
 
         pocket.addEventListener(walletChangeListener, Threading.SAME_THREAD);
+        registerTorStatusReceiver();
 
         checkEmptyPocketMessage();
+        hydrateCachedRate();
 
+        updateConnectivityStatus();
         updateView();
     }
 
     @Override
     public void onPause() {
+        stopConnectionLabelAnimation(true);
+        unregisterTorStatusReceiver();
         pocket.removeEventListener(walletChangeListener);
         walletChangeListener.removeCallbacks();
 
@@ -467,24 +638,21 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         };
     }
 
-    private final LoaderCallbacks<Cursor> rateLoaderCallbacks = new LoaderManager.LoaderCallbacks<Cursor>() {
+    private final LoaderCallbacks<Value> rateLoaderCallbacks = new LoaderManager.LoaderCallbacks<Value>() {
         @Override
-        public Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
-            String localSymbol = config.getExchangeCurrencyCode();
-            String coinSymbol = type.getSymbol();
-            return new ExchangeRateLoader(getActivity(), config, localSymbol, coinSymbol);
+        public Loader<Value> onCreateLoader(final int id, final Bundle args) {
+            return new BinanceRateLoader(getActivity());
         }
 
         @Override
-        public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
-            if (data != null && data.getCount() > 0) {
-                data.moveToFirst();
-                exchangeRate = ExchangeRatesProvider.getExchangeRate(data);
+        public void onLoadFinished(final Loader<Value> loader, final Value data) {
+            if (data != null) {
+                xvgUsdRate = data;
                 handler.sendEmptyMessage(UPDATE_VIEW);
                 if (log.isInfoEnabled()) {
                     try {
                         log.info("Got exchange rate: {}",
-                                exchangeRate.rate.convert(type.oneCoin()).toFriendlyString());
+                                GenericUtils.formatFiatValue(data));
                     } catch (Exception e) {
                         log.warn(e.getMessage());
                     }
@@ -493,7 +661,7 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         }
 
         @Override
-        public void onLoaderReset(final Loader<Cursor> loader) { }
+        public void onLoaderReset(final Loader<Value> loader) { }
     };
 
     @Override
@@ -503,19 +671,21 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         if (currentBalance != null) {
             String newBalanceStr = GenericUtils.formatCoinValue(type, currentBalance,
                     isFullAmount ? AMOUNT_FULL_PRECISION : AMOUNT_SHORT_PRECISION, AMOUNT_SHIFT);
-            accountBalance.setAmount(newBalanceStr);
+            accountBalance.setText(newBalanceStr + " " + type.getSymbol());
         }
 
-        if (currentBalance != null && exchangeRate != null && getView() != null) {
+        if (currentBalance != null && xvgUsdRate != null && getView() != null) {
             try {
-                Value fiatAmount = exchangeRate.rate.convert(type, currentBalance);
-                accountExchangedBalance.setAmount(GenericUtils.formatFiatValue(fiatAmount));
-                accountExchangedBalance.setSymbol(fiatAmount.type.getSymbol());
+                Value fiatAmount = new ExchangeRateBase(type.oneCoin(), xvgUsdRate).convert(type, currentBalance);
+                accountExchangedBalance.setText("$" + GenericUtils.formatFiatValue(fiatAmount) + " USD");
+                accountExchangedBalance.setVisibility(View.VISIBLE);
             } catch (Exception e) {
-                // Should not happen
-                accountExchangedBalance.setAmount("");
-                accountExchangedBalance.setSymbol("ERROR");
+                accountExchangedBalance.setText("");
+                accountExchangedBalance.setVisibility(View.GONE);
             }
+        } else {
+            accountExchangedBalance.setText("");
+            accountExchangedBalance.setVisibility(View.GONE);
         }
 
         swipeContainer.setRefreshing(pocket.isLoading());
@@ -525,6 +695,13 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
 
     private void clearLabelCache() {
         if (adapter != null) adapter.clearLabelCache();
+    }
+
+    private void hydrateCachedRate() {
+        Value cachedRate = WalletSummaryData.readCachedRate(requireContext());
+        if (cachedRate != null) {
+            xvgUsdRate = cachedRate;
+        }
     }
 
     private static class MyHandler extends WeakHandler<BalanceFragment> {
@@ -559,6 +736,76 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
         @Override
         public void onChange(final boolean selfChange) {
             handler.sendEmptyMessage(CLEAR_LABEL_CACHE);
+        }
+    }
+
+    private static class BinanceRateLoader extends AsyncTaskLoader<Value> {
+        private BinanceRateLoader(final Context context) {
+            super(context);
+        }
+
+        @Override
+        protected void onStartLoading() {
+            forceLoad();
+        }
+
+        private String parseUsdPrice(JSONObject json) {
+            String price = json.optString("price", null);
+            if (price != null && price.length() > 0) {
+                return price;
+            }
+
+            double cryptoCompareUsd = json.optDouble("USD", -1d);
+            if (cryptoCompareUsd >= 0d) {
+                return String.valueOf(cryptoCompareUsd);
+            }
+
+            JSONObject verge = json.optJSONObject("verge");
+            if (verge != null) {
+                double usd = verge.optDouble("usd", -1d);
+                if (usd >= 0d) {
+                    return String.valueOf(usd);
+                }
+            }
+            return null;
+        }
+
+        private Value getCachedRate() {
+            return WalletSummaryData.readCachedRate(getContext());
+        }
+
+        private void cacheRate(String price) {
+            WalletSummaryData.cacheRate(getContext(), price);
+            WalletSummaryRefresh.refreshAll(getContext());
+        }
+
+        @Override
+        public Value loadInBackground() {
+            String[] urls = new String[] {
+                    COINGECKO_XVG_TICKER_URL,
+                    CRYPTOCOMPARE_XVG_TICKER_URL
+            };
+            try {
+                OkHttpClient client = NetworkUtils.getHttpClient(getContext().getApplicationContext());
+                for (String url : urls) {
+                    Request request = NetworkUtils.getBrowserRequestBuilder(url).build();
+                    Response response = client.newCall(request).execute();
+                    if (!response.isSuccessful()) {
+                        log.warn("Overview rate request failed with HTTP {} for {}", response.code(), url);
+                        continue;
+                    }
+
+                    JSONObject json = new JSONObject(response.body().string());
+                    String price = parseUsdPrice(json);
+                    if (price != null && price.length() > 0) {
+                        cacheRate(price);
+                        return WalletSummaryData.readCachedRate(getContext());
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Could not load XVG price: {}", e.getMessage());
+            }
+            return getCachedRate();
         }
     }
 

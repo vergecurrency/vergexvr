@@ -3,6 +3,7 @@
     xmlns:coinomi="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/wallet_screen_bg"
     tools:context=".ui.WalletSendCoins">
 
     <ScrollView
@@ -22,23 +23,10 @@
             android:paddingRight="@dimen/activity_horizontal_margin"
             android:paddingTop="@dimen/activity_vertical_margin">
 
-            <TextView
-                style="@style/NormalText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/half_standard_margin"
-                android:layout_marginBottom="@dimen/activity_vertical_margin"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:text="@string/page_label_send_xvg"
-                android:textSize="20sp" />
-
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:gravity="center_vertical">
+                android:layout_height="wrap_content">
 
 
                 <RelativeLayout
@@ -58,13 +46,11 @@
                     <LinearLayout
                         android:id="@+id/send_to_address_container"
                         android:orientation="vertical"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_alignParentLeft="true"
                         android:layout_alignParentStart="true"
-                        android:layout_below="@+id/pay_to_label"
-                        android:layout_toLeftOf="@+id/address_button_container"
-                        android:layout_toStartOf="@+id/address_button_container">
+                        android:layout_below="@+id/pay_to_label">
 
                         <!-- TODO make android:imeOptions="actionNext" work -->
                         <AutoCompleteTextView
@@ -92,32 +78,105 @@
                             android:layout_marginTop="@dimen/quarter_standard_margin"
                             coinomi:show_coin_icon="true"
                             android:visibility="gone"/>
-                    </LinearLayout>
 
-                    <LinearLayout
-                        android:id="@+id/address_button_container"
-                        android:orientation="vertical"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_alignParentRight="true"
-                        android:layout_alignTop="@+id/send_to_address_container">
-                        <ImageButton
-                            android:id="@+id/scan_qr_code"
+                        <LinearLayout
+                            android:id="@+id/send_to_resolved_domain"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:contentDescription="@string/scan_qr_code"
-                            android:src="@drawable/qr_code" />
+                            android:layout_marginTop="@dimen/quarter_standard_margin"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
 
-                        <ImageButton
-                            android:id="@+id/erase_address"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:contentDescription="@string/erase_address"
-                            android:src="@drawable/erase"
-                            android:visibility="gone"/>
+                            <TextView
+                                android:id="@+id/send_to_resolved_domain_label"
+                                style="@style/SendResolvedDomainText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/send_resolved_domain_label" />
+
+                            <TextView
+                                android:id="@+id/send_to_resolved_domain_value"
+                                style="@style/SendResolvedDomainValueText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="6dp"
+                                tools:text="sunerok.wallet" />
+
+                            <TextView
+                                android:id="@+id/send_to_resolved_domain_check"
+                                style="@style/SendResolvedDomainCheckText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="4dp"
+                                android:text="@string/send_resolved_domain_check"
+                                tools:text="✓" />
+                        </LinearLayout>
                     </LinearLayout>
+
                 </RelativeLayout>
+
+                <LinearLayout
+                    android:id="@+id/address_button_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/scan_qr_code"
+                        android:layout_width="wrap_content"
+                        android:layout_height="44dp"
+                        android:background="@drawable/scan_button_bg"
+                        android:contentDescription="@string/scan_qr_code"
+                        android:drawableLeft="@drawable/qr_code"
+                        android:drawablePadding="8dp"
+                        android:fontFamily="sans-serif-condensed"
+                        android:paddingLeft="14dp"
+                        android:paddingRight="14dp"
+                        android:text="Scan Qr"
+                        android:textAllCaps="true"
+                        android:textColor="@color/primary_900"
+                        android:textSize="15sp" />
+
+                    <ImageButton
+                        android:id="@+id/erase_address"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_marginLeft="12dp"
+                        android:background="@drawable/scan_button_bg"
+                        android:contentDescription="@string/erase_address"
+                        android:padding="8dp"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/erase"
+                        android:visibility="gone"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/contact_button_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/open_contacts"
+                        style="@style/SendSecondaryActionButton"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/send_contacts" />
+
+                    <Button
+                        android:id="@+id/edit_contact"
+                        style="@style/SendSecondaryActionButton"
+                        android:layout_width="0dp"
+                        android:layout_marginLeft="12dp"
+                        android:layout_weight="1"
+                        android:enabled="false"
+                        android:text="@string/send_add_contact" />
+                </LinearLayout>
 
                 <TextView
                     style="@style/SecondaryText"
@@ -159,6 +218,21 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     tools:text="@string/amount_warn_fees_apply" />
+
+                <Button
+                    android:id="@+id/send_confirm"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="18dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/send_button_bg"
+                    android:enabled="false"
+                    android:fontFamily="sans-serif-condensed"
+                    android:letterSpacing="0.1"
+                    android:text="@string/button_send"
+                    android:textAllCaps="true"
+                    android:textColor="@android:color/white"
+                    android:textSize="19sp" />
 
                 <Button
                     android:id="@+id/tx_message_add_remove"
@@ -213,20 +287,6 @@
                 </RelativeLayout>
             </LinearLayout>
 
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="bottom">
-                <Button
-                    android:id="@+id/send_confirm"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_alignParentRight="true"
-                    android:enabled="false"
-                    android:text="@string/button_send" />
-            </RelativeLayout>
 
         </LinearLayout>
     </ScrollView>

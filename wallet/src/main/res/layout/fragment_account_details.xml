@@ -67,15 +67,8 @@
                         android:layout_width="@dimen/qr_code_size"
                         android:layout_height="@dimen/qr_code_size"
                         android:layout_margin="@dimen/qr_code_margin"
-                        android:background="@color/qr_code_normal_bg"
-                        tools:background="@color/white" />
-
-                    <ImageView
-                        android:id="@+id/imageView3"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:maxHeight="@dimen/activity_horizontal_margin"
-                        android:src="@drawable/verge_logo_gradient" />
+                        android:background="@drawable/qr_surface_bg"
+                        tools:background="@drawable/qr_surface_bg" />
 
                 </LinearLayout>
 

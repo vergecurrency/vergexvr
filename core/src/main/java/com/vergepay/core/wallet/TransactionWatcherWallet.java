@@ -17,6 +17,7 @@ import com.vergepay.core.coins.Value;
 import com.vergepay.core.exceptions.TransactionBroadcastException;
 import com.vergepay.core.network.AddressStatus;
 import com.vergepay.core.network.BlockHeader;
+import com.vergepay.core.network.ServerClient;
 import com.vergepay.core.network.ServerClient.HistoryTx;
 import com.vergepay.core.network.ServerClient.UnspentTx;
 import com.vergepay.core.network.interfaces.BlockchainConnection;
@@ -30,6 +31,7 @@ import com.vergepay.core.wallet.families.bitcoin.BitWalletTransaction;
 import com.vergepay.core.wallet.families.bitcoin.OutPointOutput;
 import com.vergepay.core.wallet.families.bitcoin.TrimmedOutPoint;
 import com.vergepay.core.wallet.families.bitcoin.TrimmedTransaction;
+import com.vergepay.stratumj.ServerAddress;
 
 import org.bitcoinj.core.ScriptException;
 import org.bitcoinj.core.Sha256Hash;
@@ -67,6 +69,7 @@ import javax.annotation.Nullable;
 abstract public class TransactionWatcherWallet extends AbstractWallet<BitTransaction, BitAddress>
         implements TransactionBag, BitTransactionEventListener {
     private static final Logger log = LoggerFactory.getLogger(TransactionWatcherWallet.class);
+    private static final int MAX_PENDING_SUBSCRIPTIONS = 2;
 
     private final static int TX_DEPTH_SAVE_THRESHOLD = 4;
     @VisibleForTesting
@@ -694,11 +697,20 @@ abstract public class TransactionWatcherWallet extends AbstractWallet<BitTransac
     List<AbstractAddress> getAddressesToWatch() {
         lock.lock();
         try {
+            int availableSlots = MAX_PENDING_SUBSCRIPTIONS - addressesPendingSubscription.size();
+            if (availableSlots <= 0) {
+                return ImmutableList.of();
+            }
+
             ImmutableList.Builder<AbstractAddress> addressesToWatch = ImmutableList.builder();
             for (AbstractAddress address : getActiveAddresses()) {
                 // If address not already subscribed or pending subscription
                 if (!addressesSubscribed.contains(address) && !addressesPendingSubscription.contains(address)) {
                     addressesToWatch.add(address);
+                    availableSlots--;
+                    if (availableSlots == 0) {
+                        break;
+                    }
                 }
             }
             return addressesToWatch.build();
@@ -794,6 +806,8 @@ abstract public class TransactionWatcherWallet extends AbstractWallet<BitTransac
         lock.lock();
         try {
             confirmAddressSubscription(status.getAddress());
+            // Keep the initial sync pressure low enough that slower servers stay connected.
+            subscribeToAddressesIfNeeded();
             if (status.getStatus() != null) {
                 markAddressAsUsed(status.getAddress());
                 subscribeToAddressesIfNeeded();
@@ -1483,6 +1497,23 @@ abstract public class TransactionWatcherWallet extends AbstractWallet<BitTransac
         lock.lock();
         try {
             return blockchainConnection != null;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Nullable
+    @Override
+    public String getConnectedServerName() {
+        lock.lock();
+        try {
+            if (blockchainConnection instanceof ServerClient) {
+                ServerAddress address = ((ServerClient) blockchainConnection).getConnectedServerAddress();
+                if (address != null) {
+                    return address.getHost() + ":" + address.getPort();
+                }
+            }
+            return null;
         } finally {
             lock.unlock();
         }

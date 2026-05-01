@@ -9,7 +9,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,14 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.OnFocusChange;
-import butterknife.OnTextChanged;
-
-import static butterknife.OnTextChanged.Callback.AFTER_TEXT_CHANGED;
 import static com.vergepay.core.Preconditions.checkNotNull;
 import static com.vergepay.wallet.util.UiUtils.setGone;
 import static com.vergepay.wallet.util.UiUtils.setVisible;
@@ -78,14 +72,14 @@ public class SweepWalletFragment extends Fragment {
     private Error error = Error.NONE;
     private TxStatus status = TxStatus.INITIAL;
 
-    @BindView(R.id.private_key_input) View privateKeyInputView;
-    @BindView(R.id.sweep_wallet_key) EditText privateKeyText;
-    @BindView(R.id.passwordView) View passwordView;
-    @BindView(R.id.sweep_error) TextView errorΜessage;
-    @BindView(R.id.passwordInput) EditText password;
-    @BindView(R.id.sweep_loading) View sweepLoadingView;
-    @BindView(R.id.sweeping_status) TextView sweepStatus;
-    @BindView(R.id.button_next) Button nextButton;
+    private View privateKeyInputView;
+    private EditText privateKeyText;
+    private View passwordView;
+    private TextView errorΜessage;
+    private EditText password;
+    private View sweepLoadingView;
+    private TextView sweepStatus;
+    private Button nextButton;
 
     public SweepWalletFragment() { }
 
@@ -135,7 +129,44 @@ public class SweepWalletFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_sweep, container, false);
-        ButterKnife.bind(this, view);
+        privateKeyInputView = view.findViewById(R.id.private_key_input);
+        privateKeyText = view.findViewById(R.id.sweep_wallet_key);
+        passwordView = view.findViewById(R.id.passwordView);
+        errorΜessage = view.findViewById(R.id.sweep_error);
+        password = view.findViewById(R.id.passwordInput);
+        sweepLoadingView = view.findViewById(R.id.sweep_loading);
+        sweepStatus = view.findViewById(R.id.sweeping_status);
+        nextButton = view.findViewById(R.id.button_next);
+        view.findViewById(R.id.scan_qr_code).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                handleScan();
+            }
+        });
+        nextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                verifyKeyAndProceed();
+            }
+        });
+        privateKeyText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                onPrivateKeyInputFocusChange(hasFocus);
+            }
+        });
+        privateKeyText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                onPrivateKeyInputTextChange();
+            }
+        });
 
         if (getArguments().containsKey(Constants.ARG_PRIVATE_KEY)) {
             privateKeyText.setText(getArguments().getString(Constants.ARG_PRIVATE_KEY));
@@ -174,7 +205,9 @@ public class SweepWalletFragment extends Fragment {
                 }
             };
 
-            serverClients = new ServerClients(Constants.DEFAULT_COINS_SERVERS, connHelper);
+            WalletApplication application = (WalletApplication) context.getApplicationContext();
+            serverClients = new ServerClients(
+                    Constants.getCoinServers(application.getConfiguration()), connHelper);
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement " + Listener.class);
         }
@@ -186,26 +219,22 @@ public class SweepWalletFragment extends Fragment {
         listener = null;
     }
 
-    @OnClick(R.id.scan_qr_code)
-    void handleScan() {
+    private void handleScan() {
         startActivityForResult(new Intent(getActivity(), ScanActivity.class), REQUEST_CODE_SCAN);
     }
 
-    @OnClick(R.id.button_next)
-    void verifyKeyAndProceed() {
+    private void verifyKeyAndProceed() {
         Keyboard.hideKeyboard(getActivity());
         if (validatePrivateKey()) {
             maybeStartSweepTask();
         }
     }
 
-    @OnFocusChange(R.id.sweep_wallet_key)
-    void onPrivateKeyInputFocusChange(final boolean hasFocus) {
+    private void onPrivateKeyInputFocusChange(final boolean hasFocus) {
         if (!hasFocus) validatePrivateKey();
     }
 
-    @OnTextChanged(value = R.id.sweep_wallet_key, callback = AFTER_TEXT_CHANGED)
-    void onPrivateKeyInputTextChange() {
+    private void onPrivateKeyInputTextChange() {
         validatePrivateKey(true);
     }
 

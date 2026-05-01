@@ -30,12 +30,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.HttpsURLConnection;
+
 
 /**
  * @author John L. Jegutanis
  */
 public class StratumClient extends AbstractExecutionThreadService {
     private static final Logger log = LoggerFactory.getLogger(StratumClient.class);
+    private static final int SOCKET_CONNECT_TIMEOUT_MS = 45_000;
     private final int NUM_OF_WORKERS = 1;
 
     private final AtomicLong idCounter = new AtomicLong();
@@ -66,18 +73,39 @@ public class StratumClient extends AbstractExecutionThreadService {
 
     protected Socket createSocket() throws IOException {
         ServerAddress address = serverAddress;
-        log.debug("Opening a socket to " + address.getHost() + ":" + address.getPort());
+        log.debug("Opening {} socket to {}:{}",
+                address.getTransport(), address.getHost(), address.getPort());
 
-        Socket socket;
+        Socket socket = address.getProxy() == null ? new Socket() : new Socket(address.getProxy());
+        InetSocketAddress endpoint = address.getProxy() == null
+                ? new InetSocketAddress(address.getHost(), address.getPort())
+                : InetSocketAddress.createUnresolved(address.getHost(), address.getPort());
+        socket.connect(endpoint, SOCKET_CONNECT_TIMEOUT_MS);
 
-        if (address.getProxy() == null) {
-            socket = new Socket(address.getHost(), address.getPort());
-        } else {
-            socket = new Socket(address.getProxy());
-            socket.connect(new InetSocketAddress(address.getHost(), address.getPort()));
+        if (address.getTransport() == ServerAddress.Transport.SSL_TLS) {
+            return upgradeToTls(socket, address);
         }
 
         return socket;
+    }
+
+    private Socket upgradeToTls(Socket socket, ServerAddress address) throws IOException {
+        SSLSocketFactory sslSocketFactory =
+                (SSLSocketFactory) SSLSocketFactory.getDefault();
+        SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(
+                socket, address.getHost(), address.getPort(), true);
+        SSLParameters sslParameters = sslSocket.getSSLParameters();
+        sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
+        sslSocket.setSSLParameters(sslParameters);
+        sslSocket.startHandshake();
+
+        SSLSession session = sslSocket.getSession();
+        if (!HttpsURLConnection.getDefaultHostnameVerifier()
+                .verify(address.getHost(), session)) {
+            throw new IOException("TLS hostname verification failed for " + address.getHost());
+        }
+
+        return sslSocket;
     }
 
     @Override
@@ -131,7 +159,7 @@ public class StratumClient extends AbstractExecutionThreadService {
                 break;
             }
 
-            log.debug("Received message from server: " + serverMessage);
+            log.info("Received message from {}: {}", serverAddress, serverMessage);
 
             BaseMessage reply;
             try {
@@ -143,6 +171,7 @@ public class StratumClient extends AbstractExecutionThreadService {
 
             if (reply.errorOccured()) {
                 Exception e = new MessageException(reply.getError(), reply.getFailedRequest());
+                log.error("Server reported error from {}: {}", serverAddress, serverMessage);
                 log.error("Failed call", e);
                 // TODO set exception to the correct future object
 //                if (callers.containsKey()) {
@@ -199,6 +228,7 @@ public class StratumClient extends AbstractExecutionThreadService {
         message.setId(idCounter.getAndIncrement());
 
         try {
+            log.info("Sending call to {}: {}", serverAddress, message);
             toServer.writeBytes(message.toString());
             callers.put(message.getId(), future);
         } catch (Throwable e) {
@@ -226,6 +256,7 @@ public class StratumClient extends AbstractExecutionThreadService {
         }
 
         // Make the subscription call, the server will reply immediately
+        log.info("Sending subscription to {}: {}", serverAddress, message);
         return call(message);
     }
 
@@ -254,6 +285,7 @@ public class StratumClient extends AbstractExecutionThreadService {
             if (message instanceof ResultMessage) {
                 ResultMessage reply = (ResultMessage) message;
                 if (callers.containsKey(reply.getId())) {
+                    log.info("Matched result from {} to request id {}", serverAddress, reply.getId());
                     SettableFuture<ResultMessage> future = callers.get(reply.getId());
                     future.set(reply);
                     callers.remove(reply.getId());

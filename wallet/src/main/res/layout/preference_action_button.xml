@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingLeft="16dp"
+    android:paddingTop="8dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="12dp">
+
+    <Button
+        android:id="@android:id/title"
+        style="@style/IntroFooterPrimaryButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:focusable="false"
+        android:fontFamily="sans-serif-condensed"
+        android:gravity="center"
+        android:textAllCaps="false" />
+
+</FrameLayout>

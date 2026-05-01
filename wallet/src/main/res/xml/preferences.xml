@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <Preference android:title="@string/pref_title_exchange_rates" >
-        <intent android:targetPackage="@string/app_package"
-            android:targetClass="com.vergepay.wallet.ui.ExchangeRatesActivity" />
-    </Preference>
-
     <Preference android:title="@string/title_activity_transaction_fees" >
         <intent android:targetPackage="@string/app_package"
             android:targetClass="com.vergepay.wallet.ui.FeesSettingsActivity" />
+    </Preference>
+
+    <Preference
+        android:key="connections"
+        android:title="@string/title_activity_connections"
+        android:summary="@string/pref_summary_connections">
+        <intent android:targetPackage="@string/app_package"
+            android:targetClass="com.vergepay.wallet.ui.ConnectionsActivity" />
     </Preference>
 
     <Preference android:title="@string/title_activity_show_seed" >
@@ -31,6 +34,19 @@
         android:title="@string/pref_title_manual_receiving_addresses"
         android:summary="@string/pref_summary_manual_receiving_addresses"
         android:defaultValue="false"/>
+
+    <PreferenceCategory
+        android:key="meta_preferences_category"
+        android:title="@string/pref_title_meta_category">
+
+        <ListPreference
+            android:key="meta_startup_target"
+            android:title="@string/pref_title_meta_startup_target"
+            android:summary="@string/pref_summary_meta_startup_target"
+            android:defaultValue="disabled"
+            android:entries="@array/meta_startup_target_entries"
+            android:entryValues="@array/meta_startup_target_values" />
+    </PreferenceCategory>
 
     <Preference android:title="@string/title_activity_debugging" >
         <intent android:targetPackage="@string/app_package"

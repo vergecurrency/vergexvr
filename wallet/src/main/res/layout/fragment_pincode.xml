@@ -2,52 +2,75 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="8dp"
-    android:orientation="vertical">
+    android:layout_height="wrap_content"
+    android:layout_margin="20dp"
+    android:background="@drawable/pincode_dialog_bg"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingLeft="24dp"
+    android:paddingTop="28dp"
+    android:paddingRight="24dp"
+    android:paddingBottom="28dp">
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="match_parent"
+        android:layout_width="96dp"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="14dp"
         app:srcCompat="@drawable/verge" />
 
     <TextView
         android:layout_gravity="center"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:text="@string/enter_your_pincode"
+        android:textColor="@color/text_primary"
+        android:textSize="22sp"
+        android:fontFamily="sans-serif-condensed"
+        android:textAllCaps="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="20dp"
+        android:text="Enter 4 digits to unlock"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp" />
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center">
 
         <EditText
             android:id="@+id/pincode_1"
             style="@style/PincodeEditText"
-            android:layout_width="32dp"
-            android:layout_height="wrap_content" />
+            android:layout_width="52dp"
+            android:layout_height="56dp" />
 
         <EditText
             android:id="@+id/pincode_2"
             style="@style/PincodeEditText"
-            android:layout_width="32dp"
-            android:layout_height="wrap_content" />
+            android:layout_width="52dp"
+            android:layout_height="56dp"
+            android:layout_marginLeft="10dp" />
 
         <EditText
             android:id="@+id/pincode_3"
             style="@style/PincodeEditText"
-            android:layout_width="32dp"
-            android:layout_height="wrap_content" />
+            android:layout_width="52dp"
+            android:layout_height="56dp"
+            android:layout_marginLeft="10dp" />
 
         <EditText
             android:id="@+id/pincode_4"
             style="@style/PincodeEditText"
-            android:layout_width="32dp"
-            android:layout_height="wrap_content"/>
+            android:layout_width="52dp"
+            android:layout_height="56dp"
+            android:layout_marginLeft="10dp" />
 
     </LinearLayout>
 

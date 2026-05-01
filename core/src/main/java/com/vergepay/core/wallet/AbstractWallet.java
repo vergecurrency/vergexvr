@@ -104,6 +104,12 @@ public abstract class AbstractWallet<T extends AbstractTransaction, A extends Ab
         }
     }
 
+    @Nullable
+    @Override
+    public String getConnectedServerName() {
+        return null;
+    }
+
     @Override
     public boolean equals(WalletAccount other) {
         return other != null &&

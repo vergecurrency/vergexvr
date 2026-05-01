@@ -41,9 +41,9 @@ public class NavDrawerItemView extends LinearLayout implements Checkable {
         isChecked = checked;
 
         if (isChecked) {
-            view.setBackgroundResource(R.color.primary_500);
+            view.setBackgroundResource(R.drawable.drawer_item_selected_bg);
         } else {
-            view.setBackgroundResource(0);
+            view.setBackgroundResource(R.drawable.drawer_item_default_bg);
         }
     }
 

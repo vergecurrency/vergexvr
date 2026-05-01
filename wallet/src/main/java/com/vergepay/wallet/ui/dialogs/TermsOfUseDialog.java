@@ -1,15 +1,14 @@
 package com.vergepay.wallet.ui.dialogs;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
+import androidx.fragment.app.DialogFragment;
+import android.view.View;
+import android.view.Window;
 
 import com.vergepay.wallet.R;
-import com.vergepay.wallet.ui.DialogBuilder;
-
-import static com.vergepay.core.Preconditions.checkState;
 
 /**
  * @author John L. Jegutanis
@@ -30,34 +29,51 @@ public class TermsOfUseDialog extends DialogFragment {
     }
 
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        final DialogBuilder builder = new DialogBuilder(getActivity());
-        builder.setTitle(R.string.terms_of_service_title);
-        builder.setMessage(R.string.terms_of_service);
+        final View view = getActivity().getLayoutInflater().inflate(R.layout.dialog_terms_of_use, null);
+        final AlertDialog dialog = new AlertDialog.Builder(getActivity())
+                .setView(view)
+                .create();
 
+        final View disagreeButton = view.findViewById(R.id.terms_disagree);
+        final View agreeButton = view.findViewById(R.id.terms_agree);
         if (listener != null) {
-            DialogInterface.OnClickListener onClickListener = new DialogInterface.OnClickListener() {
+            disagreeButton.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    if (listener != null) {
-                        switch (which) {
-                            case DialogInterface.BUTTON_POSITIVE:
-                                listener.onTermsAgree();
-                                break;
-                            case DialogInterface.BUTTON_NEGATIVE:
-                                listener.onTermsDisagree();
-                                break;
-                        }
-                    }
+                public void onClick(View v) {
+                    listener.onTermsDisagree();
                     dismissAllowingStateLoss();
                 }
-            };
-            builder.setNegativeButton(R.string.button_disagree, onClickListener);
-            builder.setPositiveButton(R.string.button_agree, onClickListener);
+            });
+            agreeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    listener.onTermsAgree();
+                    dismissAllowingStateLoss();
+                }
+            });
         } else {
-            builder.setPositiveButton(R.string.button_ok, null);
+            disagreeButton.setVisibility(View.GONE);
+            agreeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dismissAllowingStateLoss();
+                }
+            });
         }
 
-        return builder.create();
+        return dialog;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Dialog dialog = getDialog();
+        if (dialog != null) {
+            Window window = dialog.getWindow();
+            if (window != null) {
+                window.setBackgroundDrawableResource(android.R.color.transparent);
+            }
+        }
     }
 
     public interface Listener {

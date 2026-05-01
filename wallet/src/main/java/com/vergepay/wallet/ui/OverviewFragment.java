@@ -6,10 +6,10 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
-import android.support.v7.view.ActionMode;
+import androidx.fragment.app.Fragment;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.Loader;
+import androidx.appcompat.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -40,12 +40,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.OnItemClick;
-import butterknife.OnItemLongClick;
 
 /**
  * @author vbcs
@@ -93,9 +87,9 @@ public class OverviewFragment extends Fragment{
     Map<String, ExchangeRate> exchangeRates;
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
-    @BindView(R.id.swipeContainer) SwipeRefreshLayout swipeContainer;
-    @BindView(R.id.account_rows) ListView accountRows;
-    @BindView(R.id.account_balance) Amount mainAmount;
+    private SwipeRefreshLayout swipeContainer;
+    private ListView accountRows;
+    private Amount mainAmount;
 
     private Listener listener;
 
@@ -129,9 +123,10 @@ public class OverviewFragment extends Fragment{
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_overview, container, false);
         View header = inflater.inflate(R.layout.fragment_overview_header, null);
-        accountRows = ButterKnife.findById(view, R.id.account_rows);
+        swipeContainer = view.findViewById(R.id.swipeContainer);
+        accountRows = view.findViewById(R.id.account_rows);
+        mainAmount = header.findViewById(R.id.account_balance);
         accountRows.addHeaderView(header, null, false);
-        ButterKnife.bind(this, view);
 
         if (wallet == null) {
             return view;
@@ -157,6 +152,14 @@ public class OverviewFragment extends Fragment{
         View listFooter = new View(getActivity());
         listFooter.setMinimumHeight(getResources().getDimensionPixelSize(R.dimen.activity_vertical_margin));
         accountRows.addFooterView(listFooter);
+        mainAmount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onMainAmountClick(v);
+            }
+        });
+        accountRows.setOnItemClickListener((parent, itemView, position, id) -> onAmountClick(position));
+        accountRows.setOnItemLongClickListener((parent, itemView, position, id) -> onAmountLongClick(position));
 
         // Init list adapter
         adapter = new AccountListAdapter(inflater.getContext(), wallet);
@@ -230,12 +233,10 @@ public class OverviewFragment extends Fragment{
         super.onPause();
     }
 
-    @OnClick(R.id.account_balance)
     public void onMainAmountClick(View v) {
         if (listener != null) listener.onLocalAmountClick();
     }
 
-    @OnItemClick(R.id.account_rows)
     public void onAmountClick(int position) {
         if (position >= accountRows.getHeaderViewsCount()) {
             // Note the usage of getItemAtPosition() instead of adapter's getItem() because
@@ -250,7 +251,6 @@ public class OverviewFragment extends Fragment{
         }
     }
 
-    @OnItemLongClick(R.id.account_rows)
     public boolean onAmountLongClick(int position) {
         if (position >= accountRows.getHeaderViewsCount()) {
             // Note the usage of getItemAtPosition() instead of adapter's getItem() because

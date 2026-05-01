@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -498,11 +499,13 @@ public class WalletPocketHD extends BitWalletBase {
     public List<AbstractAddress> getActiveAddresses() {
         lock.lock();
         try {
-            ImmutableList.Builder<AbstractAddress> activeAddresses = ImmutableList.builder();
-            for (DeterministicKey key : keys.getActiveKeys()) {
-                activeAddresses.add(BitAddress.from(type, key));
+            LinkedHashSet<AbstractAddress> activeAddresses = new LinkedHashSet<>();
+            for (ECKey key : keys.getKeys(false)) {
+                activeAddresses.add(BitAddress.from(type, (DeterministicKey) key));
             }
-            return activeAddresses.build();
+            activeAddresses.add(BitAddress.from(type, keys.getCurrentUnusedKey(RECEIVE_FUNDS)));
+            activeAddresses.add(BitAddress.from(type, keys.getCurrentUnusedKey(CHANGE)));
+            return ImmutableList.copyOf(activeAddresses);
         } finally {
             lock.unlock();
         }

@@ -18,8 +18,6 @@ public class SettingsActivity extends BaseWalletActivity {
                     .add(R.id.container, new SettingsFragment())
                     .commit();
         }
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(false);
+        setupWrapperHeader();
     }
 }

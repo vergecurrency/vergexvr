@@ -16,17 +16,14 @@ import com.vergepay.wallet.ExchangeRatesProvider.ExchangeRate;
 import com.vergepay.wallet.R;
 import com.vergepay.wallet.util.WalletUtils;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * @author John L. Jegutanis
  */
 public class CoinListItem extends LinearLayout implements Checkable {
     final View view;
-    @BindView(R.id.item_icon) ImageView icon;
-    @BindView(R.id.item_text) TextView title;
-    @BindView(R.id.amount) Amount amount;
+    private ImageView icon;
+    private TextView title;
+    private Amount amount;
 
     private boolean isChecked = false;
     private CoinType type;
@@ -35,7 +32,9 @@ public class CoinListItem extends LinearLayout implements Checkable {
         super(context);
 
         view = LayoutInflater.from(context).inflate(R.layout.coin_list_row, this, true);
-        ButterKnife.bind(this, view);
+        icon = view.findViewById(R.id.item_icon);
+        title = view.findViewById(R.id.item_text);
+        amount = view.findViewById(R.id.amount);
     }
 
     public void setAccount(WalletAccount account) {
@@ -80,9 +79,9 @@ public class CoinListItem extends LinearLayout implements Checkable {
         isChecked = checked;
 
         if (isChecked) {
-            view.setBackgroundResource(R.color.primary_100);
+            view.setBackgroundResource(R.drawable.coin_list_item_selected_bg);
         } else {
-            view.setBackgroundResource(0);
+            view.setBackgroundResource(R.drawable.drawer_item_default_bg);
         }
     }
 

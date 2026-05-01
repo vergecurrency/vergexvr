@@ -19,5 +19,7 @@ public class TransactionDetailsActivity extends BaseWalletActivity {
                     .commit();
 
         }
+
+        setupWrapperHeader();
     }
 }

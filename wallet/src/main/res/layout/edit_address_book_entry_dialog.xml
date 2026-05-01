@@ -2,6 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/pincode_dialog_bg"
     android:fillViewport="true"
     android:scrollbars="none" >
 
@@ -25,11 +26,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             style="@style/NormalText"
-            android:enabled="false"
-            android:focusable="false"
             android:imeOptions="flagNoExtractUi"
-            android:inputType="none"
-            android:textColor="@color/fg_less_significant" />
+            android:inputType="textNoSuggestions"
+            android:singleLine="true" />
 
         <TextView
             android:layout_width="match_parent"

@@ -2,7 +2,7 @@ package com.vergepay.wallet.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 
 import com.vergepay.core.wallet.SendRequest;
 import com.vergepay.wallet.Constants;
@@ -26,6 +26,8 @@ public class SweepWalletActivity extends BaseWalletActivity implements SweepWall
                     .add(R.id.container, fragment)
                     .commit();
         }
+
+        setupWrapperHeader();
     }
 
     @Override

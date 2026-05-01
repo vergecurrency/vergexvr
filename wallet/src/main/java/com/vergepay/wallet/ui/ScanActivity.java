@@ -27,6 +27,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
 import android.os.Build;
@@ -35,18 +36,23 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Process;
 import android.os.Vibrator;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentActivity;
+import androidx.core.content.ContextCompat;
 import android.view.KeyEvent;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.TextureView;
+import android.view.View;
 import android.widget.Toast;
 
 import com.vergepay.wallet.Constants;
 import com.vergepay.wallet.R;
 import com.vergepay.wallet.camera.CameraManager;
+import com.vergepay.wallet.camera.QuestCamera2Manager;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.PlanarYUVLuminanceSource;
@@ -68,9 +74,11 @@ import java.util.Map;
  * @author Andreas Schildbach
  * @author John L. Jegutanis
  */
-public final class ScanActivity extends FragmentActivity implements SurfaceHolder.Callback
+public final class ScanActivity extends FragmentActivity
+        implements SurfaceHolder.Callback, TextureView.SurfaceTextureListener
 {
     public static final String INTENT_EXTRA_RESULT = "result";
+    private static final String HEADSET_CAMERA_PERMISSION = "horizonos.permission.HEADSET_CAMERA";
 
     private static final long VIBRATE_DURATION = 50L;
     private static final long AUTO_FOCUS_INTERVAL_MS = 2500L;
@@ -78,10 +86,14 @@ public final class ScanActivity extends FragmentActivity implements SurfaceHolde
     private final CameraManager cameraManager = new CameraManager();
     private ScannerView scannerView;
     private SurfaceHolder surfaceHolder;
+    private TextureView questPreviewView;
     private Vibrator vibrator;
     private HandlerThread cameraThread;
     private Handler cameraHandler;
     private boolean isSurfaceCreated = false;
+    private boolean isQuestPreviewAvailable = false;
+    @Nullable private QuestCamera2Manager questCameraManager;
+    @Nullable private Rect questFramePreview;
 
     private static final int DIALOG_CAMERA_PROBLEM = 0;
 
@@ -116,9 +128,24 @@ public final class ScanActivity extends FragmentActivity implements SurfaceHolde
         cameraHandler = new Handler(cameraThread.getLooper());
 
         final SurfaceView surfaceView = findViewById(R.id.scan_activity_preview);
-        surfaceHolder = surfaceView.getHolder();
-        surfaceHolder.addCallback(this);
-        surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        questPreviewView = findViewById(R.id.scan_activity_preview_texture);
+        isSurfaceCreated = false;
+        isQuestPreviewAvailable = false;
+
+        if (useQuestPassthroughScanner()) {
+            surfaceView.setVisibility(View.GONE);
+            questPreviewView.setVisibility(View.VISIBLE);
+            questPreviewView.setSurfaceTextureListener(this);
+            if (questPreviewView.isAvailable()) {
+                isQuestPreviewAvailable = true;
+            }
+        } else {
+            questPreviewView.setVisibility(View.GONE);
+            surfaceView.setVisibility(View.VISIBLE);
+            surfaceHolder = surfaceView.getHolder();
+            surfaceHolder.addCallback(this);
+            surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        }
 
         if (!hasCameraPermission()) {
             askCameraPermission();
@@ -131,34 +158,45 @@ public final class ScanActivity extends FragmentActivity implements SurfaceHolde
     @Override
     protected void onPause()
     {
-        cameraHandler.post(closeRunnable);
-        surfaceHolder.removeCallback(this);
+        if (cameraHandler != null) {
+            cameraHandler.post(closeRunnable);
+        }
+        if (useQuestPassthroughScanner()) {
+            isQuestPreviewAvailable = false;
+            if (questPreviewView != null) {
+                questPreviewView.setSurfaceTextureListener(null);
+            }
+        } else if (surfaceHolder != null) {
+            surfaceHolder.removeCallback(this);
+            surfaceHolder = null;
+        }
 
         super.onPause();
     }
 
     private void askCameraPermission() {
         if (!hasCameraPermission()) {
-            ActivityCompat.requestPermissions(this, new String[]{CAMERA},
+            ActivityCompat.requestPermissions(this, getRequiredCameraPermissions(),
                     Constants.PERMISSIONS_REQUEST_CAMERA);
         }
     }
 
     private boolean hasCameraPermission() {
-        return ContextCompat.checkSelfPermission(this, CAMERA) == PERMISSION_GRANTED;
+        for (final String permission : getRequiredCameraPermissions()) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == Constants.PERMISSIONS_REQUEST_CAMERA) {
-            for (int i = 0; i < permissions.length; i++) {
-                if (permissions[i].equals(CAMERA) && grantResults[i] == PERMISSION_GRANTED) {
-                    break;
-                }
-            }
-
             if (!hasCameraPermission())
                 showErrorToast();
+            else
+                openCamera();
         }
     }
 
@@ -166,11 +204,21 @@ public final class ScanActivity extends FragmentActivity implements SurfaceHolde
     public void surfaceCreated(final SurfaceHolder holder)
     {
         isSurfaceCreated = true;
-        openCamera();
+        if (!useQuestPassthroughScanner()) {
+            openCamera();
+        }
     }
 
     private void openCamera() {
-        if (isSurfaceCreated && hasCameraPermission()) {
+        if (cameraHandler == null || !hasCameraPermission()) {
+            return;
+        }
+
+        if (useQuestPassthroughScanner()) {
+            if (isQuestPreviewAvailable && questPreviewView != null) {
+                cameraHandler.post(openQuestRunnable);
+            }
+        } else if (isSurfaceCreated && surfaceHolder != null) {
             cameraHandler.post(openRunnable);
         }
     }
@@ -259,7 +307,8 @@ public final class ScanActivity extends FragmentActivity implements SurfaceHolde
         {
             try
             {
-                final Camera camera = cameraManager.open(surfaceHolder, !DISABLE_CONTINUOUS_AUTOFOCUS);
+                final Camera camera = cameraManager.open(surfaceHolder,
+                        !DISABLE_CONTINUOUS_AUTOFOCUS, getWindowManager().getDefaultDisplay().getRotation());
 
                 final Rect framingRect = cameraManager.getFrame();
                 final Rect framingRectInPreview = cameraManager.getFramePreview();
@@ -295,6 +344,68 @@ public final class ScanActivity extends FragmentActivity implements SurfaceHolde
         }
     };
 
+    private final Runnable openQuestRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                questFramePreview = null;
+                questCameraManager = new QuestCamera2Manager(ScanActivity.this, questPreviewView, cameraHandler,
+                        new QuestCamera2Manager.Listener() {
+                            @Override
+                            public void onCameraReady(@NonNull final Rect frame, @NonNull final Rect framePreview) {
+                                questFramePreview = framePreview;
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        scannerView.setFraming(frame, framePreview);
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onPreviewFrame(@NonNull final byte[] luminance, final int width,
+                                                       final int height) {
+                                if (questFramePreview != null) {
+                                    decodeLuminanceSource(luminance, width, height, questFramePreview);
+                                }
+                            }
+
+                            @Override
+                            public void onCameraError(@NonNull final Exception error) {
+                                log.info("problem opening Quest passthrough camera", error);
+                                showErrorToast();
+                            }
+                        });
+                questCameraManager.open();
+            } catch (final Exception x) {
+                log.info("problem opening Quest passthrough camera", x);
+                showErrorToast();
+            }
+        }
+    };
+
+    @Override
+    public void onSurfaceTextureAvailable(@NonNull final SurfaceTexture surface, final int width, final int height) {
+        isQuestPreviewAvailable = true;
+        if (useQuestPassthroughScanner()) {
+            openCamera();
+        }
+    }
+
+    @Override
+    public void onSurfaceTextureSizeChanged(@NonNull final SurfaceTexture surface, final int width, final int height) {
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(@NonNull final SurfaceTexture surface) {
+        isQuestPreviewAvailable = false;
+        return true;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(@NonNull final SurfaceTexture surface) {
+    }
+
     private void showErrorToast() {
 
         runOnUiThread(new Runnable() {
@@ -311,6 +422,10 @@ public final class ScanActivity extends FragmentActivity implements SurfaceHolde
         @Override
         public void run()
         {
+            if (questCameraManager != null) {
+                questCameraManager.close();
+                questCameraManager = null;
+            }
             cameraManager.close();
 
             // cancel background thread
@@ -363,53 +478,79 @@ public final class ScanActivity extends FragmentActivity implements SurfaceHolde
 
         private void decode(final byte[] data)
         {
-            final PlanarYUVLuminanceSource source = cameraManager.buildLuminanceSource(data);
-            final BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-
-            try
-            {
-                hints.put(DecodeHintType.NEED_RESULT_POINT_CALLBACK, new ResultPointCallback()
-                {
-                    @Override
-                    public void foundPossibleResultPoint(final ResultPoint dot)
-                    {
-                        runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                scannerView.addDot(dot);
-                            }
-                        });
-                    }
-                });
-                final Result scanResult = reader.decode(bitmap, hints);
-
-                final int thumbnailWidth = source.getThumbnailWidth();
-                final int thumbnailHeight = source.getThumbnailHeight();
-                final float thumbnailScaleFactor = (float) thumbnailWidth / source.getWidth();
-
-                final Bitmap thumbnailImage = Bitmap.createBitmap(thumbnailWidth, thumbnailHeight, Bitmap.Config.ARGB_8888);
-                thumbnailImage.setPixels(source.renderThumbnail(), 0, thumbnailWidth, 0, 0, thumbnailWidth, thumbnailHeight);
-
-                runOnUiThread(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        handleResult(scanResult, thumbnailImage, thumbnailScaleFactor);
-                    }
-                });
-            }
-            catch (final ReaderException x)
-            {
-                // retry
-                cameraHandler.post(fetchAndDecodeRunnable);
-            }
-            finally
-            {
-                reader.reset();
-            }
+            decodeLuminanceSource(cameraManager.buildLuminanceSource(data), reader, hints, true);
         }
     };
+
+    private void decodeLuminanceSource(@NonNull final byte[] luminance, final int width, final int height,
+                                       @NonNull final Rect framePreview) {
+        final QRCodeReader reader = new QRCodeReader();
+        final Map<DecodeHintType, Object> hints = new EnumMap<DecodeHintType, Object>(DecodeHintType.class);
+        final PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(luminance, width, height,
+                framePreview.left, framePreview.top, framePreview.width(), framePreview.height(), false);
+        decodeLuminanceSource(source, reader, hints, false);
+    }
+
+    private void decodeLuminanceSource(@NonNull final PlanarYUVLuminanceSource source,
+                                       @NonNull final QRCodeReader reader,
+                                       @NonNull final Map<DecodeHintType, Object> hints,
+                                       final boolean retryOnFailure) {
+        final BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+
+        try
+        {
+            hints.put(DecodeHintType.NEED_RESULT_POINT_CALLBACK, new ResultPointCallback()
+            {
+                @Override
+                public void foundPossibleResultPoint(final ResultPoint dot)
+                {
+                    runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            scannerView.addDot(dot);
+                        }
+                    });
+                }
+            });
+            final Result scanResult = reader.decode(bitmap, hints);
+
+            final int thumbnailWidth = source.getThumbnailWidth();
+            final int thumbnailHeight = source.getThumbnailHeight();
+            final float thumbnailScaleFactor = (float) thumbnailWidth / source.getWidth();
+
+            final Bitmap thumbnailImage = Bitmap.createBitmap(thumbnailWidth, thumbnailHeight, Bitmap.Config.ARGB_8888);
+            thumbnailImage.setPixels(source.renderThumbnail(), 0, thumbnailWidth, 0, 0, thumbnailWidth, thumbnailHeight);
+
+            runOnUiThread(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    handleResult(scanResult, thumbnailImage, thumbnailScaleFactor);
+                }
+            });
+        }
+        catch (final ReaderException x)
+        {
+            if (retryOnFailure) {
+                cameraHandler.post(fetchAndDecodeRunnable);
+            }
+        }
+        finally
+        {
+            reader.reset();
+        }
+    }
+
+    @NonNull
+    private String[] getRequiredCameraPermissions() {
+        return useQuestPassthroughScanner() ? new String[]{CAMERA, HEADSET_CAMERA_PERMISSION}
+                : new String[]{CAMERA};
+    }
+
+    private boolean useQuestPassthroughScanner() {
+        return QuestCamera2Manager.isSupportedDevice();
+    }
 }

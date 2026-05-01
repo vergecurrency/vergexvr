@@ -3,10 +3,13 @@ package com.vergepay.wallet.ui;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.TextView;
+import android.app.AlertDialog;
 
 import com.vergepay.core.wallet.Wallet;
 import com.vergepay.wallet.R;
@@ -27,9 +30,6 @@ import java.text.Normalizer;
 import java.util.Arrays;
 
 import javax.annotation.Nullable;
-
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 
 import static com.vergepay.core.Preconditions.checkNotNull;
 
@@ -55,7 +55,12 @@ public class DebuggingFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_debugging, container, false);
-        ButterKnife.bind(this, view);
+        view.findViewById(R.id.button_execute_password_test).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onExecutePasswordTest();
+            }
+        });
 
         return view;
     }
@@ -67,14 +72,38 @@ public class DebuggingFragment extends Fragment {
         wallet = application.getWallet();
     }
 
-    @OnClick(R.id.button_execute_password_test)
-    void onExecutePasswordTest() {
+    private void onExecutePasswordTest() {
         if (wallet.isEncrypted()) {
             showUnlockDialog();
         } else {
-            DialogBuilder.warn(getActivity(), R.string.wallet_is_not_locked_message)
-                    .setPositiveButton(R.string.button_ok, null)
-                    .create().show();
+            showWalletNotLockedDialog();
+        }
+    }
+
+    private void showWalletNotLockedDialog() {
+        if (getActivity() == null) return;
+
+        final View view = getLayoutInflater().inflate(R.layout.dialog_info_single_action, null);
+        ((TextView) view.findViewById(R.id.info_dialog_title))
+                .setText(R.string.debugging_test_wallet_password);
+        ((TextView) view.findViewById(R.id.info_dialog_message))
+                .setText(R.string.wallet_is_not_locked_message);
+
+        final AlertDialog dialog = new AlertDialog.Builder(getActivity())
+                .setView(view)
+                .create();
+
+        view.findViewById(R.id.info_dialog_ok).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawableResource(android.R.color.transparent);
         }
     }
 

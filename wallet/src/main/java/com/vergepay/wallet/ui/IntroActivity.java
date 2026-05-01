@@ -3,19 +3,32 @@ package com.vergepay.wallet.ui;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
 import com.vergepay.wallet.R;
 
 public class IntroActivity extends AbstractWalletFragmentActivity
         implements WelcomeFragment.Listener, PasswordConfirmationFragment.Listener,
         SetPasswordFragment.Listener, SelectCoinsFragment.Listener, AppLockFragment.AppLockListener {
+    private boolean showWrapperHeader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_fragment_wrapper);
+        showWrapperHeader = getWalletApplication().getWallet() != null;
+
+        if (showWrapperHeader) {
+            setTitle(R.string.pref_title_restore_wallet);
+            setContentView(R.layout.activity_fragment_wrapper);
+            setupWrapperHeader();
+        } else {
+            setContentView(R.layout.activity_fragment_plain);
+            WindowInsetsHelper.applyPaddingInsets(findViewById(R.id.container), true, true);
+        }
 
         // If we detected that this device is incompatible
         if (!getWalletApplication().getConfiguration().isDeviceCompatible()) {
@@ -37,6 +50,26 @@ public class IntroActivity extends AbstractWalletFragmentActivity
                         .commit();
             }
         }
+    }
+
+    private void setupWrapperHeader() {
+        ImageButton backButton = findViewById(R.id.wrapper_back);
+        TextView titleView = findViewById(R.id.wrapper_title);
+
+        if (backButton != null) {
+            backButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onBackPressed();
+                }
+            });
+        }
+        if (titleView != null) {
+            titleView.setText(getTitle());
+        }
+
+        WindowInsetsHelper.applyPaddingInsets(findViewById(R.id.wrapper_root), false, true);
+        WindowInsetsHelper.applyTopInsetAsPadding(findViewById(R.id.wrapper_nav_container), 0);
     }
 
     private void replaceFragment(Fragment fragment) {

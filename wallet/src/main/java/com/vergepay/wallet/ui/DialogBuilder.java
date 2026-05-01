@@ -20,7 +20,7 @@ package com.vergepay.wallet.ui;
 import android.content.Context;
 import android.content.DialogInterface.OnClickListener;
 import android.graphics.drawable.Drawable;
-import android.support.v7.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -47,7 +47,7 @@ public class DialogBuilder extends AlertDialog.Builder {
     }
 
     public DialogBuilder(final Context context) {
-        super(context);
+        super(context, R.style.AppAlertDialogTheme);
 
         this.customTitle = LayoutInflater.from(context).inflate(R.layout.dialog_title, null);
         this.iconView = customTitle.findViewById(android.R.id.icon);
