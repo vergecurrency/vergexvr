@@ -25,19 +25,19 @@ jobs:
         run: chmod +x gradlew
         
       - name: Build Unsigned Release APKs with Gradle
-        run: bash ./gradlew :wallet:assembleRelease :wallet:assembleMetaRelease :wearablesMeta:assembleRelease --stacktrace
+        run: bash ./gradlew :wallet:assembleStandardRelease :wallet:assembleMetaRelease :wearablesMeta:assembleRelease --stacktrace
       
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
           name: vergexvr
-          path: ./wallet/build/outputs/apk/release/wallet-release-unsigned.apk
+          path: ./wallet/build/outputs/apk/standard/release/*.apk
 
       - name: Upload Meta APK
         uses: actions/upload-artifact@v4
         with:
           name: vergexvr-meta
-          path: ./wallet/build/outputs/apk/metaRelease/wallet-metaRelease-unsigned.apk
+          path: ./wallet/build/outputs/apk/meta/release/*.apk
 
       - name: Upload Wearables Meta APK
         uses: actions/upload-artifact@v4

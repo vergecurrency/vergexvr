@@ -6,7 +6,7 @@ Verge XVR, a Verge Android/Meta/Meta Wearables wallet app!
 - App starts with a SOCKS5 proxy on `127.0.0.1:9050`
 - Current Android API level in use: 36
 - Unstoppable Domains resolution is supported for XVG sends via `crypto.XVG.address`
-- Includes a dedicated `metaRelease` build variant for Meta / Horizon OS packaging without changing the standard Android release path
+- Includes a dedicated `metaRelease` variant for Meta / Horizon OS packaging without changing the standard Android release path
 - Includes a separate `wearablesMeta` app module for future Meta AI glasses companion work without mixing that code into the Quest / Horizon headset app
 
 Play Store emulator images sandbox traffic more heavily, so the app's attempts to connect through Orbot can fail there.
@@ -75,7 +75,7 @@ For device testing:
 Command line builds:
 
 - Standard unsigned release APK:
-  `./gradlew :wallet:assembleRelease`
+  `./gradlew :wallet:assembleStandardRelease`
 - Meta unsigned APK:
   `./gradlew :wallet:assembleMetaRelease`
 - Wearables Meta unsigned APK:
@@ -84,9 +84,9 @@ Command line builds:
 Generated APKs:
 
 - Standard Android:
-  `wallet/build/outputs/apk/release/wallet-release-unsigned.apk`
+  `wallet/build/outputs/apk/standard/release/`
 - Meta:
-  `wallet/build/outputs/apk/metaRelease/wallet-metaRelease-unsigned.apk`
+  `wallet/build/outputs/apk/meta/release/`
 - Wearables Meta:
   `wearablesMeta/build/outputs/apk/release/`
 
@@ -117,7 +117,7 @@ Simple install steps:
 
 ## Meta
 
-The repo now has a separate `metaRelease` build variant so Meta packaging can evolve independently from the normal Android / Google Play path.
+The repo now has a separate `meta` flavor with a `metaRelease` variant so Meta packaging can evolve independently from the normal Android / Google Play path.
 
 Use this when you want to:
 
@@ -125,6 +125,7 @@ Use this when you want to:
 - generate a Meta-targeted unsigned APK for sideloading or store submission prep
 - preserve the existing `debug` and `release` variants for standard Android distribution
 - keep room for broader Meta device branding beyond Quest-specific naming
+- keep Meta-specific `minSdk` and manifest rules separate from the standard Android release
 
 Meta-only source set:
 

@@ -28,6 +28,19 @@ android {
         }
     }
 
+    flavorDimensions "platform"
+
+    productFlavors {
+        standard {
+            dimension "platform"
+            minSdk 21
+        }
+        meta {
+            dimension "platform"
+            minSdk 29
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled true
@@ -36,10 +49,6 @@ android {
         debug {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-        metaRelease {
-            initWith release
-            matchingFallbacks = ['release']
         }
     }
 
