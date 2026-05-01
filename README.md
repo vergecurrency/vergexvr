@@ -1,7 +1,8 @@
-Verge Tor Wallet for Android
+Verge XVR, a Verge Android/Meta/Meta Wearables wallet app!
 ============================
 
 - Requires Orbot to be running in the background: https://gitlab.com/guardianproject/orbot
+- Connects to Electrum or ElectrumX servers over Tor, yay decentralized!
 - App starts with a SOCKS5 proxy on `127.0.0.1:9050`
 - Current Android API level in use: 36
 - Unstoppable Domains resolution is supported for XVG sends via `crypto.XVG.address`
@@ -50,7 +51,7 @@ The send screen can resolve supported web3 names such as `sunerok.wallet` to Ver
 Install Android Studio:
 https://developer.android.com/sdk/installing/studio.html
 
-Import `tordroid` by selecting `settings.gradle`.
+Import `vergexvr` by selecting `settings.gradle`.
 After import finishes, open the SDK Manager.
 
 Install Android 16 / API 36 build tools, while compiling this project with SDK 35 as currently configured.
