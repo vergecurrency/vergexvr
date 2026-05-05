@@ -158,8 +158,24 @@ public final class ScanActivity extends FragmentActivity
     @Override
     protected void onPause()
     {
-        if (cameraHandler != null) {
-            cameraHandler.post(closeRunnable);
+        final Handler handlerToClose = cameraHandler;
+        final HandlerThread threadToQuit = cameraThread;
+        final QuestCamera2Manager questManagerToClose = questCameraManager;
+        cameraHandler = null;
+        cameraThread = null;
+        questCameraManager = null;
+
+        if (handlerToClose != null) {
+            handlerToClose.post(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    closeCameraResources(handlerToClose, threadToQuit, questManagerToClose);
+                }
+            });
+        } else {
+            closeCameraResources(null, threadToQuit, questManagerToClose);
         }
         if (useQuestPassthroughScanner()) {
             isQuestPreviewAvailable = false;
@@ -417,22 +433,22 @@ public final class ScanActivity extends FragmentActivity
         });
     }
 
-    private final Runnable closeRunnable = new Runnable()
+    private void closeCameraResources(@Nullable final Handler handlerToClose,
+                                      @Nullable final HandlerThread threadToQuit,
+                                      @Nullable final QuestCamera2Manager questManagerToClose)
     {
-        @Override
-        public void run()
-        {
-            if (questCameraManager != null) {
-                questCameraManager.close();
-                questCameraManager = null;
-            }
-            cameraManager.close();
-
-            // cancel background thread
-            cameraHandler.removeCallbacksAndMessages(null);
-            cameraThread.quit();
+        if (questManagerToClose != null) {
+            questManagerToClose.close();
         }
-    };
+        cameraManager.close();
+
+        if (handlerToClose != null) {
+            handlerToClose.removeCallbacksAndMessages(null);
+        }
+        if (threadToQuit != null) {
+            threadToQuit.quitSafely();
+        }
+    }
 
     private final class AutoFocusRunnable implements Runnable
     {
