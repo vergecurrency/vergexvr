@@ -47,6 +47,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.vergepay.wallet.Constants;
@@ -323,17 +324,21 @@ public final class ScanActivity extends FragmentActivity
         {
             try
             {
+                final SurfaceView surfaceView = findViewById(R.id.scan_activity_preview);
                 final Camera camera = cameraManager.open(surfaceHolder,
-                        !DISABLE_CONTINUOUS_AUTOFOCUS, getWindowManager().getDefaultDisplay().getRotation());
+                        !DISABLE_CONTINUOUS_AUTOFOCUS, getWindowManager().getDefaultDisplay().getRotation(),
+                        scannerView.getWidth(), scannerView.getHeight());
 
                 final Rect framingRect = cameraManager.getFrame();
                 final Rect framingRectInPreview = cameraManager.getFramePreview();
+                final Rect previewDisplayRect = cameraManager.getPreviewDisplayRect();
 
                 runOnUiThread(new Runnable()
                 {
                     @Override
                     public void run()
                     {
+                        applyPhonePreviewLayout(surfaceView, previewDisplayRect);
                         scannerView.setFraming(framingRect, framingRectInPreview);
                     }
                 });
@@ -359,6 +364,28 @@ public final class ScanActivity extends FragmentActivity
             }
         }
     };
+
+    private void applyPhonePreviewLayout(@NonNull final SurfaceView surfaceView, @Nullable final Rect previewDisplayRect)
+    {
+        if (previewDisplayRect == null) {
+            return;
+        }
+
+        final ViewGroup.LayoutParams layoutParams = surfaceView.getLayoutParams();
+        if (!(layoutParams instanceof ViewGroup.MarginLayoutParams)) {
+            layoutParams.width = previewDisplayRect.width();
+            layoutParams.height = previewDisplayRect.height();
+            surfaceView.setLayoutParams(layoutParams);
+            return;
+        }
+
+        final ViewGroup.MarginLayoutParams marginLayoutParams = (ViewGroup.MarginLayoutParams) layoutParams;
+        marginLayoutParams.width = previewDisplayRect.width();
+        marginLayoutParams.height = previewDisplayRect.height();
+        marginLayoutParams.leftMargin = previewDisplayRect.left;
+        marginLayoutParams.topMargin = previewDisplayRect.top;
+        surfaceView.setLayoutParams(marginLayoutParams);
+    }
 
     private final Runnable openQuestRunnable = new Runnable() {
         @Override

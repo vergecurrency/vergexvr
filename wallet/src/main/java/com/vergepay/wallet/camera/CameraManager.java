@@ -54,6 +54,8 @@ public final class CameraManager
     private Rect frame;
     private Rect framePreview;
     private int cameraId = -1;
+    private int previewOrientationDegrees = 0;
+    private Rect previewDisplayRect;
 
     private static final Logger log = LoggerFactory.getLogger(CameraManager.class);
 
@@ -67,8 +69,13 @@ public final class CameraManager
         return framePreview;
     }
 
+    public Rect getPreviewDisplayRect()
+    {
+        return previewDisplayRect;
+    }
+
     public Camera open(final SurfaceHolder holder, final boolean continuousAutoFocus,
-            final int displayRotation) throws IOException
+            final int displayRotation, final int containerWidth, final int containerHeight) throws IOException
     {
         final int cameraCount = Camera.getNumberOfCameras();
         final CameraInfo cameraInfo = new CameraInfo();
@@ -138,21 +145,11 @@ public final class CameraManager
         setDisplayOrientation(displayRotation);
 
         final Camera.Parameters parameters = camera.getParameters();
-
-        final Rect surfaceFrame = holder.getSurfaceFrame();
-        cameraResolution = findBestPreviewSizeValue(parameters, surfaceFrame);
-
-        final int surfaceWidth = surfaceFrame.width();
-        final int surfaceHeight = surfaceFrame.height();
-
-        final int rawSize = Math.min(surfaceWidth * 2 / 3, surfaceHeight * 2 / 3);
-        final int frameSize = Math.max(MIN_FRAME_SIZE, Math.min(MAX_FRAME_SIZE, rawSize));
-
-        final int leftOffset = (surfaceWidth - frameSize) / 2;
-        final int topOffset = (surfaceHeight - frameSize) / 2;
-        frame = new Rect(leftOffset, topOffset, leftOffset + frameSize, topOffset + frameSize);
-        framePreview = new Rect(frame.left * cameraResolution.width / surfaceWidth, frame.top * cameraResolution.height / surfaceHeight, frame.right
-                * cameraResolution.width / surfaceWidth, frame.bottom * cameraResolution.height / surfaceHeight);
+        final Rect containerFrame = new Rect(0, 0, Math.max(containerWidth, 1), Math.max(containerHeight, 1));
+        cameraResolution = findBestPreviewSizeValue(parameters, containerFrame);
+        previewDisplayRect = buildPreviewDisplayRect(cameraResolution, containerFrame, previewOrientationDegrees);
+        frame = buildFrame(previewDisplayRect);
+        framePreview = buildFramePreview(frame, previewDisplayRect, cameraResolution, previewOrientationDegrees);
 
         final String savedParameters = parameters == null ? null : parameters.flatten();
 
@@ -226,6 +223,7 @@ public final class CameraManager
         else
             result = (cameraInfo.orientation - degrees + 360) % 360;
 
+        previewOrientationDegrees = result;
         camera.setDisplayOrientation(result);
     }
 
@@ -321,6 +319,88 @@ public final class CameraManager
     {
         return new PlanarYUVLuminanceSource(data, cameraResolution.width, cameraResolution.height, framePreview.left, framePreview.top,
                 framePreview.width(), framePreview.height(), false);
+    }
+
+    private static Rect buildFrame(final Rect previewRect)
+    {
+        final int rawSize = Math.min(previewRect.width() * 2 / 3, previewRect.height() * 2 / 3);
+        final int frameSize = Math.max(MIN_FRAME_SIZE, Math.min(MAX_FRAME_SIZE, rawSize));
+
+        final int leftOffset = previewRect.left + (previewRect.width() - frameSize) / 2;
+        final int topOffset = previewRect.top + (previewRect.height() - frameSize) / 2;
+        return new Rect(leftOffset, topOffset, leftOffset + frameSize, topOffset + frameSize);
+    }
+
+    private static Rect buildPreviewDisplayRect(final Camera.Size cameraResolution, final Rect containerFrame,
+            final int previewOrientationDegrees)
+    {
+        final boolean rotated = previewOrientationDegrees == 90 || previewOrientationDegrees == 270;
+        final int previewWidth = rotated ? cameraResolution.height : cameraResolution.width;
+        final int previewHeight = rotated ? cameraResolution.width : cameraResolution.height;
+
+        final float previewAspect = (float) previewWidth / (float) previewHeight;
+        final int containerWidth = containerFrame.width();
+        final int containerHeight = containerFrame.height();
+
+        final int displayWidth;
+        final int displayHeight;
+        if (containerWidth / previewAspect <= containerHeight)
+        {
+            displayWidth = containerWidth;
+            displayHeight = Math.round(containerWidth / previewAspect);
+        }
+        else
+        {
+            displayHeight = containerHeight;
+            displayWidth = Math.round(containerHeight * previewAspect);
+        }
+
+        final int left = containerFrame.left + (containerWidth - displayWidth) / 2;
+        final int top = containerFrame.top + (containerHeight - displayHeight) / 2;
+        return new Rect(left, top, left + displayWidth, top + displayHeight);
+    }
+
+    private static Rect buildFramePreview(final Rect frame, final Rect previewDisplayRect,
+            final Camera.Size cameraResolution, final int previewOrientationDegrees)
+    {
+        final int sensorWidth = cameraResolution.width;
+        final int sensorHeight = cameraResolution.height;
+        final int displayWidth = previewDisplayRect.width();
+        final int displayHeight = previewDisplayRect.height();
+
+        final int x1 = frame.left - previewDisplayRect.left;
+        final int y1 = frame.top - previewDisplayRect.top;
+        final int x2 = frame.right - previewDisplayRect.left;
+        final int y2 = frame.bottom - previewDisplayRect.top;
+
+        switch (previewOrientationDegrees)
+        {
+            case 90:
+                return new Rect(
+                        y1 * sensorWidth / displayHeight,
+                        sensorHeight - (x2 * sensorHeight / displayWidth),
+                        y2 * sensorWidth / displayHeight,
+                        sensorHeight - (x1 * sensorHeight / displayWidth));
+            case 180:
+                return new Rect(
+                        sensorWidth - (x2 * sensorWidth / displayWidth),
+                        sensorHeight - (y2 * sensorHeight / displayHeight),
+                        sensorWidth - (x1 * sensorWidth / displayWidth),
+                        sensorHeight - (y1 * sensorHeight / displayHeight));
+            case 270:
+                return new Rect(
+                        sensorWidth - (y2 * sensorWidth / displayHeight),
+                        x1 * sensorHeight / displayWidth,
+                        sensorWidth - (y1 * sensorWidth / displayHeight),
+                        x2 * sensorHeight / displayWidth);
+            case 0:
+            default:
+                return new Rect(
+                        x1 * sensorWidth / displayWidth,
+                        y1 * sensorHeight / displayHeight,
+                        x2 * sensorWidth / displayWidth,
+                        y2 * sensorHeight / displayHeight);
+        }
     }
 
     public void setTorch(final boolean enabled)
