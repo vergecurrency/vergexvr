@@ -172,6 +172,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 style="@style/NormalText"
+                android:paddingTop="16dp"
+                android:text="@string/about_credits_swat69" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/NormalText"
                 android:autoLink="web"
                 android:paddingTop="16dp"
                 android:text="@string/about_credits_schildbach" />
