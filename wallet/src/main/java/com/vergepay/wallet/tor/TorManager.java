@@ -21,6 +21,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import net.freehaven.tor.control.TorControlConnection;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,15 +35,15 @@ import java.util.Locale;
 
 public class TorManager {
     private static final Logger log = LoggerFactory.getLogger(TorManager.class);
-    private static final long BOOTSTRAP_TIMEOUT_MS = 180_000L;
+    private static final long DIRECT_BOOTSTRAP_TIMEOUT_MS = 60_000L;
+    private static final long TRANSPORT_BOOTSTRAP_TIMEOUT_MS = 90_000L;
     private static final long BOOTSTRAP_POLL_INTERVAL_MS = 1_000L;
-    private static final long RETRY_RESTART_DELAY_MS = 1_500L;
     private static final String LYREBIRD_ASSET_ROOT = Constants.TOR_ASSET_DIR + "/lyrebird";
     private static final String PT_CONFIG_FILE_NAME = "pt_config.json";
-    private static final String DEFAULT_BRIDGE_TRANSPORT = "obfs4";
 
     private final Context context;
     private final Object lock = new Object();
+    private final TorConnectionAttemptPlan attemptPlan = new TorConnectionAttemptPlan();
     private final ServiceConnection torServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -79,9 +81,8 @@ public class TorManager {
     private boolean ready;
     private boolean serviceBound;
     private boolean monitoringBootstrap;
-    private boolean fallbackAttempted;
-    private boolean bridgeFallbackEnabled;
     private boolean restartInProgress;
+    private int attemptGeneration;
     private String lastStatus = Constants.TOR_STATUS_STOPPED;
     @Nullable private TorService torService;
 
@@ -98,13 +99,12 @@ public class TorManager {
             ready = false;
             monitoringBootstrap = false;
             restartInProgress = false;
-            bridgeFallbackEnabled = false;
-            fallbackAttempted = false;
+            attemptPlan.reset();
         }
 
         try {
             registerReceiverIfNeeded();
-            startTor(false, null);
+            startTor(null);
         } catch (Exception e) {
             log.error("Failed to start tor-android service", e);
             handleFailure();
@@ -140,7 +140,7 @@ public class TorManager {
         }
     }
 
-    private void prepareTorrc(boolean useBridgeFallback, @Nullable String bridgeTransport)
+    private void prepareTorrc(@Nullable String bridgeTransport)
             throws IOException, JSONException {
         File torrcFile = TorService.getTorrc(context);
         File torDir = torrcFile.getParentFile();
@@ -156,7 +156,7 @@ public class TorManager {
         builder.append("AvoidDiskWrites 1\n");
         builder.append("SafeLogging 1\n");
         builder.append("DormantCanceledByStartup 1\n");
-        if (useBridgeFallback) {
+        if (bridgeTransport != null) {
             BridgeConfig bridgeConfig = loadBridgeConfig(bridgeTransport);
             builder.append("UseBridges 1\n");
             builder.append(bridgeConfig.transportPluginLine).append('\n');
@@ -180,19 +180,23 @@ public class TorManager {
     }
 
     private void startBootstrapMonitor() {
+        final int monitorGeneration;
         synchronized (lock) {
             if (monitoringBootstrap || ready || torService == null) {
                 return;
             }
             monitoringBootstrap = true;
+            monitorGeneration = attemptGeneration;
         }
 
         Thread bootstrapMonitor = new Thread(() -> {
             long startTime = System.currentTimeMillis();
-            while (System.currentTimeMillis() - startTime < BOOTSTRAP_TIMEOUT_MS) {
+            final long bootstrapTimeout = attemptPlan.isDirect()
+                    ? DIRECT_BOOTSTRAP_TIMEOUT_MS : TRANSPORT_BOOTSTRAP_TIMEOUT_MS;
+            while (System.currentTimeMillis() - startTime < bootstrapTimeout) {
                 TorService service;
                 synchronized (lock) {
-                    if (!starting || ready) {
+                    if (monitorGeneration != attemptGeneration || !starting || ready) {
                         monitoringBootstrap = false;
                         return;
                     }
@@ -225,6 +229,11 @@ public class TorManager {
             }
 
             log.warn("Timed out waiting for tor-android bootstrap completion");
+            synchronized (lock) {
+                if (monitorGeneration != attemptGeneration) {
+                    return;
+                }
+            }
             handleFailure("bootstrap timeout");
         }, "tor-bootstrap-monitor");
         bootstrapMonitor.setDaemon(true);
@@ -235,6 +244,10 @@ public class TorManager {
         log.info("tor-android status {}", status);
         if (TorService.STATUS_ON.equals(status) || TorService.STATUS_BOOTSTRAPPED_100.equals(status)) {
             synchronized (lock) {
+                if (restartInProgress) {
+                    log.info("Ignoring ready status while changing Tor transport");
+                    return;
+                }
                 ready = true;
                 starting = false;
                 monitoringBootstrap = false;
@@ -253,6 +266,10 @@ public class TorManager {
             boolean waitingForRestart;
             boolean wasReady;
             synchronized (lock) {
+                if (restartInProgress) {
+                    log.info("Ignoring {} status while changing Tor transport", status);
+                    return;
+                }
                 wasReady = ready;
                 starting = false;
                 ready = false;
@@ -276,20 +293,21 @@ public class TorManager {
     private void handleFailure(String reason) {
         String retryTransport = null;
         synchronized (lock) {
+            if (restartInProgress) {
+                log.info("Ignoring duplicate Tor failure while changing transport: {}", reason);
+                return;
+            }
             starting = false;
             ready = false;
             monitoringBootstrap = false;
-            if (!bridgeFallbackEnabled && !fallbackAttempted && !restartInProgress) {
-                fallbackAttempted = true;
+            retryTransport = attemptPlan.advance();
+            if (retryTransport != null) {
                 restartInProgress = true;
-                retryTransport = DEFAULT_BRIDGE_TRANSPORT;
-            } else {
-                restartInProgress = false;
             }
         }
 
         if (retryTransport != null) {
-            log.warn("Tor startup failed ({}), retrying with {} bridge fallback", reason,
+            log.warn("Tor startup failed ({}), retrying with {} transport", reason,
                     retryTransport);
             retryWithBridgeFallback(retryTransport);
             return;
@@ -308,11 +326,13 @@ public class TorManager {
         context.sendBroadcast(intent);
     }
 
-    private void startTor(boolean useBridgeFallback, @Nullable String bridgeTransport)
+    private void startTor(@Nullable String bridgeTransport)
             throws IOException, JSONException {
-        prepareTorrc(useBridgeFallback, bridgeTransport);
+        prepareTorrc(bridgeTransport);
         synchronized (lock) {
-            bridgeFallbackEnabled = useBridgeFallback;
+            attemptGeneration++;
+            starting = true;
+            monitoringBootstrap = false;
         }
         TorService.setBroadcastPackageName(context.getPackageName());
         Intent serviceIntent = new Intent(context, TorService.class);
@@ -323,11 +343,14 @@ public class TorManager {
     }
 
     private void retryWithBridgeFallback(final String bridgeTransport) {
-        stopTorService();
         Thread restartThread = new Thread(() -> {
             try {
-                Thread.sleep(RETRY_RESTART_DELAY_MS);
-                startTor(true, bridgeTransport);
+                applyBridgeTransport(bridgeTransport);
+                synchronized (lock) {
+                    restartInProgress = false;
+                }
+                startBootstrapMonitor();
+                broadcastStatus(Constants.TOR_STATUS_STARTING);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 synchronized (lock) {
@@ -346,24 +369,33 @@ public class TorManager {
         restartThread.start();
     }
 
-    private void stopTorService() {
+    private void applyBridgeTransport(String bridgeTransport)
+            throws IOException, JSONException, InterruptedException {
+        BridgeConfig bridgeConfig = loadBridgeConfig(bridgeTransport);
+        prepareTorrc(bridgeTransport);
+
+        TorControlConnection controlConnection;
         synchronized (lock) {
-            monitoringBootstrap = false;
-            starting = false;
-            ready = false;
-            torService = null;
-            if (serviceBound) {
-                try {
-                    context.unbindService(torServiceConnection);
-                } catch (IllegalArgumentException e) {
-                    log.warn("Tor service was already unbound", e);
-                }
-                serviceBound = false;
+            if (torService == null || torService.getTorControlConnection() == null) {
+                throw new IOException("Tor control connection unavailable");
             }
+            controlConnection = torService.getTorControlConnection();
+            attemptGeneration++;
+            monitoringBootstrap = false;
+            starting = true;
+            ready = false;
         }
-        Intent serviceIntent = new Intent(context, TorService.class);
-        serviceIntent.setAction(TorService.ACTION_STOP);
-        context.startService(serviceIntent);
+
+        List<String> settings = new ArrayList<>();
+        settings.add("UseBridges 1");
+        settings.add(bridgeConfig.transportPluginLine);
+        for (String bridgeLine : bridgeConfig.bridgeLines) {
+            settings.add("Bridge " + bridgeLine);
+        }
+        controlConnection.setConf("DisableNetwork", "1");
+        controlConnection.setConf(settings);
+        controlConnection.setConf("DisableNetwork", "0");
+        log.info("Applied {} bridge transport to running Tor instance", bridgeTransport);
     }
 
     private BridgeConfig loadBridgeConfig(@Nullable String requestedTransport)
@@ -375,8 +407,7 @@ public class TorManager {
             throw new IOException("Unable to create pluggable transport dir " + ptDir);
         }
 
-        File lyrebirdExecutable = new File(ptDir, "lyrebird");
-        copyAssetIfDifferent(assetDir + "/lyrebird", lyrebirdExecutable, true);
+        File lyrebirdExecutable = getLyrebirdExecutable();
 
         File configFile = new File(ptDir, PT_CONFIG_FILE_NAME);
         copyAssetIfDifferent(assetDir + "/" + PT_CONFIG_FILE_NAME, configFile, false);
@@ -385,7 +416,7 @@ public class TorManager {
         JSONObject configJson = new JSONObject(configContents);
         String transport = requestedTransport;
         if (transport == null || transport.trim().isEmpty()) {
-            transport = configJson.optString("recommendedDefault", DEFAULT_BRIDGE_TRANSPORT);
+            transport = configJson.optString("recommendedDefault", "obfs4");
         }
         transport = transport.trim().toLowerCase(Locale.US);
 
@@ -396,13 +427,17 @@ public class TorManager {
         }
 
         JSONObject transportPlugins = configJson.optJSONObject("pluggableTransports");
-        String pluginTemplate = transportPlugins != null ? transportPlugins.optString("lyrebird", null) : null;
+        String pluginName = TorConnectionAttemptPlan.pluginNameFor(transport);
+        String pluginTemplate = transportPlugins != null
+                ? transportPlugins.optString(pluginName, null) : null;
         if (pluginTemplate == null || pluginTemplate.trim().isEmpty()) {
             throw new IOException("Missing lyrebird transport plugin configuration");
         }
 
         String ptPrefix = ptDir.getAbsolutePath() + File.separator;
-        String pluginLine = pluginTemplate.replace("${pt_path}", ptPrefix);
+        String pluginLine = pluginTemplate
+                .replace("${pt_path}lyrebird", lyrebirdExecutable.getAbsolutePath())
+                .replace("${pt_path}", ptPrefix);
         List<String> bridgeLines = new ArrayList<>();
         for (int i = 0; i < bridges.length(); i++) {
             String bridgeLine = bridges.optString(i, "").trim();
@@ -423,11 +458,21 @@ public class TorManager {
             if (normalizedAbi == null) {
                 continue;
             }
-            if (assetExists(LYREBIRD_ASSET_ROOT + "/" + normalizedAbi + "/lyrebird")) {
+            if (assetExists(LYREBIRD_ASSET_ROOT + "/" + normalizedAbi + "/"
+                    + PT_CONFIG_FILE_NAME) && getLyrebirdExecutable().isFile()) {
                 return normalizedAbi;
             }
         }
         throw new IOException("No bundled lyrebird binary matches supported ABIs");
+    }
+
+    private File getLyrebirdExecutable() throws IOException {
+        File nativeLibraryDir = new File(context.getApplicationInfo().nativeLibraryDir);
+        File executable = new File(nativeLibraryDir, "liblyrebird.so");
+        if (!executable.isFile() || !executable.canExecute()) {
+            throw new IOException("Bundled lyrebird executable is unavailable for this device");
+        }
+        return executable;
     }
 
     @Nullable

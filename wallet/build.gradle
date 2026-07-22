@@ -57,6 +57,9 @@ android {
         androidTest {
             setRoot('src/test')
         }
+        test {
+            java.srcDirs = ['src/unitTest/java']
+        }
     }
 
     repositories {
@@ -87,9 +90,11 @@ android {
         implementation 'com.google.protobuf:protobuf-java:3.25.3' // march2025
         implementation 'com.google.zxing:core:3.5.4'
         implementation 'ch.acra:acra:4.11.1' // startpullingfromnewlocation
+        testImplementation 'junit:junit:4.13.2'
     }
     packagingOptions {
         jniLibs {
+            useLegacyPackaging = true
             keepDebugSymbols += ['*/armeabi-v7a/*.so', '*/arm64-v8a/*.so']
             excludes += ['lib/x86_64/freebsd/libscrypt.so', 'lib/x86_64/linux/libscrypt.so', 'lib/armeabi-v7a/libscrypt.so', 'lib/armeabi-v7a/libvudroid.so', 'lib/x86/libvudroid.so', 'lib/arm64-v8a/libvudroid.so']
         }
