@@ -1,8 +1,10 @@
 .gradle
+/.android/
 .codex-gradle/
 .codex-gradle-home/
 .codex-gradle-home-local/
 .codex-gradle-home-contacts/
+/.codex-tor-aar/
 .gradle-codex/
 .codex-android/
 .codex-android-home/
@@ -14,6 +16,8 @@
 .codex-*.png
 .codex-*.xml
 /wallet/release/baselineProfiles/
+/wallet/meta/release/
+/wallet/standard/release/
 /local.properties
 /.idea
 *.iml
