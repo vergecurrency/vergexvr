@@ -44,7 +44,6 @@ import com.vergepay.wallet.util.WeakHandler;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
-import org.acra.ACRA;
 import org.bitcoinj.crypto.KeyCrypterException;
 import org.bitcoinj.utils.Threading;
 import org.slf4j.Logger;
@@ -360,7 +359,7 @@ public class TradeSelectFragment extends Fragment implements ExchangeCheckSuppor
             if (error instanceof KeyCrypterException) {
                 showPasswordRetryDialog();
             } else {
-                ACRA.getErrorReporter().handleSilentException(error);
+                log.warn("Could not add trade destination account", error);
                 Toast.makeText(getActivity(), R.string.error_generic, Toast.LENGTH_LONG).show();
             }
         } else {

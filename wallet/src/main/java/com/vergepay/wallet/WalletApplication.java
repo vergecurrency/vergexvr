@@ -32,9 +32,6 @@ import com.vergepay.wallet.util.NetworkUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 
-import org.acra.ACRA;
-import org.acra.annotation.ReportsCrashes;
-import org.acra.sender.HttpSender;
 import org.bitcoinj.crypto.MnemonicCode;
 import org.bitcoinj.store.UnreadableWalletException;
 import org.slf4j.Logger;
@@ -53,11 +50,6 @@ import javax.annotation.Nullable;
  * @author John L. Jegutanis
  * @author Andreas Schildbach
  */
-@ReportsCrashes(
-        // Also uncomment ACRA.init(this) in onCreate
-        httpMethod = HttpSender.Method.PUT,
-        reportType = HttpSender.Type.JSON
-)
 public class WalletApplication extends Application {
     private static final Logger log = LoggerFactory.getLogger(WalletApplication.class);
 
@@ -84,8 +76,6 @@ public class WalletApplication extends Application {
 
     @Override
     public void onCreate() {
-//        ACRA.init(this);
-
         config = new Configuration(PreferenceManager.getDefaultSharedPreferences(this));
 		
 		isLocked = config.isFingerprintAuthEnabled() || config.hasPincodeHash();
@@ -184,8 +174,7 @@ public class WalletApplication extends Application {
         if (!config.isDeviceCompatible()) {
             if (!HardwareSoftwareCompliance.isEllipticCurveCryptographyCompliant()) {
                 config.setDeviceCompatible(false);
-                ACRA.getErrorReporter().handleSilentException(
-                        new Exception("Device failed EllipticCurveCryptographyCompliant test"));
+                log.warn("Device failed EllipticCurveCryptographyCompliant test");
             } else {
                 config.setDeviceCompatible(true);
             }
@@ -365,11 +354,11 @@ public class WalletApplication extends Application {
 
                 log.info("wallet loaded from: '" + walletFile + "', took " + (System.currentTimeMillis() - start) + "ms");
             } catch (final FileNotFoundException e) {
-                ACRA.getErrorReporter().handleException(e);
+                log.error("Could not open wallet file", e);
                 Toast.makeText(WalletApplication.this, R.string.error_could_not_read_wallet, Toast.LENGTH_LONG).show();
             } catch (final UnreadableWalletException e) {
                 Toast.makeText(WalletApplication.this, R.string.error_could_not_read_wallet, Toast.LENGTH_LONG).show();
-                ACRA.getErrorReporter().handleException(e);
+                log.error("Could not read wallet file", e);
             } finally {
                 if (walletStream != null) {
                     try {

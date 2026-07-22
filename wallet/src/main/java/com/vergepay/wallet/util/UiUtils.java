@@ -32,7 +32,6 @@ import com.vergepay.wallet.ui.AccountDetailsActivity;
 import com.vergepay.wallet.ui.EditAccountFragment;
 import com.vergepay.wallet.ui.EditAddressBookEntryFragment;
 
-import org.acra.ACRA;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +62,7 @@ public class UiUtils {
             activity.startActivity(intent);
         } catch (Exception e) {
             // Should not happen
-            ACRA.getErrorReporter().handleSilentException(e);
+            log.warn("Could not open URI", e);
             Toast.makeText(activity, R.string.error_generic, Toast.LENGTH_LONG).show();
         }
     }
@@ -142,7 +141,7 @@ public class UiUtils {
             Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             // Should not normally happen
-            ACRA.getErrorReporter().handleSilentException(e);
+            log.warn("Could not copy text to clipboard", e);
             Toast.makeText(context, R.string.error_generic, Toast.LENGTH_LONG).show();
         }
     }

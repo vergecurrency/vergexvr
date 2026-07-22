@@ -89,7 +89,6 @@ android {
         implementation 'com.madgag.spongycastle:core:1.58.0.0' // most recent as of 7/2023
         implementation 'com.google.protobuf:protobuf-java:3.25.3' // march2025
         implementation 'com.google.zxing:core:3.5.4'
-        implementation 'ch.acra:acra:4.11.1' // startpullingfromnewlocation
         testImplementation 'junit:junit:4.13.2'
     }
     packagingOptions {

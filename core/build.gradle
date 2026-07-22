@@ -23,7 +23,6 @@ dependencies {
     api 'com.squareup.okhttp:okhttp:2.7.5'
 
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.mockito:mockito-all:1.10.19'
     testImplementation 'com.squareup.okhttp:mockwebserver:2.7.5'
 }
 

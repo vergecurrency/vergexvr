@@ -5,9 +5,10 @@ import android.os.AsyncTask;
 import com.vergepay.core.wallet.SignedMessage;
 import com.vergepay.core.wallet.WalletAccount;
 
-import org.acra.ACRA;
 import org.bitcoinj.crypto.KeyCrypterException;
 import org.spongycastle.crypto.params.KeyParameter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
@@ -15,6 +16,7 @@ import javax.annotation.Nullable;
  * @author John L. Jegutanis
  */
 public abstract class SignVerifyMessageTask extends AsyncTask<SignedMessage, Void, SignedMessage> {
+    private static final Logger log = LoggerFactory.getLogger(SignVerifyMessageTask.class);
     private final WalletAccount account;
     private final boolean signMessage;
     @Nullable private final CharSequence password;
@@ -43,7 +45,7 @@ public abstract class SignVerifyMessageTask extends AsyncTask<SignedMessage, Voi
             message = new SignedMessage(message, SignedMessage.Status.KeyIsEncrypted);
         } catch (Exception e) {
             // Should not happen
-            ACRA.getErrorReporter().handleSilentException(e);
+            log.warn("Unexpected error while signing or verifying message", e);
             // Return the message with unknown status
             message = new SignedMessage(message, SignedMessage.Status.Unknown);
         }

@@ -70,7 +70,6 @@ import com.vergepay.wallet.util.UnstoppableDomainsResolver;
 import com.vergepay.wallet.util.WeakHandler;
 import com.google.common.base.Charsets;
 
-import org.acra.ACRA;
 import org.bitcoinj.core.InsufficientMoneyException;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Wallet;
@@ -239,7 +238,7 @@ public class SendFragment extends WalletFragment {
                 } catch (CoinURIParseException e) {
                     // TODO handle more elegantly
                     Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
-                    ACRA.getErrorReporter().handleException(e);
+                    log.warn("Could not parse payment URI", e);
                 }
             }
 
@@ -249,8 +248,8 @@ public class SendFragment extends WalletFragment {
                 List<WalletAccount> accounts = application.getAllAccounts();
                 if (accounts.size() > 0) a = accounts.get(0);
                 if (a == null) {
-                    ACRA.getErrorReporter().putCustomData("wallet-exists",
-                            application.getWallet() == null ? "no" : "yes");
+                    log.warn("No account is available; wallet exists: {}",
+                            application.getWallet() != null);
                     Toast.makeText(getActivity(), R.string.no_such_pocket_error,
                             Toast.LENGTH_LONG).show();
                     getActivity().finish();
@@ -762,7 +761,7 @@ public class SendFragment extends WalletFragment {
             try {
                 return messageFactory.createPublicMessage(message);
             } catch (Exception e) { // Should not happen
-                ACRA.getErrorReporter().handleSilentException(e);
+                log.warn("Could not create public transaction message", e);
             }
         }
         return null;

@@ -28,7 +28,6 @@ import com.vergepay.wallet.util.TimeUtils;
 import com.vergepay.wallet.util.UiUtils;
 import com.vergepay.wallet.util.WeakHandler;
 
-import org.acra.ACRA;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -199,7 +198,7 @@ public class TransactionDetailsFragment extends Fragment {
                     txMessage.setVisibility(View.VISIBLE);
                 }
             } catch (Exception e) {
-                ACRA.getErrorReporter().handleSilentException(e);
+                log.warn("Could not display transaction message", e);
             }
         }
     }

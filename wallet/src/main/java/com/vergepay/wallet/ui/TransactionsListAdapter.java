@@ -363,7 +363,6 @@ public class TransactionsListAdapter extends BaseAdapter {
                 }
             } catch (Exception e) {
                 rowMessageFontIcon.setVisibility(View.GONE);
-                ACRA.getErrorReporter().handleSilentException(e);
             }*/
             if (tx.getMessage() == null) {
                 rowMessageFontIcon.setVisibility(View.GONE);
