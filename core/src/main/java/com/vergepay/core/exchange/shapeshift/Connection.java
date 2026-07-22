@@ -1,8 +1,8 @@
 package com.vergepay.core.exchange.shapeshift;
 
-import com.squareup.okhttp.Cache;
-import com.squareup.okhttp.ConnectionSpec;
-import com.squareup.okhttp.OkHttpClient;
+import okhttp3.Cache;
+import okhttp3.ConnectionSpec;
+import okhttp3.OkHttpClient;
 
 import java.io.File;
 import java.util.Collections;
@@ -21,8 +21,9 @@ abstract public class Connection {
     }
 
     protected Connection() {
-        client = new OkHttpClient();
-        client.setConnectionSpecs(Collections.singletonList(ConnectionSpec.MODERN_TLS));
+        client = new OkHttpClient.Builder()
+                .connectionSpecs(Collections.singletonList(ConnectionSpec.MODERN_TLS))
+                .build();
     }
 
     /**
@@ -32,11 +33,11 @@ abstract public class Connection {
     public void setCache(File cacheDirectory) {
         int cacheSize = 256 * 1024; // 256 KiB
         Cache cache = new Cache(cacheDirectory, cacheSize);
-        client.setCache(cache);
+        client = client.newBuilder().cache(cache).build();
     }
 
     public boolean isCacheSet() {
-        return client.getCache() != null;
+        return client.cache() != null;
     }
 
     protected String getApiUrl(String path) {

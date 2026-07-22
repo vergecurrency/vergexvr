@@ -37,11 +37,11 @@ public final class UnstoppableDomainsResolver {
         }
 
         String url = API_BASE_URL + URLEncoder.encode(domain.trim(), "UTF-8");
-        com.squareup.okhttp.Request request = NetworkUtils.getBrowserRequestBuilder(url)
+        okhttp3.Request request = NetworkUtils.getBrowserRequestBuilder(url)
                 .header("Authorization", "Bearer " + token)
                 .build();
 
-        com.squareup.okhttp.Response response =
+        okhttp3.Response response =
                 NetworkUtils.getHttpClient(context).newCall(request).execute();
         if (!response.isSuccessful()) {
             throw new ResolutionException("http_" + response.code());

@@ -46,9 +46,9 @@ import com.vergepay.wallet.util.NetworkUtils;
 import com.vergepay.wallet.util.ThrottlingWalletChangeListener;
 import com.vergepay.wallet.util.WeakHandler;
 import com.google.common.collect.Lists;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.TransactionConfidence;

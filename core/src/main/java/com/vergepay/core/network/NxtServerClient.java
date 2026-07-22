@@ -2,12 +2,13 @@ package com.vergepay.core.network;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Service;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.FormEncodingBuilder;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import com.vergepay.core.coins.CoinType;
 import com.vergepay.core.coins.nxt.Convert;
 import com.vergepay.core.coins.nxt.NxtException;
@@ -207,13 +208,13 @@ public class NxtServerClient implements BlockchainConnection<NxtTransaction> {
                 Request request = new Request.Builder().url(getBlockchainStatusUrl()).build();
                 getHttpClient().newCall(request).enqueue(new Callback() {
                     @Override
-                    public void onFailure(Request request, IOException e) {
-                        log.info("Failed to communicate with server:  " + request.toString());
+                    public void onFailure(Call call, IOException e) {
+                        log.info("Failed to communicate with server:  " + call.request());
 
                     }
 
                     @Override
-                    public void onResponse(Response response) throws IOException {
+                    public void onResponse(Call call, Response response) throws IOException {
                         try {
                             if (!response.isSuccessful()) {
                                 log.info("Unable to fetch blockchain status.");
@@ -258,13 +259,13 @@ public class NxtServerClient implements BlockchainConnection<NxtTransaction> {
                 Request request = new Request.Builder().url(getEcUrl()).build();
                 getHttpClient().newCall(request).enqueue(new Callback() {
                     @Override
-                    public void onFailure(Request request, IOException e) {
-                        log.info("Failed to communicate with server:  " + request.toString());
+                    public void onFailure(Call call, IOException e) {
+                        log.info("Failed to communicate with server:  " + call.request());
 
                     }
 
                     @Override
-                    public void onResponse(Response response) throws IOException {
+                    public void onResponse(Call call, Response response) throws IOException {
                         try {
                             if (!response.isSuccessful()) {
                                 log.info("Unable to fetch EC block.");
@@ -314,13 +315,13 @@ public class NxtServerClient implements BlockchainConnection<NxtTransaction> {
                     Request request = new Request.Builder().url(getAccountInfo(address)).build();
                     getHttpClient().newCall(request).enqueue(new Callback() {
                         @Override
-                        public void onFailure(Request request, IOException e) {
-                            log.info("Failed to communicate with server:  " + request.toString());
+                        public void onFailure(Call call, IOException e) {
+                            log.info("Failed to communicate with server:  " + call.request());
 
                         }
 
                         @Override
-                        public void onResponse(Response response) throws IOException {
+                        public void onResponse(Call call, Response response) throws IOException {
                             try {
                                 if (!response.isSuccessful()) {
                                     log.info("Unable to check address status.");
@@ -366,13 +367,13 @@ public class NxtServerClient implements BlockchainConnection<NxtTransaction> {
                         getBlockChainTxsUrl(status.getAddress().toString())).build();
                 getHttpClient().newCall(request).enqueue(new Callback() {
                     @Override
-                    public void onFailure(Request request, IOException e) {
-                        log.info("Failed to communicate with server:  " + request.toString());
+                    public void onFailure(Call call, IOException e) {
+                        log.info("Failed to communicate with server:  " + call.request());
 
                     }
 
                     @Override
-                    public void onResponse(Response response) throws IOException {
+                    public void onResponse(Call call, Response response) throws IOException {
                         try {
                             if (!response.isSuccessful()) {
                                 log.info("Unable to fetch txs.");
@@ -410,14 +411,14 @@ public class NxtServerClient implements BlockchainConnection<NxtTransaction> {
         Request request = new Request.Builder().url(getTransactionUrl(txHash.toString())).build();
         getHttpClient().newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Request request, IOException e) {
-                log.info("Failed to communicate with server:  " + request.toString());
+            public void onFailure(Call call, IOException e) {
+                log.info("Failed to communicate with server:  " + call.request());
                 // FIXME infinite recursion
 //                getTransaction(txHash, listener);
             }
 
             @Override
-            public void onResponse(Response response) throws IOException {
+            public void onResponse(Call call, Response response) throws IOException {
                 try {
                     if (!response.isSuccessful()) {
                         log.info("Unable to fetch txs.");
@@ -451,13 +452,13 @@ public class NxtServerClient implements BlockchainConnection<NxtTransaction> {
         Request request = new Request.Builder().url(getTransactionBytesUrl(txId)).build();
         getHttpClient().newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Request request, IOException e) {
-                log.info("Failed to communicate with server:  " + request.toString());
+            public void onFailure(Call call, IOException e) {
+                log.info("Failed to communicate with server:  " + call.request());
                 getTransactionBytes(txId, listener, confirmations);
             }
 
             @Override
-            public void onResponse(Response response) throws IOException {
+            public void onResponse(Call call, Response response) throws IOException {
                 try {
                     if (!response.isSuccessful()) {
                         log.info("Unable to fetch txs.");
@@ -491,19 +492,19 @@ public class NxtServerClient implements BlockchainConnection<NxtTransaction> {
 
     @Override
     public boolean broadcastTxSync(final NxtTransaction tx) {
-        RequestBody formBody = new FormEncodingBuilder().add("requestType", "broadcastTransaction")
+        RequestBody formBody = new FormBody.Builder().add("requestType", "broadcastTransaction")
                 .add("transactionBytes", Convert.toHexString(tx.getRawTransaction().getBytes())).build();
         Request request = new Request.Builder().url(getBaseUrl()).post(formBody).build();
 
         // FIXME this is not a sync call
         getHttpClient().newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Request request, IOException e) {
-                log.info("Failed to communicate with server:  " + request.toString());
+            public void onFailure(Call call, IOException e) {
+                log.info("Failed to communicate with server:  " + call.request());
             }
 
             @Override
-            public void onResponse(Response response) throws IOException {
+            public void onResponse(Call call, Response response) throws IOException {
                 try {
                     if (!response.isSuccessful()) {
                         log.info("Unable to fetch txs.");

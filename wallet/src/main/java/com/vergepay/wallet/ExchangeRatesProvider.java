@@ -36,9 +36,9 @@ import com.vergepay.core.coins.Value;
 import com.vergepay.core.util.ExchangeRateBase;
 import com.vergepay.wallet.util.NetworkUtils;
 import com.google.common.collect.ImmutableMap;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import org.json.JSONException;
 import org.json.JSONObject;
