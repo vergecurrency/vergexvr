@@ -10,19 +10,25 @@ compileJava {
     targetCompatibility = "1.8"
 }
 
+test {
+    useJUnitPlatform()
+}
+
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
-    api 'com.google.guava:guava:23.0'
+    api 'com.google.guava:guava:33.6.0-android'
     api 'com.google.code.findbugs:jsr305:3.0.2'
     api 'com.madgag.spongycastle:core:1.58.0.0'
     api 'com.lambdaworks:scrypt:1.4.0'
-    api 'org.junit.jupiter:junit-jupiter-api:5.14.1'
     api 'com.google.protobuf:protobuf-java:3.25.3'
     api 'org.slf4j:slf4j-jdk14:2.0.17'
     api 'org.json:json:20260719'
     api 'com.squareup.okhttp3:okhttp:5.3.0'
 
     testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.14.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.14.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.14.1'
     testImplementation 'com.squareup.okhttp3:mockwebserver3:5.3.0'
 }
 

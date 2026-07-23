@@ -84,7 +84,7 @@ android {
         implementation 'androidx.cursoradapter:cursoradapter:1.0.0'
         implementation 'androidx.gridlayout:gridlayout:1.1.0'
         implementation 'androidx.preference:preference:1.2.1'
-        implementation 'com.google.guava:guava:23.0' //TODO ToStringHelper update for 19.0+
+        implementation 'com.google.guava:guava:33.6.0-android'
         implementation 'com.google.code.findbugs:jsr305:3.0.2' // most recent as of 7/2023
         implementation 'com.madgag.spongycastle:core:1.58.0.0' // most recent as of 7/2023
         implementation 'com.google.protobuf:protobuf-java:3.25.3' // march2025
