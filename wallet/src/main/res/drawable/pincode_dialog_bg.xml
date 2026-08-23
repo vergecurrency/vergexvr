@@ -12,7 +12,7 @@
     <item android:left="-12dp" android:top="-18dp" android:right="120dp" android:bottom="180dp">
         <shape android:shape="oval">
             <gradient
-                android:angle="35"
+                android:angle="45"
                 android:centerColor="#18158A80"
                 android:endColor="#00158A80"
                 android:startColor="#03158A80" />

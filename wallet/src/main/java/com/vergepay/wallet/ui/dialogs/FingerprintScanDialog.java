@@ -43,9 +43,10 @@ public class FingerprintScanDialog extends DialogFragment implements View.OnClic
             public void onAuthenticationError(int errMsgId, CharSequence errString) {
                 super.onAuthenticationError(errMsgId, errString);
 
-                dismiss();
+                boolean deliverResult = canDeliverAuthenticationResult();
+                dismissAllowingStateLoss();
 
-                if (callback != null) {
+                if (deliverResult && callback != null) {
                     callback.onAuthenticationError(errMsgId, errString);
                 }
             }
@@ -62,9 +63,10 @@ public class FingerprintScanDialog extends DialogFragment implements View.OnClic
             public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
                 super.onAuthenticationSucceeded(result);
 
-                dismiss();
+                boolean deliverResult = canDeliverAuthenticationResult();
+                dismissAllowingStateLoss();
 
-                if (callback != null) {
+                if (deliverResult && callback != null) {
                     callback.onAuthenticationSucceeded(result);
                 }
             }
@@ -80,6 +82,10 @@ public class FingerprintScanDialog extends DialogFragment implements View.OnClic
 
         fingerprintManager = FingerprintManagerCompat.from(getContext());
         fingerprintManager.authenticate(null, 0, signal, tempCallback, null);
+    }
+
+    private boolean canDeliverAuthenticationResult() {
+        return isResumed() && !getParentFragmentManager().isStateSaved();
     }
 
     public void setCallback(Callback callback) {

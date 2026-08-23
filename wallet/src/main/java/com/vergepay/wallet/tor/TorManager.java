@@ -21,6 +21,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import net.freehaven.tor.control.TorControlConnection;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,7 +37,6 @@ public class TorManager {
     private static final Logger log = LoggerFactory.getLogger(TorManager.class);
     private static final long DIRECT_BOOTSTRAP_TIMEOUT_MS = 60_000L;
     private static final long TRANSPORT_BOOTSTRAP_TIMEOUT_MS = 90_000L;
-    private static final long TOR_STOP_TIMEOUT_MS = 15_000L;
     private static final long BOOTSTRAP_POLL_INTERVAL_MS = 1_000L;
     private static final String LYREBIRD_ASSET_ROOT = Constants.TOR_ASSET_DIR + "/lyrebird";
     private static final String PT_CONFIG_FILE_NAME = "pt_config.json";
@@ -82,7 +83,6 @@ public class TorManager {
     private boolean serviceBound;
     private boolean monitoringBootstrap;
     private boolean restartInProgress;
-    private boolean stoppedForRestart;
     private int attemptGeneration;
     private String lastStatus = Constants.TOR_STATUS_STOPPED;
     @Nullable private TorService torService;
@@ -100,7 +100,6 @@ public class TorManager {
             ready = false;
             monitoringBootstrap = false;
             restartInProgress = false;
-            stoppedForRestart = false;
             attemptPlan.reset();
         }
 
@@ -268,16 +267,7 @@ public class TorManager {
             boolean wasReady;
             synchronized (lock) {
                 if (restartInProgress) {
-                    if (TorService.STATUS_OFF.equals(status)) {
-                        stoppedForRestart = true;
-                        starting = false;
-                        ready = false;
-                        monitoringBootstrap = false;
-                        lock.notifyAll();
-                        log.info("Tor stopped before changing transport");
-                    } else {
-                        log.info("Tor is stopping before changing transport");
-                    }
+                    log.info("Ignoring {} status while changing Tor transport", status);
                     return;
                 }
                 wasReady = ready;
@@ -352,20 +342,13 @@ public class TorManager {
     private void retryWithBridgeFallback(final String bridgeTransport) {
         Thread restartThread = new Thread(() -> {
             try {
-                stopTorAndWait();
-                startTor(bridgeTransport);
+                reloadWithBridgeTransport(bridgeTransport);
                 synchronized (lock) {
                     restartInProgress = false;
                 }
                 startBootstrapMonitor();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                synchronized (lock) {
-                    restartInProgress = false;
-                }
-                broadcastStatus(Constants.TOR_STATUS_FAILED);
             } catch (Exception e) {
-                log.error("Failed to restart tor-android with bridge fallback", e);
+                log.error("Failed to reload tor-android with bridge fallback", e);
                 synchronized (lock) {
                     restartInProgress = false;
                 }
@@ -376,25 +359,28 @@ public class TorManager {
         restartThread.start();
     }
 
-    private void stopTorAndWait() throws IOException, InterruptedException {
-        synchronized (lock) {
-            stoppedForRestart = false;
-        }
+    private void reloadWithBridgeTransport(String bridgeTransport)
+            throws IOException, JSONException {
+        prepareTorrc(bridgeTransport);
 
-        Intent stopIntent = new Intent(context, TorService.class);
-        stopIntent.setAction(TorService.ACTION_STOP);
-        context.startService(stopIntent);
-
-        long deadline = System.currentTimeMillis() + TOR_STOP_TIMEOUT_MS;
+        TorControlConnection controlConnection;
+        File torrcFile = TorService.getTorrc(context);
         synchronized (lock) {
-            while (!stoppedForRestart) {
-                long remaining = deadline - System.currentTimeMillis();
-                if (remaining <= 0) {
-                    throw new IOException("Timed out waiting for Tor to stop before transport change");
-                }
-                lock.wait(remaining);
+            if (torService == null || torService.getTorControlConnection() == null) {
+                throw new IOException("Tor control connection unavailable");
             }
+            controlConnection = torService.getTorControlConnection();
+            attemptGeneration++;
+            monitoringBootstrap = false;
+            starting = true;
+            ready = false;
         }
+
+        controlConnection.setConf("DisableNetwork", "1");
+        controlConnection.loadConf(readFile(torrcFile));
+        controlConnection.setConf("DisableNetwork", "0");
+        log.info("Reloaded {} bridge transport in running Tor instance", bridgeTransport);
+        broadcastStatus(Constants.TOR_STATUS_STARTING);
     }
 
     private BridgeConfig loadBridgeConfig(@Nullable String requestedTransport)

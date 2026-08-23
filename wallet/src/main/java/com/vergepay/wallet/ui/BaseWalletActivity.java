@@ -169,7 +169,7 @@ abstract public class BaseWalletActivity extends AppCompatActivity {
 
                     @Override
                     public void onPincodeClicked() {
-                        fingerprintDialog.dismiss();
+                        fingerprintDialog.dismissAllowingStateLoss();
                         showPincodeDialog();
                     }
                 });
