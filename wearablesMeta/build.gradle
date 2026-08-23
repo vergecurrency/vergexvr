@@ -11,7 +11,7 @@ android {
     defaultConfig {
         applicationId "com.vergepay.wearablesmeta"
         minSdk 21
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode 1
         versionName "0.1.0"
     }
