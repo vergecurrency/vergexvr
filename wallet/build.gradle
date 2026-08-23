@@ -20,8 +20,8 @@ android {
         minSdk 21
         targetSdkVersion 36
         ndkVersion "21.3.6528147" //shouldn't matter but gradle complains
-        versionCode 30402
-        versionName "v26.8"
+        versionCode 30403
+        versionName "v26.8.1"
         buildConfigField "String", "UNSTOPPABLE_DOMAINS_API_TOKEN", "\"${unstoppableApiToken.toString().replace("\\", "\\\\").replace("\"", "\\\"")}\""
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
@@ -38,7 +38,7 @@ android {
         meta {
             dimension "platform"
             minSdk 29
-            versionCode 26502
+            versionCode 26503
         }
     }
 
