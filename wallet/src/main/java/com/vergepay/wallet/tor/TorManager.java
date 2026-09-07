@@ -171,12 +171,13 @@ public class TorManager {
         }
     }
 
-    private void bindTorService(Intent serviceIntent) {
+    private boolean bindTorService(Intent serviceIntent) {
         synchronized (lock) {
             if (serviceBound) {
-                return;
+                return true;
             }
             serviceBound = context.bindService(serviceIntent, torServiceConnection, Context.BIND_AUTO_CREATE);
+            return serviceBound;
         }
     }
 
@@ -333,9 +334,14 @@ public class TorManager {
         }
         TorService.setBroadcastPackageName(context.getPackageName());
         Intent serviceIntent = new Intent(context, TorService.class);
-        serviceIntent.setAction(TorService.ACTION_START);
-        context.startService(serviceIntent);
-        bindTorService(serviceIntent);
+        // TorService starts its native thread from onCreate(). Keep it bound for the
+        // lifetime of this process instead of also making it a started service. The
+        // bundled service can release its run lock before native shutdown completes;
+        // Android recreating a stopped started-service in that window can invoke
+        // tor_init() twice and abort in hs_circuitmap_init().
+        if (!bindTorService(serviceIntent)) {
+            throw new IOException("Unable to bind Tor service");
+        }
         broadcastStatus(Constants.TOR_STATUS_STARTING);
     }
 
