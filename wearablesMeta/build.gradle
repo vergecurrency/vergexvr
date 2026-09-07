@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "com.vergepay.wearablesmeta"
-        minSdk 21
+        minSdk 23
         targetSdkVersion 36
         versionCode 1
         versionName "0.1.0"
@@ -42,8 +42,8 @@ android {
 
 dependencies {
     implementation project(':core')
-    implementation 'androidx.appcompat:appcompat:1.7.1'
-    implementation 'androidx.core:core:1.16.0'
+    implementation 'androidx.appcompat:appcompat:1.8.0'
+    implementation 'androidx.core:core:1.17.0'
 }
 
 configurations.configureEach {
