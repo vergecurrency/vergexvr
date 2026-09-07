@@ -90,7 +90,7 @@ public final class ScanActivity extends FragmentActivity
     private TextureView questPreviewView;
     private Vibrator vibrator;
     private HandlerThread cameraThread;
-    private Handler cameraHandler;
+    @Nullable private volatile Handler cameraHandler;
     private boolean isSurfaceCreated = false;
     private boolean isQuestPreviewAvailable = false;
     @Nullable private QuestCamera2Manager questCameraManager;
@@ -227,16 +227,17 @@ public final class ScanActivity extends FragmentActivity
     }
 
     private void openCamera() {
-        if (cameraHandler == null || !hasCameraPermission()) {
+        final Handler activeHandler = cameraHandler;
+        if (activeHandler == null || !hasCameraPermission()) {
             return;
         }
 
         if (useQuestPassthroughScanner()) {
             if (isQuestPreviewAvailable && questPreviewView != null) {
-                cameraHandler.post(openQuestRunnable);
+                activeHandler.post(openQuestRunnable);
             }
         } else if (isSurfaceCreated && surfaceHolder != null) {
-            cameraHandler.post(openRunnable);
+            activeHandler.post(openRunnable);
         }
     }
 
@@ -268,7 +269,11 @@ public final class ScanActivity extends FragmentActivity
                 return true;
             case KeyEvent.KEYCODE_VOLUME_DOWN:
             case KeyEvent.KEYCODE_VOLUME_UP:
-                cameraHandler.post(new Runnable()
+                final Handler activeHandler = cameraHandler;
+                if (activeHandler == null) {
+                    return true;
+                }
+                activeHandler.post(new Runnable()
                 {
                     @Override
                     public void run()
@@ -322,6 +327,10 @@ public final class ScanActivity extends FragmentActivity
         @Override
         public void run()
         {
+            final Handler activeHandler = cameraHandler;
+            if (activeHandler == null) {
+                return;
+            }
             try
             {
                 final SurfaceView surfaceView = findViewById(R.id.scan_activity_preview);
@@ -348,9 +357,9 @@ public final class ScanActivity extends FragmentActivity
                         || Camera.Parameters.FOCUS_MODE_MACRO.equals(focusMode);
 
                 if (nonContinuousAutoFocus)
-                    cameraHandler.post(new AutoFocusRunnable(camera));
+                    activeHandler.post(new AutoFocusRunnable(camera, activeHandler));
 
-                cameraHandler.post(fetchAndDecodeRunnable);
+                activeHandler.post(fetchAndDecodeRunnable);
             }
             catch (final IOException x)
             {
@@ -390,9 +399,13 @@ public final class ScanActivity extends FragmentActivity
     private final Runnable openQuestRunnable = new Runnable() {
         @Override
         public void run() {
+            final Handler activeHandler = cameraHandler;
+            if (activeHandler == null) {
+                return;
+            }
             try {
                 questFramePreview = null;
-                questCameraManager = new QuestCamera2Manager(ScanActivity.this, questPreviewView, cameraHandler,
+                questCameraManager = new QuestCamera2Manager(ScanActivity.this, questPreviewView, activeHandler,
                         new QuestCamera2Manager.Listener() {
                             @Override
                             public void onCameraReady(@NonNull final Rect frame, @NonNull final Rect framePreview) {
@@ -400,7 +413,9 @@ public final class ScanActivity extends FragmentActivity
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        scannerView.setFraming(frame, framePreview);
+                                        if (cameraHandler == activeHandler) {
+                                            scannerView.setFraming(frame, framePreview);
+                                        }
                                     }
                                 });
                             }
@@ -409,14 +424,17 @@ public final class ScanActivity extends FragmentActivity
                             public void onPreviewFrame(@NonNull final byte[] luminance, final int width,
                                                        final int height) {
                                 if (questFramePreview != null) {
-                                    decodeLuminanceSource(luminance, width, height, questFramePreview);
+                                    decodeLuminanceSource(luminance, width, height, questFramePreview,
+                                            activeHandler);
                                 }
                             }
 
                             @Override
                             public void onCameraError(@NonNull final Exception error) {
                                 log.info("problem opening Quest passthrough camera", error);
-                                showErrorToast();
+                                if (cameraHandler == activeHandler) {
+                                    showErrorToast();
+                                }
                             }
                         });
                 questCameraManager.open();
@@ -480,10 +498,12 @@ public final class ScanActivity extends FragmentActivity
     private final class AutoFocusRunnable implements Runnable
     {
         private final Camera camera;
+        private final Handler activeHandler;
 
-        public AutoFocusRunnable(final Camera camera)
+        public AutoFocusRunnable(final Camera camera, final Handler activeHandler)
         {
             this.camera = camera;
+            this.activeHandler = activeHandler;
         }
 
         @Override
@@ -495,7 +515,9 @@ public final class ScanActivity extends FragmentActivity
                 public void onAutoFocus(final boolean success, final Camera camera)
                 {
                     // schedule again
-                    cameraHandler.postDelayed(AutoFocusRunnable.this, AUTO_FOCUS_INTERVAL_MS);
+                    if (cameraHandler == activeHandler) {
+                        activeHandler.postDelayed(AutoFocusRunnable.this, AUTO_FOCUS_INTERVAL_MS);
+                    }
                 }
             });
         }
@@ -509,35 +531,44 @@ public final class ScanActivity extends FragmentActivity
         @Override
         public void run()
         {
+            final Handler activeHandler = cameraHandler;
+            if (activeHandler == null) {
+                return;
+            }
             cameraManager.requestPreviewFrame(new PreviewCallback()
             {
                 @Override
                 public void onPreviewFrame(final byte[] data, final Camera camera)
                 {
-                    decode(data);
+                    if (cameraHandler == activeHandler) {
+                        decode(data, activeHandler);
+                    }
                 }
             });
         }
 
-        private void decode(final byte[] data)
+        private void decode(final byte[] data, final Handler activeHandler)
         {
-            decodeLuminanceSource(cameraManager.buildLuminanceSource(data), reader, hints, true);
+            decodeLuminanceSource(cameraManager.buildLuminanceSource(data), reader, hints, true,
+                    activeHandler);
         }
     };
 
     private void decodeLuminanceSource(@NonNull final byte[] luminance, final int width, final int height,
-                                       @NonNull final Rect framePreview) {
+                                       @NonNull final Rect framePreview,
+                                       @NonNull final Handler activeHandler) {
         final QRCodeReader reader = new QRCodeReader();
         final Map<DecodeHintType, Object> hints = new EnumMap<DecodeHintType, Object>(DecodeHintType.class);
         final PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(luminance, width, height,
                 framePreview.left, framePreview.top, framePreview.width(), framePreview.height(), false);
-        decodeLuminanceSource(source, reader, hints, false);
+        decodeLuminanceSource(source, reader, hints, false, activeHandler);
     }
 
     private void decodeLuminanceSource(@NonNull final PlanarYUVLuminanceSource source,
                                        @NonNull final QRCodeReader reader,
                                        @NonNull final Map<DecodeHintType, Object> hints,
-                                       final boolean retryOnFailure) {
+                                       final boolean retryOnFailure,
+                                       @NonNull final Handler activeHandler) {
         final BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
 
         try
@@ -552,7 +583,9 @@ public final class ScanActivity extends FragmentActivity
                         @Override
                         public void run()
                         {
-                            scannerView.addDot(dot);
+                            if (cameraHandler == activeHandler) {
+                                scannerView.addDot(dot);
+                            }
                         }
                     });
                 }
@@ -571,14 +604,16 @@ public final class ScanActivity extends FragmentActivity
                 @Override
                 public void run()
                 {
-                    handleResult(scanResult, thumbnailImage, thumbnailScaleFactor);
+                    if (cameraHandler == activeHandler) {
+                        handleResult(scanResult, thumbnailImage, thumbnailScaleFactor);
+                    }
                 }
             });
         }
         catch (final ReaderException x)
         {
-            if (retryOnFailure) {
-                cameraHandler.post(fetchAndDecodeRunnable);
+            if (retryOnFailure && cameraHandler == activeHandler) {
+                activeHandler.post(fetchAndDecodeRunnable);
             }
         }
         finally
