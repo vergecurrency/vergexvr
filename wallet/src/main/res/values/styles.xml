@@ -19,6 +19,82 @@
         <item name="android:alertDialogTheme">@style/AppAlertDialogTheme</item>
     </style>
 
+    <style name="AppThemeArcade" parent="Theme.AppCompat">
+        <item name="colorPrimary">#050505</item>
+        <item name="colorPrimaryDark">#000000</item>
+        <item name="colorAccent">#FF2D95</item>
+        <item name="android:colorAccent">#FF2D95</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:windowBackground">@drawable/arcade_screen_bg</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textColorPrimary">#DFFF00</item>
+        <item name="android:textColorSecondary">#FFB700</item>
+        <item name="alertDialogTheme">@style/AppAlertDialogThemeArcade</item>
+        <item name="android:alertDialogTheme">@style/AppAlertDialogThemeArcade</item>
+    </style>
+
+    <style name="AppThemeArcadeNoTitleBar" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">#050505</item>
+        <item name="colorPrimaryDark">#000000</item>
+        <item name="colorAccent">#FF2D95</item>
+        <item name="android:colorAccent">#FF2D95</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:windowBackground">@drawable/arcade_screen_bg</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textColorPrimary">#DFFF00</item>
+        <item name="android:textColorSecondary">#FFB700</item>
+        <item name="alertDialogTheme">@style/AppAlertDialogThemeArcade</item>
+        <item name="android:alertDialogTheme">@style/AppAlertDialogThemeArcade</item>
+    </style>
+
+    <style name="AppAlertDialogThemeArcade" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/arcade_dialog_bg</item>
+        <item name="android:textColorPrimary">#DFFF00</item>
+        <item name="android:textColorSecondary">#FFB700</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="colorAccent">#00E5FF</item>
+    </style>
+
+    <style name="AppThemeTerminal" parent="Theme.AppCompat">
+        <item name="colorPrimary">#000000</item>
+        <item name="colorPrimaryDark">#000000</item>
+        <item name="colorAccent">#33FF66</item>
+        <item name="android:colorAccent">#33FF66</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:windowBackground">@drawable/terminal_screen_bg</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textColorPrimary">#33FF66</item>
+        <item name="android:textColorSecondary">#46B45C</item>
+        <item name="alertDialogTheme">@style/AppAlertDialogThemeTerminal</item>
+        <item name="android:alertDialogTheme">@style/AppAlertDialogThemeTerminal</item>
+    </style>
+
+    <style name="AppThemeTerminalNoTitleBar" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">#000000</item>
+        <item name="colorPrimaryDark">#000000</item>
+        <item name="colorAccent">#33FF66</item>
+        <item name="android:colorAccent">#33FF66</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:windowBackground">@drawable/terminal_screen_bg</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textColorPrimary">#33FF66</item>
+        <item name="android:textColorSecondary">#46B45C</item>
+        <item name="alertDialogTheme">@style/AppAlertDialogThemeTerminal</item>
+        <item name="android:alertDialogTheme">@style/AppAlertDialogThemeTerminal</item>
+    </style>
+
+    <style name="AppAlertDialogThemeTerminal" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/terminal_panel_bg</item>
+        <item name="android:textColorPrimary">#33FF66</item>
+        <item name="android:textColorSecondary">#46B45C</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="colorAccent">#33FF66</item>
+    </style>
+
     <style name="AppAlertDialogTheme" parent="Theme.AppCompat.Dialog.Alert">
         <item name="android:windowBackground">@drawable/pincode_dialog_bg</item>
         <item name="android:colorBackgroundCacheHint">@null</item>

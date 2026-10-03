@@ -6,6 +6,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.core.hardware.fingerprint.FingerprintManagerCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Build;
+import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -29,6 +30,25 @@ import static com.vergepay.wallet.util.Crypto.hashMD5;
  * @author John L. Jegutanis
  */
 abstract public class BaseWalletActivity extends AppCompatActivity {
+    private String appliedTheme;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        appliedTheme = ThemeManager.getTheme(this);
+        ThemeManager.apply(this, this instanceof SignTransactionActivity);
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus && !ThemeManager.THEME_DEFAULT.equals(appliedTheme)) {
+            ThemeManager.decorate(getWindow().getDecorView(), appliedTheme);
+            getWindow().getDecorView().postDelayed(
+                    () -> ThemeManager.decorate(getWindow().getDecorView(), appliedTheme), 500);
+        }
+    }
+
     protected void setupWrapperHeader() {
         setupWrapperHeader(new View.OnClickListener() {
             @Override
@@ -130,6 +150,10 @@ abstract public class BaseWalletActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (!appliedTheme.equals(ThemeManager.getTheme(this))) {
+            recreate();
+            return;
+        }
         getWalletApplication().touchLastResume();
         lockCheck(false);
     }

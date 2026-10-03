@@ -339,6 +339,12 @@
     <string name="edit_account_delete_description">This removes the account from the wallet but it is still possible to re-add it and recover the coins.</string>
     <!-- Settings -->
     <string name="title_activity_settings">Settings</string>
+    <string name="pref_title_appearance">Appearance</string>
+    <string name="pref_title_theme">Theme</string>
+    <string name="pref_summary_theme">Choose the wallet color and type style</string>
+    <string name="theme_default">Default (Retrowave)</string>
+    <string name="theme_arcade">Arcade</string>
+    <string name="theme_terminal">80’s Terminal</string>
     <string name="pref_title_restore_wallet">Restore or Create New Wallet</string>
     <string name="pref_title_exchange_rates">Exchange rates</string>
     <string name="pref_title_manual_receiving_addresses">Static receiving addresses</string>

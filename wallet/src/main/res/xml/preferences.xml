@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <PreferenceCategory android:title="@string/pref_title_appearance">
+        <ListPreference
+            android:key="visual_theme"
+            android:title="@string/pref_title_theme"
+            android:summary="@string/pref_summary_theme"
+            android:defaultValue="default"
+            android:entries="@array/visual_theme_entries"
+            android:entryValues="@array/visual_theme_values" />
+    </PreferenceCategory>
+
     <Preference android:title="@string/title_activity_transaction_fees" >
         <intent android:targetPackage="@string/app_package"
             android:targetClass="com.vergepay.wallet.ui.FeesSettingsActivity" />

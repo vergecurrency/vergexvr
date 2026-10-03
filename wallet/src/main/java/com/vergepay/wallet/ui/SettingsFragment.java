@@ -22,6 +22,15 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             connectionsPreference.setSummary(R.string.pref_summary_connections);
         }
 
+        ListPreference themePreference = findPreference(ThemeManager.PREFS_KEY_VISUAL_THEME);
+        if (themePreference != null) {
+            themePreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
+            themePreference.setOnPreferenceChangeListener((preference, newValue) -> {
+                requireActivity().getWindow().getDecorView().post(requireActivity()::recreate);
+                return true;
+            });
+        }
+
         PreferenceCategory metaCategory = findPreference("meta_preferences_category");
         if (!getResources().getBoolean(R.bool.wallet_meta_variant)) {
             if (metaCategory != null) {
