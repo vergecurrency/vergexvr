@@ -428,6 +428,7 @@ public class AccountFragment extends Fragment {
                 ? R.drawable.account_nav_item_selected_bg
                 : R.drawable.account_nav_item_default_bg);
         view.setTextColor(getResources().getColor(selected ? R.color.text_primary : R.color.text_secondary));
+        ThemeManager.applyAccountNavStyle(view, selected);
     }
 
     private void showOverflowMenu(View anchor) {

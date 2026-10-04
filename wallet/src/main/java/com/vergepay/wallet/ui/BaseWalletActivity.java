@@ -72,10 +72,10 @@ abstract public class BaseWalletActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
-        WindowInsetsHelper.applyPaddingInsets(findViewById(R.id.wrapper_root), false, true);
-        WindowInsetsHelper.applyTopInsetAsPadding(
-                findViewById(R.id.wrapper_nav_container),
-                getNavbarCutoutExtraTop());
+        // Apply system bars to the outer wrapper.  Applying the top inset to the
+        // nested header is unreliable once the root has already dispatched its
+        // insets, and can leave the back button underneath the status bar.
+        WindowInsetsHelper.applyPaddingInsets(findViewById(R.id.wrapper_root), true, true);
     }
 
     protected int getNavbarCutoutExtraTop() {

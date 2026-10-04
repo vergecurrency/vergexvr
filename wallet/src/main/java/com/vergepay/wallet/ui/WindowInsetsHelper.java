@@ -15,7 +15,10 @@ final class WindowInsetsHelper {
     private WindowInsetsHelper() { }
 
     private static int resolveTopInset(View view, WindowInsetsCompat insets) {
-        int topInset = insets.getSystemWindowInsetTop();
+        int topInset = Math.max(
+                insets.getSystemWindowInsetTop(),
+                insets.getInsets(WindowInsetsCompat.Type.systemBars()
+                        | WindowInsetsCompat.Type.displayCutout()).top);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             WindowInsets rootInsets = view.getRootWindowInsets();
@@ -24,6 +27,16 @@ final class WindowInsetsHelper {
                 if (displayCutout != null) {
                     topInset = Math.max(topInset, displayCutout.getSafeInsetTop());
                 }
+            }
+        }
+
+        // Some edge-to-edge configurations report consumed (zero) insets even while the
+        // status bar remains visible. Keep wrapper headers below it on those devices.
+        if (topInset == 0) {
+            int statusBarHeightId = view.getResources().getIdentifier(
+                    "status_bar_height", "dimen", "android");
+            if (statusBarHeightId != 0) {
+                topInset = view.getResources().getDimensionPixelSize(statusBarHeightId);
             }
         }
 

@@ -345,6 +345,8 @@
     <string name="theme_default">Default (Retrowave)</string>
     <string name="theme_arcade">Arcade</string>
     <string name="theme_terminal">80’s Terminal</string>
+    <string name="theme_midnight_oled">Midnight OLED</string>
+    <string name="theme_game_boy">Game Boy</string>
     <string name="pref_title_restore_wallet">Restore or Create New Wallet</string>
     <string name="pref_title_exchange_rates">Exchange rates</string>
     <string name="pref_title_manual_receiving_addresses">Static receiving addresses</string>

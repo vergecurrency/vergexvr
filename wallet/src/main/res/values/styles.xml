@@ -95,6 +95,79 @@
         <item name="colorAccent">#33FF66</item>
     </style>
 
+    <style name="AppThemeMidnightOled" parent="Theme.AppCompat">
+        <item name="colorPrimary">#000000</item>
+        <item name="colorPrimaryDark">#000000</item>
+        <item name="colorAccent">#0A84FF</item>
+        <item name="android:colorAccent">#0A84FF</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:windowBackground">@drawable/midnight_oled_screen_bg</item>
+        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="android:textColorSecondary">#8E8E93</item>
+        <item name="alertDialogTheme">@style/AppAlertDialogThemeMidnightOled</item>
+        <item name="android:alertDialogTheme">@style/AppAlertDialogThemeMidnightOled</item>
+    </style>
+
+    <style name="AppThemeMidnightOledNoTitleBar" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">#000000</item>
+        <item name="colorPrimaryDark">#000000</item>
+        <item name="colorAccent">#0A84FF</item>
+        <item name="android:colorAccent">#0A84FF</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:windowBackground">@drawable/midnight_oled_screen_bg</item>
+        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="android:textColorSecondary">#8E8E93</item>
+        <item name="alertDialogTheme">@style/AppAlertDialogThemeMidnightOled</item>
+        <item name="android:alertDialogTheme">@style/AppAlertDialogThemeMidnightOled</item>
+    </style>
+
+    <style name="AppAlertDialogThemeMidnightOled" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/midnight_oled_panel_bg</item>
+        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="android:textColorSecondary">#8E8E93</item>
+        <item name="colorAccent">#0A84FF</item>
+    </style>
+
+    <style name="AppThemeGameBoy" parent="Theme.AppCompat">
+        <item name="colorPrimary">#306230</item>
+        <item name="colorPrimaryDark">#0F380F</item>
+        <item name="colorAccent">#0F380F</item>
+        <item name="android:colorAccent">#0F380F</item>
+        <item name="android:navigationBarColor">#0F380F</item>
+        <item name="android:statusBarColor">#0F380F</item>
+        <item name="android:windowBackground">@drawable/game_boy_screen_bg</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textColorPrimary">#0F380F</item>
+        <item name="android:textColorSecondary">#306230</item>
+        <item name="alertDialogTheme">@style/AppAlertDialogThemeGameBoy</item>
+        <item name="android:alertDialogTheme">@style/AppAlertDialogThemeGameBoy</item>
+    </style>
+
+    <style name="AppThemeGameBoyNoTitleBar" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">#306230</item>
+        <item name="colorPrimaryDark">#0F380F</item>
+        <item name="colorAccent">#0F380F</item>
+        <item name="android:colorAccent">#0F380F</item>
+        <item name="android:navigationBarColor">#0F380F</item>
+        <item name="android:statusBarColor">#0F380F</item>
+        <item name="android:windowBackground">@drawable/game_boy_screen_bg</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textColorPrimary">#0F380F</item>
+        <item name="android:textColorSecondary">#306230</item>
+        <item name="alertDialogTheme">@style/AppAlertDialogThemeGameBoy</item>
+        <item name="android:alertDialogTheme">@style/AppAlertDialogThemeGameBoy</item>
+    </style>
+
+    <style name="AppAlertDialogThemeGameBoy" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/game_boy_panel_bg</item>
+        <item name="android:textColorPrimary">#0F380F</item>
+        <item name="android:textColorSecondary">#306230</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="colorAccent">#0F380F</item>
+    </style>
+
     <style name="AppAlertDialogTheme" parent="Theme.AppCompat.Dialog.Alert">
         <item name="android:windowBackground">@drawable/pincode_dialog_bg</item>
         <item name="android:colorBackgroundCacheHint">@null</item>
