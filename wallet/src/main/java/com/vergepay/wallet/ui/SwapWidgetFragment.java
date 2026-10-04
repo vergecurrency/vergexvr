@@ -18,7 +18,7 @@ import com.vergepay.wallet.R;
 
 public class SwapWidgetFragment extends Fragment {
     private static final String WIDGET_URL =
-            "https://letsexchange.io/v2/widget?affiliate_id=ZfdAVgTUKOueeKY4&is_iframe=true";
+            "https://stealthex.io/widget/1c5c64de-0ac0-4b79-a393-e447de460c42";
 
     private WebView webView;
 
