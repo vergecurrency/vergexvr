@@ -16,7 +16,7 @@ test {
 
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
-    api 'com.google.guava:guava:33.7.1-android'
+    api 'com.google.guava:guava:33.7.2-android'
     api 'com.google.code.findbugs:jsr305:3.0.2'
     api 'com.madgag.spongycastle:core:1.58.0.0'
     api 'com.lambdaworks:scrypt:1.4.0'
