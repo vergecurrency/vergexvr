@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.appcompat.content.res.AppCompatResources;
+import androidx.core.content.ContextCompat;
 
 import com.vergepay.wallet.R;
 
@@ -39,6 +40,27 @@ public final class ThemeManager {
 
     public static boolean isTerminal(Context context) {
         return THEME_TERMINAL.equals(getTheme(context));
+    }
+
+    /** Five stops shared by the animated wallet and server status labels. */
+    public static int[] getStatusGradientColors(Context context) {
+        String theme = getTheme(context);
+        if (THEME_ARCADE.equals(theme)) {
+            return new int[] {0xFF00E5FF, 0xFFDFFF00, 0xFFFF2D95, 0xFFFFB700, 0xFF00E5FF};
+        } else if (THEME_TERMINAL.equals(theme)) {
+            return new int[] {0xFF46B45C, 0xFF33FF66, 0xFF46B45C, 0xFF33FF66, 0xFF46B45C};
+        } else if (THEME_MIDNIGHT_OLED.equals(theme)) {
+            return new int[] {0xFF0A84FF, Color.WHITE, 0xFF8E8E93, Color.WHITE, 0xFF0A84FF};
+        } else if (THEME_GAME_BOY.equals(theme)) {
+            return new int[] {0xFF306230, 0xFF0F380F, 0xFF306230, 0xFF0F380F, 0xFF306230};
+        }
+        return new int[] {
+                ContextCompat.getColor(context, R.color.progress_bar_color_2),
+                ContextCompat.getColor(context, R.color.text_primary),
+                ContextCompat.getColor(context, R.color.progress_bar_color_3),
+                ContextCompat.getColor(context, R.color.progress_bar_color_4),
+                ContextCompat.getColor(context, R.color.progress_bar_color_2)
+        };
     }
 
     public static void apply(Activity activity, boolean noTitleBar) {

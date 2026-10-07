@@ -82,13 +82,7 @@ public class ConnectionsActivity extends BaseWalletActivity
                     return;
                 }
 
-                int[] colors = new int[] {
-                        ContextCompat.getColor(ConnectionsActivity.this, R.color.progress_bar_color_2),
-                        ContextCompat.getColor(ConnectionsActivity.this, R.color.text_primary),
-                        ContextCompat.getColor(ConnectionsActivity.this, R.color.progress_bar_color_3),
-                        ContextCompat.getColor(ConnectionsActivity.this, R.color.progress_bar_color_4),
-                        ContextCompat.getColor(ConnectionsActivity.this, R.color.progress_bar_color_2)
-                };
+                int[] colors = ThemeManager.getStatusGradientColors(ConnectionsActivity.this);
                 float[] positions = new float[] {0f, 0.28f, 0.55f, 0.8f, 1f};
                 serverLabelGradient = new LinearGradient(
                         -textWidth, 0f, 0f, 0f, colors, positions, Shader.TileMode.CLAMP);

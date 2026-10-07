@@ -397,13 +397,7 @@ public class BalanceFragment extends WalletFragment implements LoaderCallbacks<L
                     return;
                 }
 
-                int[] colors = new int[] {
-                        ContextCompat.getColor(requireContext(), R.color.progress_bar_color_2),
-                        ContextCompat.getColor(requireContext(), R.color.text_primary),
-                        ContextCompat.getColor(requireContext(), R.color.progress_bar_color_3),
-                        ContextCompat.getColor(requireContext(), R.color.progress_bar_color_4),
-                        ContextCompat.getColor(requireContext(), R.color.progress_bar_color_2)
-                };
+                int[] colors = ThemeManager.getStatusGradientColors(requireContext());
                 float[] positions = new float[] {0f, 0.28f, 0.55f, 0.8f, 1f};
                 connectionLabelGradient = new LinearGradient(
                         -textWidth, 0f, 0f, 0f, colors, positions, Shader.TileMode.CLAMP);
