@@ -15,6 +15,7 @@ import android.widget.TextView;
 import com.vergepay.wallet.R;
 
 public class FingerprintScanDialog extends DialogFragment implements View.OnClickListener {
+    private static final String ARG_MODE = "mode";
 
     private FingerprintManagerCompat fingerprintManager;
     private CancellationSignal signal;
@@ -23,7 +24,9 @@ public class FingerprintScanDialog extends DialogFragment implements View.OnClic
 
     public static FingerprintScanDialog newInstance(Mode mode) {
         FingerprintScanDialog fingerprintScanDialog = new FingerprintScanDialog();
-        fingerprintScanDialog.setMode(mode);
+        Bundle arguments = new Bundle();
+        arguments.putString(ARG_MODE, mode.name());
+        fingerprintScanDialog.setArguments(arguments);
 
         return fingerprintScanDialog;
     }
@@ -36,6 +39,23 @@ public class FingerprintScanDialog extends DialogFragment implements View.OnClic
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            String modeName = arguments.getString(ARG_MODE);
+            if (modeName != null) {
+                try {
+                    mode = Mode.valueOf(modeName);
+                } catch (IllegalArgumentException ignored) {
+                    mode = Mode.CHECK;
+                }
+            }
+        }
+        if (mode == null) {
+            // FragmentManager can recreate this dialog using its empty constructor.
+            // CHECK is the safe fallback because it does not expose enrollment UI.
+            mode = Mode.CHECK;
+        }
 
         signal = new CancellationSignal();
         FingerprintManagerCompat.AuthenticationCallback tempCallback = new FingerprintManagerCompat.AuthenticationCallback() {
@@ -90,10 +110,6 @@ public class FingerprintScanDialog extends DialogFragment implements View.OnClic
 
     public void setCallback(Callback callback) {
         this.callback = callback;
-    }
-
-    public void setMode(Mode mode) {
-        this.mode = mode;
     }
 
     @Nullable
