@@ -1,5 +1,7 @@
 .gradle
+/.tmp*
 /.android/
+/.codex/
 .codex-gradle/
 .codex-gradle-home/
 .codex-gradle-home-local/

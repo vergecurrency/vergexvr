@@ -16,12 +16,12 @@ test {
 
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
-    api 'com.google.guava:guava:33.7.2-android'
+    api 'com.google.guava:guava:33.8.0-android'
     api 'com.google.code.findbugs:jsr305:3.0.2'
     api 'com.madgag.spongycastle:core:1.58.0.0'
     api 'com.lambdaworks:scrypt:1.4.0'
     api 'com.google.protobuf:protobuf-java:3.25.9'
-    api 'org.slf4j:slf4j-jdk14:2.0.19'
+    api 'org.slf4j:slf4j-jdk14:2.0.20'
     api 'org.json:json:20260814'
     api 'com.squareup.okhttp3:okhttp:5.4.0'
 

@@ -244,7 +244,7 @@ public class TorManager {
 
     private void handleTorServiceStatus(@Nullable String status) {
         log.info("tor-android status {}", status);
-        if (TorService.STATUS_ON.equals(status) || TorService.STATUS_BOOTSTRAPPED_100.equals(status)) {
+        if (TorService.STATUS_ON.equals(status)) {
             synchronized (lock) {
                 if (restartInProgress) {
                     log.info("Ignoring ready status while changing Tor transport");
@@ -332,7 +332,6 @@ public class TorManager {
             starting = true;
             monitoringBootstrap = false;
         }
-        TorService.setBroadcastPackageName(context.getPackageName());
         Intent serviceIntent = new Intent(context, TorService.class);
         // TorService starts its native thread from onCreate(). Keep it bound for the
         // lifetime of this process instead of also making it a started service. The
